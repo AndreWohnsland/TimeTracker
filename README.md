@@ -19,7 +19,7 @@ On first startup, the application will create the needed configuration and the d
 
 # Reports
 
-An overview can be seen when clicking `Options > Summary`. Over a datepicker, a day can be chosen to display a summary of the data in either the according month or all events of this day. The day / month view can be changed over the view togglebutton. To generate the report of your overtime, click the `Export` button. By default settings, the report will be saved into the reports folder of this application. As soon as the savefolder was changed over the option setting, the app will use this location instead. Only overtime is displayed. Time less than eight hours is displayed as zero.
+An overview can be seen when clicking `Options > Summary`. Over a datepicker, a day can be chosen to display a summary of the data in either the according month or all events of this day. The day / month view can be changed over the view togglebutton. To generate the report of your overtime, click the `Export` button. By default settings, the report will be saved into the reports folder of this application. As soon as the savefolder was changed over the option setting, the app will use this location instead. Only overtime is displayed. Time less than eight hours is displayed as zero. The overtime is rounded to the closest quarter hour.
 
 # Adjust Past Values
 
