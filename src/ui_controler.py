@@ -32,6 +32,7 @@ class UiControler:
         msgBox = QMessageBox()
         msgBox.setText("Would you like the report of the overtime (0 if none or the amount) or of the regular hours?")
         msgBox.setWindowTitle("Report Generation")
+        msgBox.setWindowIcon(QIcon(self.ui.clock_picture))
         overtime_button = msgBox.addButton("Overtime", QMessageBox.YesRole)
         time_button = msgBox.addButton("Time", QMessageBox.NoRole)
         cancelBtn = msgBox.addButton("Cancel", QMessageBox.RejectRole)
