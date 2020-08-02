@@ -4,13 +4,14 @@ A Qt-Application to start and stop time tracking, enter additional breaks, view 
 
 # Installation
 
-This application needs at least Python 3.6 installed at the system as well as the required packages. First clone the repository and cd into it. The required package can be installed with pip:
+This application needs at least Python 3.6 installed at the system as well as the required packages. First clone the repository and cd into it. The required package can be installed with pip. To start the app, you run the `runme.py` file with python, you can create a shortcut on your desctop:
 
 ```
+git clone https://github.com/AndreWohnsland/TimeTracker.git
+cd TimeTracker
 pip install -r requirements.txt
+python runme.py
 ```
-
-To start the app, you run the `runme.py` file with python, you can create a shortcut on your desctop.
 
 # Options
 
