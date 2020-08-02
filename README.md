@@ -1,6 +1,7 @@
 # Time Tracker
 
 A Qt-Application to start and stop time tracking, enter additional breaks, view your daily and monthly data, and generate a report out of it.
+
 ![mainwindow](https://github.com/AndreWohnsland/TimeTracker/blob/master/doc/mainwindow.PNG 'mainwindow')
 ![report](https://github.com/AndreWohnsland/TimeTracker/blob/master/doc/report.PNG 'report')
 
