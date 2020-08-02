@@ -28,6 +28,23 @@ class UiControler:
         msgBox.show()
         msgBox.exec_()
 
+    def report_choice(self):
+        msgBox = QMessageBox()
+        msgBox.setText("Would you like the report of the overtime (0 if none or the amount) or of the regular hours?")
+        msgBox.setWindowTitle("Report Generation")
+        overtime_button = msgBox.addButton("Overtime", QMessageBox.YesRole)
+        time_button = msgBox.addButton("Time", QMessageBox.NoRole)
+        cancelBtn = msgBox.addButton("Cancel", QMessageBox.RejectRole)
+
+        msgBox.exec_()
+
+        if msgBox.clickedButton() == overtime_button:
+            return True
+        elif msgBox.clickedButton() == time_button:
+            return False
+        elif msgBox.clickedButton() == cancelBtn:
+            return None
+
     def get_text(self, attribute):
         text, ok = QInputDialog.getText(self.ui, "Getting data for config", f"Enter your {attribute}:")
         return (text, ok)
