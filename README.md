@@ -26,9 +26,9 @@ An overview can be seen when clicking `Options > Summary`. With a datepicker, a 
 
 # Adjust Past Values
 
-In a future version there will be the possibility to adjust or add past values. This will be done over the `Options > Add Old Events` setting, which currently got no function. A date can be selected with the according action to insert past values.
+To enter values you have missed, you can switch to past entry mode. This can be done over the `Options > Switch to Past Entry` setting. A date can be selected with the according action to insert past values. To go back to the default option, click the shown back button.
 
 # ToDo's
 
-- Give the possibility to enter past values
 - Give the possibility to adjust or at least delete old events after a confirmation prompt (over the report window)
+- Implement a proper update logic to only use latest releases

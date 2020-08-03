@@ -140,11 +140,15 @@
     <property name="title">
      <string>Options</string>
     </property>
-    <addaction name="action_add_events"/>
     <addaction name="action_report"/>
+    <addaction name="action_past_entry"/>
     <addaction name="separator"/>
     <addaction name="action_configuration"/>
     <addaction name="action_savefolder"/>
+    <addaction name="separator"/>
+    <addaction name="action_update"/>
+    <addaction name="separator"/>
+    <addaction name="action_about"/>
    </widget>
    <addaction name="menuOptions"/>
   </widget>
@@ -171,6 +175,26 @@
   <action name="action_savefolder">
    <property name="text">
     <string>Set Savefolder</string>
+   </property>
+  </action>
+  <action name="action_update">
+   <property name="text">
+    <string>Search for Updates</string>
+   </property>
+  </action>
+  <action name="action_past_entry">
+   <property name="text">
+    <string>Switch to Past Entry</string>
+   </property>
+  </action>
+  <action name="action_tmp2">
+   <property name="text">
+    <string>tmp2</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

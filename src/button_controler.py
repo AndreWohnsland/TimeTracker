@@ -1,6 +1,7 @@
 from src.ui_controler import UiControler
 from src.config_handler import ConfigHandler
 from src.data_exporter import DataExporter
+from src.updater import Updater
 
 import datetime
 from dateutil.relativedelta import relativedelta
@@ -9,17 +10,28 @@ import pandas as pd
 
 class ButtonControler:
     def __init__(self, database_controler, ui_element):
+        self.version = "v1.1"
         self.db_controler = database_controler
         self.ui_controler = UiControler(ui_element)
         self.config_handler = ConfigHandler()
         self.data_exporter = DataExporter()
+        self.updater = Updater()
         self.report_df = []
         self.daily_data = []
         self.no_data = True
+        self.past_time = False
+
+    def display_about(self):
+        message = f"Version: {self.version}. This App was made with Python and Qt by Andre Wohnsland. Check https://github.com/AndreWohnsland/TimeTracker for more information."
+        self.ui_controler.show_message(message)
 
     def add_event(self, event):
-        self.db_controler.add_event(event)
-        self.ui_controler.show_message(f"Added event {event} at {datetime.datetime.now().strftime('%d-%m-%Y - %H:%M:%S')}")
+        entry_datetime = datetime.datetime.now()
+        entry_datetime = entry_datetime.replace(microsecond=0)
+        if self.past_time:
+            entry_datetime = self.ui_controler.get_past_datetime()
+        self.db_controler.add_event(event, entry_datetime)
+        self.ui_controler.show_message(f"Added event {event} at {entry_datetime.strftime('%d-%m-%Y - %H:%M:%S')}")
 
     def add_start(self):
         self.add_event("start")
@@ -29,9 +41,12 @@ class ButtonControler:
 
     def add_pause(self):
         pause = self.ui_controler.get_pause()
-        self.db_controler.add_pause(pause)
+        entry_date = datetime.date.today()
+        if self.past_time:
+            entry_date = self.ui_controler.get_past_date()
+        self.db_controler.add_pause(pause, entry_date)
         self.ui_controler.set_pause(0)
-        self.ui_controler.show_message(f"Added pause of {pause} minutes on date {datetime.datetime.now().strftime('%d-%m-%Y')}")
+        self.ui_controler.show_message(f"Added pause of {pause} minutes on date {entry_date.strftime('%d-%m-%Y')}")
 
     def get_user_data(self):
         all_data = self.config_handler.get_config_file_data()
@@ -165,3 +180,9 @@ class ButtonControler:
             self.fill_daily_data()
         else:
             self.fill_montly_data()
+
+    def get_updates(self):
+        message = "Want to search and get updates? This could take a short time."
+        if self.ui_controler.user_okay(message):
+            print("Try to update ...")
+            self.updater.update()

@@ -35,16 +35,26 @@ class UiControler:
         msgBox.setWindowIcon(QIcon(self.ui.clock_picture))
         overtime_button = msgBox.addButton("Overtime", QMessageBox.YesRole)
         time_button = msgBox.addButton("Time", QMessageBox.NoRole)
-        cancelBtn = msgBox.addButton("Cancel", QMessageBox.RejectRole)
+        msgBox.addButton("Cancel", QMessageBox.RejectRole)
 
         msgBox.exec_()
-
         if msgBox.clickedButton() == overtime_button:
             return True
         elif msgBox.clickedButton() == time_button:
             return False
-        elif msgBox.clickedButton() == cancelBtn:
-            return None
+        return None
+
+    def user_okay(self, text):
+        msgBox = QMessageBox()
+        msgBox.setText(text)
+        msgBox.setWindowTitle("Confirmation required")
+        msgBox.setWindowIcon(QIcon(self.ui.clock_picture))
+        yes_button = msgBox.addButton("Yes", QMessageBox.YesRole)
+        msgBox.addButton("No", QMessageBox.NoRole)
+        msgBox.exec_()
+        if msgBox.clickedButton() == yes_button:
+            return True
+        return False
 
     def get_text(self, attribute):
         text, ok = QInputDialog.getText(self.ui, "Getting data for config", f"Enter your {attribute}:")
@@ -85,6 +95,17 @@ class UiControler:
     def get_event_date(self):
         qt_date = self.ui.event_window.date_edit.date()
         return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
+
+    def get_past_date(self):
+        qt_object = self.ui.past_datetime_edit.dateTime()
+        qt_date = qt_object.date()
+        return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
+
+    def get_past_datetime(self):
+        qt_object = self.ui.past_datetime_edit.dateTime()
+        qt_date = qt_object.date()
+        qt_time = qt_object.time()
+        return datetime.datetime(qt_date.year(), qt_date.month(), qt_date.day(), qt_time.hour(), qt_time.minute(), qt_time.second())
 
     def view_day(self):
         if self.ui.event_window.switch_button.isChecked():

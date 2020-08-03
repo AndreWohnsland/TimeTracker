@@ -12,28 +12,28 @@ class DatabaseControler:
     def __init__(self):
         self.handler = DatabaseHandler()
 
-    def add_event(self, event):
-        now_date = datetime.datetime.now().isoformat()
-        print(f"Add Event: {event}, timestamp: {now_date}")
+    def add_event(self, event, entry_datetime):
+        datetime_string = entry_datetime.isoformat()
+        print(f"Add Event: {event}, timestamp: {datetime_string}")
         query = "INSERT INTO Events(Date, Action) VALUES(?, ?)"
-        self.handler.query_database(query, (now_date, event,))
+        self.handler.query_database(query, (datetime_string, event,))
 
-    def add_pause(self, pausetime):
-        today_string = datetime.date.today().isoformat()
-        if self.day_exists(today_string):
-            self.update_pause(pausetime, today_string)
+    def add_pause(self, pausetime, entry_date):
+        date_string = entry_date.isoformat()
+        if self.day_exists(date_string):
+            self.update_pause(pausetime, date_string)
         else:
-            self.insert_pause(pausetime, today_string)
+            self.insert_pause(pausetime, date_string)
 
-    def update_pause(self, pausetime, today_string):
-        print(f"Updating pause time by {pausetime} at {today_string}")
+    def update_pause(self, pausetime, date_string):
+        print(f"Updating pause time by {pausetime} at {date_string}")
         query = "UPDATE OR IGNORE Pause SET Time = Time + ? WHERE Date = ?"
-        self.handler.query_database(query, (pausetime, today_string,))
+        self.handler.query_database(query, (pausetime, date_string,))
 
-    def insert_pause(self, pausetime, today_string):
-        print(f"Inserting pause time by {pausetime} at {today_string}")
+    def insert_pause(self, pausetime, date_string):
+        print(f"Inserting pause time by {pausetime} at {date_string}")
         query = "INSERT INTO Pause(Date, Time) VALUES(?, ?)"
-        self.handler.query_database(query, (today_string, pausetime,))
+        self.handler.query_database(query, (date_string, pausetime,))
 
     def day_exists(self, day):
         query = "SELECT COUNT(*) FROM Pause WHERE Date = ?"
