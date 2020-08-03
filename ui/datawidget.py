@@ -34,7 +34,7 @@ class Ui_DataWidget(object):
         self.horizontalLayout.addWidget(self.switch_button)
         self.date_edit = QtWidgets.QDateEdit(DataWidget)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(18)
         self.date_edit.setFont(font)
         self.date_edit.setCurrentSection(QtWidgets.QDateTimeEdit.DaySection)
         self.date_edit.setCalendarPopup(True)

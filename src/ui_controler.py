@@ -143,7 +143,7 @@ class UiControler:
         delete_button.setMinimumSize(QtCore.QSize(0, 50))
         delete_button.setMaximumSize(QtCore.QSize(10000, 100))
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(18)
         delete_button.setFont(font)
         delete_button.setObjectName("delete_button")
         delete_button.setText("Delete")

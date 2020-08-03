@@ -56,7 +56,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def generate_datetime_edit(self):
         self.past_datetime_edit = QtWidgets.QDateTimeEdit(self)
         font = QtGui.QFont()
-        font.setPointSize(14)
+        font.setPointSize(12)
         self.past_datetime_edit.setFont(font)
         self.past_datetime_edit.setCurrentSection(QtWidgets.QDateTimeEdit.DaySection)
         self.past_datetime_edit.setCalendarPopup(True)
@@ -71,7 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.back_button.setMinimumSize(QtCore.QSize(0, 50))
         self.back_button.setMaximumSize(QtCore.QSize(200, 100))
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(18)
         self.back_button.setFont(font)
         self.back_button.setObjectName("back_button")
         self.back_button.setText("Back")
