@@ -15,6 +15,7 @@ class DataWindow(QWidget, Ui_DataWidget):
         self.main_window.set_icon(self)
         self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowModality(Qt.ApplicationModal)
+        self.delete_button = None
 
     def connect_buttons(self):
         self.date_edit.dateChanged.connect(lambda: self.button_controler.on_date_change())

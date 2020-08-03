@@ -37,9 +37,8 @@ git pull
 pip install -r requirements.txt
 ```
 
-Since version v1.1 it is also possible to update over the UI with `Options > Search for Updates`.
+Since version v1.1 it is also possible to update over the UI with `Options > Search for Updates`. The app will need to be restarted to apply changes.
 
 # ToDo's
 
-- Give the possibility to adjust or at least delete old events after a confirmation prompt (over the report window)
 - Implement a proper update logic to only use latest releases

@@ -78,7 +78,7 @@ class ButtonControler:
         work_data, pause_data = self.db_controler.get_month_data(selected_date)
         if not work_data:
             self.no_data = True
-            self.ui_controler.show_message("No data here, nothing to do here ...")
+            # self.ui_controler.show_message("No data here, nothing to do here ...")
             self.report_df = []
             return
         self.no_data = False
@@ -173,6 +173,7 @@ class ButtonControler:
             self.ui_controler.show_message(f"Could not open Workbook: {file_path}, is it still opened?")
 
     def switch_dataview(self):
+        self.ui_controler.handle_delete_button(self.delete_selected_event)
         if self.no_data:
             return
         self.ui_controler.set_date_toggle()
@@ -187,3 +188,12 @@ class ButtonControler:
             print("Try to update ...")
             self.updater.update()
             print("Done!")
+
+    def delete_selected_event(self):
+        selected_datetime, event = self.ui_controler.get_selected_event()
+        if selected_datetime == None:
+            return
+        if self.ui_controler.user_okay(f"Do you want to delete event {event} at: {selected_datetime}?"):
+            print(f"Delete event {event} at: {selected_datetime}")
+            self.db_controler.delete_event(selected_datetime)
+            self.on_date_change()

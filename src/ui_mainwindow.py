@@ -67,7 +67,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.verticalLayout.addWidget(self.past_datetime_edit)
 
     def generate_back_button(self):
-        self.back_button = QtWidgets.QPushButton(self.centralwidget)
+        self.back_button = QtWidgets.QPushButton(self)
         self.back_button.setMinimumSize(QtCore.QSize(0, 50))
         self.back_button.setMaximumSize(QtCore.QSize(200, 100))
         font = QtGui.QFont()

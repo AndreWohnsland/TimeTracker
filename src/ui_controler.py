@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QMessageBox, QInputDialog, QWidget, QTableWidgetItem, QFileDialog, QDialog
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QDateTime
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 import datetime
 from pathlib import Path
 
@@ -129,3 +131,38 @@ class UiControler:
         item.setText(name1)
         item = self.ui.event_window.tableWidget.horizontalHeaderItem(1)
         item.setText(name2)
+
+    def handle_delete_button(self, trigger_function):
+        if self.view_day():
+            self.create_delete_button(trigger_function)
+        else:
+            self.remove_delete_button()
+
+    def create_delete_button(self, trigger_function):
+        delete_button = QtWidgets.QPushButton(self.ui.event_window)
+        delete_button.setMinimumSize(QtCore.QSize(0, 50))
+        delete_button.setMaximumSize(QtCore.QSize(10000, 100))
+        font = QtGui.QFont()
+        font.setPointSize(20)
+        delete_button.setFont(font)
+        delete_button.setObjectName("delete_button")
+        delete_button.setText("Delete")
+        delete_button.clicked.connect(trigger_function)
+        self.ui.event_window.delete_button = delete_button
+        self.ui.event_window.verticalLayout.addWidget(self.ui.event_window.delete_button)
+
+    def remove_delete_button(self):
+        self.ui.event_window.verticalLayout.removeWidget(self.ui.event_window.delete_button)
+        self.ui.event_window.delete_button.deleteLater()
+        self.ui.event_window.delete_button = None
+
+    def get_selected_event(self):
+        indexes = self.ui.event_window.tableWidget.selectionModel().selectedRows()
+        if indexes:
+            row = indexes[0].row()
+            event_datetime = self.ui.event_window.tableWidget.item(row, 0).text()
+            event = self.ui.event_window.tableWidget.item(row, 1).text()
+            if event_datetime == "Pause":
+                return None, None
+            return event_datetime, event
+        return None, None

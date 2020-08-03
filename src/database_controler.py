@@ -62,6 +62,10 @@ class DatabaseControler:
         query = "SELECT Date, Time FROM Pause WHERE Date BETWEEN ? AND ? ORDER BY Date"
         return self.handler.query_database(query, (start.isoformat(), end.isoformat(),))
 
+    def delete_event(self, delete_datetime):
+        query = "DELETE FROM Events WHERE Date = ?"
+        self.handler.query_database(query, (delete_datetime,))
+
 
 class DatabaseHandler:
     """Handler Class for Connecting and querring Databases"""
