@@ -28,6 +28,17 @@ An overview can be seen when clicking `Options > Summary`. With a datepicker, a 
 
 To enter values you have missed, you can switch to past entry mode. This can be done over the `Options > Switch to Past Entry` setting. A date can be selected with the according action to insert past values. To go back to the default option, click the shown back button.
 
+# Updating to latest Version
+
+If updating from version v1.0 you need to go into the directory and run:
+
+```
+git pull
+pip install -r requirements.txt
+```
+
+Since version v1.1 it is also possible to update over the UI with `Options > Search for Updates`.
+
 # ToDo's
 
 - Give the possibility to adjust or at least delete old events after a confirmation prompt (over the report window)

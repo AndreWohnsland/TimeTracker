@@ -186,3 +186,4 @@ class ButtonControler:
         if self.ui_controler.user_okay(message):
             print("Try to update ...")
             self.updater.update()
+            print("Done!")
