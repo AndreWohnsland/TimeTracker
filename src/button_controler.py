@@ -166,11 +166,11 @@ class ButtonControler:
         overtime_report = self.ui_controler.report_choice()
         if overtime_report == None:
             return
-        succesful, file_path = self.data_exporter.export_data(self.report_df, report_date, overtime_report)
+        succesful, message = self.data_exporter.export_data(self.report_df, report_date, overtime_report)
         if succesful:
             self.ui_controler.show_message(f"File saved under: {file_path}")
         else:
-            self.ui_controler.show_message(f"Could not open Workbook: {file_path}, is it still opened?")
+            self.ui_controler.show_message(message)
 
     def switch_dataview(self):
         self.ui_controler.handle_delete_button(self.delete_selected_event)

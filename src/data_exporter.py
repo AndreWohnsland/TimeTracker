@@ -14,6 +14,10 @@ class DataExporter:
         self.worktime = 8
 
     def export_data(self, df, report_date, overtime_report=True):
+        if not df:
+            message = f"No data to export, will no generate file..."
+            print(message)
+            return False, message
         config = self.config_handler.get_config_file_data()
         file_suffix = "time"
         if overtime_report:
@@ -35,8 +39,9 @@ class DataExporter:
             workbook.close()
             return True, file_path
         except:
-            print(f"Could not open Workbook: {file_name}, is it still opened?")
-            return False, file_path
+            message = f"Could not open Workbook: {file_name}, is it still opened?"
+            print(message)
+            return False, message
 
     def round_quarterly(self, number):
         return round(number * 4) / 4
@@ -44,7 +49,7 @@ class DataExporter:
     def write_person_information(self, worksheet, df, config, bold, color, overtime_report):
         worksheet.write("A1", "Name:", bold)
         worksheet.write("B1", config["Name"], color)
-        worksheet.write("A2", "Pers.Nr::", bold)
+        worksheet.write("A2", "Pers.Nr:", bold)
         worksheet.write("B2", config["Personal Number"], color)
         worksheet.write("A3", "Monat:", bold)
         worksheet.write("B3", df.index[0].strftime("%B"), color)

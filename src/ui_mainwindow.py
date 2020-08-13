@@ -26,7 +26,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def set_icon(self, window):
         dirpath = os.path.dirname(__file__)
-        self.clock_picture = os.path.join(dirpath, "..", "ui", "clock.png")
+        self.clock_picture = os.path.join(os.path.dirname(dirpath), "ui", "clock.png")
         window.setWindowIcon(QIcon(self.clock_picture))
 
     def set_objects(self):
