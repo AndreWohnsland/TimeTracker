@@ -14,7 +14,7 @@ class DataExporter:
         self.worktime = 8
 
     def export_data(self, df, report_date, overtime_report=True):
-        if not df:
+        if df.empty:
             message = f"No data to export, will no generate file..."
             print(message)
             return False, message

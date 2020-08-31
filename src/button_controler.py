@@ -16,7 +16,7 @@ class ButtonControler:
         self.config_handler = ConfigHandler()
         self.data_exporter = DataExporter()
         self.updater = Updater()
-        self.report_df = []
+        self.report_df = pd.DataFrame([])
         self.daily_data = []
         self.no_data = True
         self.past_time = False
@@ -79,7 +79,7 @@ class ButtonControler:
         if not work_data:
             self.no_data = True
             # self.ui_controler.show_message("No data here, nothing to do here ...")
-            self.report_df = []
+            self.report_df = pd.DataFrame([])
             return
         self.no_data = False
         work_df = self.create_work_df(work_data)
@@ -168,7 +168,7 @@ class ButtonControler:
             return
         succesful, message = self.data_exporter.export_data(self.report_df, report_date, overtime_report)
         if succesful:
-            self.ui_controler.show_message(f"File saved under: {file_path}")
+            self.ui_controler.show_message(f"File saved under: {message}")
         else:
             self.ui_controler.show_message(message)
 
