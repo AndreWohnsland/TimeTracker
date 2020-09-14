@@ -200,7 +200,6 @@ class ButtonControler:
             self.on_date_change()
 
     def show_plot(self):
-        print(self.report_df)
         if self.report_df.empty:
             self.ui_controler.show_message(f"Please select a month with data")
             return
