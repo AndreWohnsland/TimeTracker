@@ -71,7 +71,7 @@ class Ui_DataWidget(object):
         _translate = QtCore.QCoreApplication.translate
         DataWidget.setWindowTitle(_translate("DataWidget", "View your Data"))
         self.export_button.setText(_translate("DataWidget", "Export"))
-        self.switch_button.setText(_translate("DataWidget", "View: Month"))
+        self.switch_button.setText(_translate("DataWidget", "Month"))
         self.date_edit.setDisplayFormat(_translate("DataWidget", "dd/MM/yyyy"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("DataWidget", "Date"))

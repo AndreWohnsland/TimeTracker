@@ -107,7 +107,9 @@ class UiControler:
         qt_object = self.ui.past_datetime_edit.dateTime()
         qt_date = qt_object.date()
         qt_time = qt_object.time()
-        return datetime.datetime(qt_date.year(), qt_date.month(), qt_date.day(), qt_time.hour(), qt_time.minute(), qt_time.second())
+        return datetime.datetime(
+            qt_date.year(), qt_date.month(), qt_date.day(), qt_time.hour(), qt_time.minute(), qt_time.second()
+        )
 
     def view_day(self):
         if self.ui.event_window.switch_button.isChecked():
@@ -116,9 +118,9 @@ class UiControler:
 
     def set_date_toggle(self):
         if self.view_day():
-            self.ui.event_window.switch_button.setText("View: Day")
+            self.ui.event_window.switch_button.setText("Day")
         else:
-            self.ui.event_window.switch_button.setText("View: Month")
+            self.ui.event_window.switch_button.setText("Month")
 
     def set_monthly_header(self):
         self.set_header_names("Date", "Worktime (h)")

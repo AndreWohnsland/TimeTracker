@@ -36,7 +36,7 @@
         </font>
        </property>
        <property name="text">
-        <string>View: Month</string>
+        <string>Month</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
