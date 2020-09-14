@@ -2,6 +2,7 @@ from src.ui_controler import UiControler
 from src.config_handler import ConfigHandler
 from src.data_exporter import DataExporter
 from src.updater import Updater
+from src.plot_window import GraphWindow
 
 import datetime
 from dateutil.relativedelta import relativedelta
@@ -197,3 +198,11 @@ class ButtonControler:
             print(f"Delete event {event} at: {selected_datetime}")
             self.db_controler.delete_event(selected_datetime)
             self.on_date_change()
+
+    def show_plot(self):
+        print(self.report_df)
+        if self.report_df.empty:
+            self.ui_controler.show_message(f"Please select a month with data")
+            return
+        self.graph_window = GraphWindow(self.report_df)
+        self.graph_window.show()
