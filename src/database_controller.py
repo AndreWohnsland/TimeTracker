@@ -1,9 +1,10 @@
 import sqlite3
-import os
 from pathlib import Path
 import datetime
 
 from dateutil.relativedelta import relativedelta
+
+from src.utils import get_app_dir
 
 
 class DatabaseController:
@@ -100,15 +101,20 @@ class DatabaseController:
 class DatabaseHandler:
     """Handler Class for Connecting and querying Databases"""
 
-    dirpath = os.path.dirname(__file__)
-    data_folder = "data"
-    database_name = "timedata"
-    database_path = os.path.join(dirpath, "..", data_folder, f"{database_name}.db")
-
     def __init__(self):
-        self.database_path = DatabaseHandler.database_path
+        # get the old database path (this if for old users, who have the database in the data folder)
+        old_database_path = Path(__file__).absolute().parents[1] / "data" / "timedata.db"
+        save_folder = get_app_dir()
+        # need to create the folder once
+        if not save_folder.exists():
+            save_folder.mkdir(parents=True)
+        # check if the old database exists and move it to the new location
+        self.database_path = save_folder / "time_data.db"
+        if old_database_path.exists():
+            print(f"Old Database found at {old_database_path}, moving to new location to {self.database_path}")
+            old_database_path.rename(self.database_path)
         if not Path(self.database_path).exists():
-            print("creating Database")
+            print(f"No database detected, creating Database at {self.database_path}")
             self.create_tables()
 
     def connect_database(self):
