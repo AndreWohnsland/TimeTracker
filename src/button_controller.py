@@ -166,9 +166,9 @@ class ButtonController:
     def export_data(self):
         report_date = self.ui_controller.get_event_date()
         overtime_report = self.ui_controller.report_choice()
-        if overtime_report == None:
+        if overtime_report is None:
             return
-        successful, message = self.data_exporter.export_data(self.report_df, report_date, overtime_report)
+        successful, message = self.data_exporter.export_data(self.report_df, overtime_report)
         if successful:
             self.ui_controller.show_message(f"File saved under: {message}")
         else:
@@ -193,7 +193,7 @@ class ButtonController:
 
     def delete_selected_event(self):
         selected_datetime, event = self.ui_controller.get_selected_event()
-        if selected_datetime == None:
+        if selected_datetime is None:
             return
         if self.ui_controller.user_okay(f"Do you want to delete event {event} at: {selected_datetime}?"):
             print(f"Delete event {event} at: {selected_datetime}")

@@ -11,7 +11,7 @@ class DataExporter:
         self.config_handler = ConfigHandler()
         self.work_time = 8
 
-    def export_data(self, df, overtime_report=True):
+    def export_data(self, df, report_date, overtime_report=True):
         if df.empty:
             message = "No data to export, will no generate file..."
             print(message)

@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.ticker as ticker
 
 from PyQt5.QtCore import Qt, QSize
@@ -30,7 +30,7 @@ class GraphWindow(QDialog):
         font.setBold(True)
         font.setWeight(75)
         self.back_button.setFont(font)
-        self.back_button.clicked.connect(lambda: self.close())
+        self.back_button.clicked.connect(self.close)  # type: ignore
         # this is the Canvas Widget that displays the `figure`
         # it takes the `figure` instance as a parameter to __init__
         self.canvas = FigureCanvas(self.figure)
@@ -39,7 +39,7 @@ class GraphWindow(QDialog):
         layout.addWidget(self.back_button)
         layout.addWidget(self.canvas)
         self.setLayout(layout)
-        # clears the old values and then adds a subplot to isert all the data
+        # clears the old values and then adds a subplot to insert all the data
         self.figure.clear()
         ax = self.figure.add_subplot(111)
 
