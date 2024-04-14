@@ -64,7 +64,8 @@ class ButtonController:
 
     def get_save_folder(self):
         all_data = self.config_handler.get_config_file_data()
-        returned_path = self.ui_controller.get_folder(all_data["save_path"])
+        user_path = all_data.get("save_path", "")
+        returned_path = self.ui_controller.get_folder(user_path)
         if returned_path:
             all_data["save_path"] = returned_path
         self.config_handler.write_config_file(all_data)
@@ -97,7 +98,7 @@ class ButtonController:
         self.ui_controller.clear_table()
         self.ui_controller.set_monthly_header()
         for index, entry in self.report_df.iterrows():
-            needed_data = [index.strftime("%d/%m/%Y"), str(entry["final_time"])]
+            needed_data = [index.strftime("%d/%m/%Y"), str(entry["final_time"])]  # type: ignore
             self.ui_controller.fill_table(needed_data)
 
     def fill_daily_data(self):
