@@ -25,5 +25,5 @@ class ConfigHandler:
     def check_config(self):
         if not Path(self.config_file_path).exists():
             print("File not existing, creating config file")
-            data = {"Name": "dummy", "Personal Number": "dummy", "savepath": ""}
+            data = {"Name": "dummy", "Personal Number": "dummy", "save_path": ""}
             self.write_config_file(data)

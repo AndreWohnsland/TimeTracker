@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMessageBox, QInputDialog, QWidget, QTableWidgetItem, QFileDialog, QDialog
+from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDialog, QDialog
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QDateTime
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -9,7 +9,7 @@ from pathlib import Path
 from src.ui_datawindow import DataWindow
 
 
-class UiControler:
+class UiController:
     def __init__(self, ui_element):
         self.ui = ui_element
         self.pause_box = ui_element.pause_box
@@ -21,7 +21,7 @@ class UiControler:
         self.pause_box.setValue(value)
 
     def show_message(self, message):
-        """ The default messagebox. Uses a QMessageBox with OK-Button """
+        """The default messagebox. Uses a QMessageBox with OK-Button"""
         msgBox = QMessageBox()
         msgBox.setStandardButtons(QMessageBox.Ok)
         msgBox.setText(str(message))
@@ -79,8 +79,8 @@ class UiControler:
         # fname = QFileDialog.getOpenFileName(self.ui, "Set folder to save reports", current_path)
         # return fname
 
-    def open_event_window(self, button_controler):
-        self.ui.event_window = DataWindow(self.ui, button_controler)
+    def open_event_window(self, button_controller):
+        self.ui.event_window = DataWindow(self.ui, button_controller)
         self.ui.event_window.date_edit.setDateTime(QDateTime.currentDateTime())
         self.ui.event_window.show()
 

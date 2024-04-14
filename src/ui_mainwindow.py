@@ -4,13 +4,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 
 from ui.mainwindow import Ui_MainWindow
-from src.button_controler import ButtonControler
-from src.database_controler import DatabaseControler
+from src.button_controller import ButtonController
+from src.database_controller import DatabaseController
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
-        """ Init. Many of the button and List connects are in pass_setup. """
+        """Init. Many of the button and List connects are in pass_setup."""
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.set_objects()
@@ -20,9 +20,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initialize_optional_elements()
 
     def connect_buttons(self):
-        self.start_button.clicked.connect(lambda: self.button_controler.add_start())
-        self.stop_button.clicked.connect(lambda: self.button_controler.add_stop())
-        self.pause_button.clicked.connect(lambda: self.button_controler.add_pause())
+        self.start_button.clicked.connect(lambda: self.button_controller.add_start())
+        self.stop_button.clicked.connect(lambda: self.button_controller.add_stop())
+        self.pause_button.clicked.connect(lambda: self.button_controller.add_pause())
 
     def set_icon(self, window):
         dirpath = os.path.dirname(__file__)
@@ -30,16 +30,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         window.setWindowIcon(QIcon(self.clock_picture))
 
     def set_objects(self):
-        self.database_controler = DatabaseControler()
-        self.button_controler = ButtonControler(self.database_controler, self)
+        self.database_controller = DatabaseController()
+        self.button_controller = ButtonController(self.database_controller, self)
 
     def connect_actions(self):
-        self.action_configuration.triggered.connect(lambda: self.button_controler.get_user_data())
-        self.action_report.triggered.connect(lambda: self.button_controler.show_events())
-        self.action_savefolder.triggered.connect(lambda: self.button_controler.get_save_folder())
-        self.action_update.triggered.connect(lambda: self.button_controler.get_updates())
+        self.action_configuration.triggered.connect(lambda: self.button_controller.get_user_data())
+        self.action_report.triggered.connect(lambda: self.button_controller.show_events())
+        self.action_save_folder.triggered.connect(lambda: self.button_controller.get_save_folder())
+        self.action_update.triggered.connect(lambda: self.button_controller.get_updates())
         self.action_past_entry.triggered.connect(lambda: self.add_ui_elements())
-        self.action_about.triggered.connect(lambda: self.button_controler.display_about())
+        self.action_about.triggered.connect(lambda: self.button_controller.display_about())
 
     def initialize_optional_elements(self):
         self.back_button = None
@@ -48,7 +48,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def add_ui_elements(self):
         if self.past_datetime_edit != None:
             return
-        self.button_controler.past_time = True
+        self.button_controller.past_time = True
         self.generate_datetime_edit()
         self.generate_back_button()
         self.resize_mainwindow(0, 80)
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def remove_ui_elements(self):
         if self.past_datetime_edit == None:
             return
-        self.button_controler.past_time = False
+        self.button_controller.past_time = False
         self.verticalLayout.removeWidget(self.past_datetime_edit)
         self.past_datetime_edit.deleteLater()
         self.past_datetime_edit = None

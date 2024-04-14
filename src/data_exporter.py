@@ -11,11 +11,11 @@ class DataExporter:
         dirpath = os.path.dirname(__file__)
         self.default_save_path = os.path.join(dirpath, "..", "reports")
         self.config_handler = ConfigHandler()
-        self.worktime = 8
+        self.work_time = 8
 
     def export_data(self, df, report_date, overtime_report=True):
         if df.empty:
-            message = f"No data to export, will no generate file..."
+            message = "No data to export, will no generate file..."
             print(message)
             return False, message
         config = self.config_handler.get_config_file_data()
@@ -23,7 +23,7 @@ class DataExporter:
         if overtime_report:
             file_suffix = "overtime"
         file_name = f"{config['Name'].replace(' ', '_')}_{df.index[0].strftime('%m_%Y')}_{file_suffix}.xlsx"
-        save_path = config["savepath"]
+        save_path = config["save_path"]
         if not save_path:
             save_path = self.default_save_path
         file_path = os.path.join(save_path, file_name)
@@ -64,7 +64,7 @@ class DataExporter:
     def write_times(self, worksheet, df, color, overtime_report):
         time_to_subtract = 0
         if overtime_report:
-            time_to_subtract = self.worktime
+            time_to_subtract = self.work_time
         for i, (index, row) in enumerate(df.iterrows()):
             worksheet.write(f"A{7+i}", index.strftime("%d.%m.%Y"))
             if index.weekday() < 5:

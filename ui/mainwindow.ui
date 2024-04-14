@@ -144,7 +144,7 @@
     <addaction name="action_past_entry"/>
     <addaction name="separator"/>
     <addaction name="action_configuration"/>
-    <addaction name="action_savefolder"/>
+    <addaction name="action_save_folder"/>
     <addaction name="separator"/>
     <addaction name="action_update"/>
     <addaction name="separator"/>
@@ -172,7 +172,7 @@
     <string>Configurate Settings</string>
    </property>
   </action>
-  <action name="action_savefolder">
+  <action name="action_save_folder">
    <property name="text">
     <string>Set Savefolder</string>
    </property>
