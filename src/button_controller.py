@@ -168,7 +168,7 @@ class ButtonController:
         overtime_report = self.ui_controller.report_choice()
         if overtime_report is None:
             return
-        successful, message = self.data_exporter.export_data(self.report_df, overtime_report)
+        successful, message = self.data_exporter.export_data(self.report_df, report_date, overtime_report)
         if successful:
             self.ui_controller.show_message(f"File saved under: {message}")
         else:
