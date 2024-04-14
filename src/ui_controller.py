@@ -20,7 +20,7 @@ class UiController:
     def set_pause(self, value):
         self.pause_box.setValue(value)
 
-    def show_message(self, message):
+    def show_message(self, message: str):
         """The default messagebox. Uses a QMessageBox with OK-Button"""
         msgBox = QMessageBox()
         msgBox.setStandardButtons(QMessageBox.Ok)
@@ -46,7 +46,7 @@ class UiController:
             return False
         return None
 
-    def user_okay(self, text):
+    def user_okay(self, text: str):
         msgBox = QMessageBox()
         msgBox.setText(text)
         msgBox.setWindowTitle("Confirmation required")
@@ -62,7 +62,7 @@ class UiController:
         text, ok = QInputDialog.getText(self.ui, "Getting data for config", f"Enter your {attribute}:")
         return (text, ok)
 
-    def get_folder(self, current_path):
+    def get_folder(self, current_path: str):
         if not current_path:
             current_path = str(Path.home())
 

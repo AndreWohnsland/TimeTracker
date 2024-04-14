@@ -8,17 +8,17 @@ class ConfigHandler:
         dirpath = os.path.dirname(__file__)
         self.config_file_path = os.path.join(dirpath, "..", "config", "config.json")
 
-    def get_config_file_data(self):
+    def get_config_file_data(self) -> dict:
         self.check_config()
         config = self.read_config_file()
         return config
 
-    def read_config_file(self):
+    def read_config_file(self) -> dict:
         with open(self.config_file_path, "r") as f:
             config = json.load(f)
         return config
 
-    def write_config_file(self, data):
+    def write_config_file(self, data: dict):
         with open(self.config_file_path, "w") as write_file:
             json.dump(data, write_file)
 

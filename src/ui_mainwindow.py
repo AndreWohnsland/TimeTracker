@@ -46,7 +46,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.past_datetime_edit = None
 
     def add_ui_elements(self):
-        if self.past_datetime_edit != None:
+        if self.past_datetime_edit is not None:
             return
         self.button_controller.past_time = True
         self.generate_datetime_edit()
@@ -79,7 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.verticalLayout_2.addWidget(self.back_button)
 
     def remove_ui_elements(self):
-        if self.past_datetime_edit == None:
+        if self.past_datetime_edit is None:
             return
         self.button_controller.past_time = False
         self.verticalLayout.removeWidget(self.past_datetime_edit)
@@ -87,11 +87,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.past_datetime_edit = None
 
         self.verticalLayout_2.removeWidget(self.back_button)
-        self.back_button.deleteLater()
+        self.back_button.deleteLater()  # type: ignore
         self.back_button = None
         self.resize_mainwindow(0, -80)
 
-    def resize_mainwindow(self, width, heigt):
+    def resize_mainwindow(self, width: int, height: int):
         h = self.geometry().height()
         w = self.geometry().width()
-        self.resize(w + width, h + heigt)
+        self.resize(w + width, h + height)
