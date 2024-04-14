@@ -12,10 +12,11 @@ GitPython = "^3.1.43"
 matplotlib = "^3.8.4"
 pandas = "^2.2.2"
 PyQt5 = "5.15.10"
-XlsxWriter = "^3.2.0"
+xlsxwriter = "^3.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^6.6.0"
+pip-chill = "^1.0.3"
 
 [build-system]
 requires = ["poetry-core"]
