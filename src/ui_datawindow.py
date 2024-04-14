@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import *
+from PyQt5.QtCore import Qt
 
-from ui.datawidget import Ui_DataWidget
+from ui.data_widget import Ui_DataWidget
 
 
 class DataWindow(QWidget, Ui_DataWidget):
@@ -13,8 +13,8 @@ class DataWindow(QWidget, Ui_DataWidget):
         self.button_controller = button_controller
         self.connect_buttons()
         self.main_window.set_icon(self)
-        self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)  # type: ignore
+        self.setWindowModality(Qt.ApplicationModal)  # type: ignore
         self.delete_button = None
 
     def connect_buttons(self):

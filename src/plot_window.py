@@ -1,24 +1,20 @@
-import time
-import datetime
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.ticker as ticker
-import pandas as pd
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.uic import *
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QPushButton, QDialog, QVBoxLayout
 
 
 class GraphWindow(QDialog):
     def __init__(self, input_df):
         super(GraphWindow, self).__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WA_DeleteOnClose)  # type: ignore
         self.resize(1200, 800)
         self.setWindowTitle("Plot of the Working time")
         self.setWindowFlags(
-            Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint
+            Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint  # type: ignore
         )
         self.setModal(True)
 
