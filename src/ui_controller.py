@@ -4,9 +4,9 @@ from PyQt5.QtCore import QDateTime
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import datetime
-from pathlib import Path
 
 from src.ui_datawindow import DataWindow
+from src.filepath import HOME_PATH
 
 
 class UiController:
@@ -64,7 +64,7 @@ class UiController:
 
     def get_folder(self, current_path: str):
         if not current_path:
-            current_path = str(Path.home())
+            current_path = str(HOME_PATH)
 
         dialog = QFileDialog(self.ui)
         dialog.setFileMode(QFileDialog.DirectoryOnly)

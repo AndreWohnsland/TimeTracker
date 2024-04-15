@@ -1,5 +1,3 @@
-import os
-
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -7,6 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from ui.mainwindow import Ui_MainWindow
 from src.button_controller import ButtonController
 from src.database_controller import DatabaseController
+from src.filepath import CLOCK_ICON
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -26,8 +25,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pause_button.clicked.connect(lambda: self.button_controller.add_pause())
 
     def set_icon(self, window):
-        dirpath = os.path.dirname(__file__)
-        self.clock_picture = os.path.join(os.path.dirname(dirpath), "ui", "clock.png")
+        self.clock_picture = str(CLOCK_ICON)
         window.setWindowIcon(QIcon(self.clock_picture))
 
     def set_objects(self):
