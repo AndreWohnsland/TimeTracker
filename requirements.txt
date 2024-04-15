@@ -3,3 +3,4 @@ matplotlib==3.8.4
 pandas==2.2.2
 pyqt5==5.15.10
 xlsxwriter==3.2.0
+pyqtdarktheme==2.1.0
