@@ -1,7 +1,8 @@
+import os
+
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore, QtGui, QtWidgets
-import os
 
 from ui.mainwindow import Ui_MainWindow
 from src.button_controller import ButtonController
