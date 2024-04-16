@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QStyle
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.mainwindow import Ui_MainWindow
@@ -13,20 +14,64 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Init. Many of the button and List connects are in pass_setup."""
         super(MainWindow, self).__init__()
         self.setupUi(self)
+        self.clock_icon = QIcon(str(CLOCK_ICON))
         self.set_objects()
         self.connect_buttons()
         self.connect_actions()
-        self.set_icon(self)
+        self.set_tray()
+        self.set_icon()
         self.initialize_optional_elements()
 
     def connect_buttons(self):
-        self.start_button.clicked.connect(lambda: self.button_controller.add_start())
-        self.stop_button.clicked.connect(lambda: self.button_controller.add_stop())
-        self.pause_button.clicked.connect(lambda: self.button_controller.add_pause())
+        self.start_button.clicked.connect(self.button_controller.add_start)
+        self.stop_button.clicked.connect(self.button_controller.add_stop)
+        self.pause_button.clicked.connect(self.button_controller.add_pause)
 
-    def set_icon(self, window):
-        self.clock_picture = str(CLOCK_ICON)
-        window.setWindowIcon(QIcon(self.clock_picture))
+    def set_icon(self):
+        self.setWindowIcon(self.clock_icon)
+
+    def set_tray(self):
+        # Need to check if tray icon already exists
+        existing_tray_icons = QApplication.instance().topLevelWidgets()  # type: ignore
+        tray_icon_exists = any(isinstance(widget, QSystemTrayIcon) for widget in existing_tray_icons)
+        if tray_icon_exists:
+            return
+
+        # Set the tray
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon(self.clock_icon))
+        self.tray_icon.setToolTip("Time Tracker")
+        self.tray_icon.show()
+        self.tray_icon.activated.connect(self.handle_tray_click)
+        tray_menu = QMenu(self)
+        self.tray_icon.setContextMenu(tray_menu)
+
+        # Exit
+        close_icon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)  # type: ignore
+        close_action = QAction(close_icon, "Exit", self)
+        close_action.triggered.connect(QApplication.quit)  # type: ignore
+        tray_menu.addAction(close_action)
+
+        # Stop
+        pause_icon = self.style().standardIcon(QStyle.SP_MediaPause)  # type: ignore
+        stop_action = QAction(pause_icon, "Stop", self)
+        stop_action.triggered.connect(self.button_controller.add_stop)
+        tray_menu.addAction(stop_action)
+
+        # Start
+        play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)  # type: ignore
+        start_action = QAction(play_icon, "Start", self)
+        start_action.triggered.connect(self.button_controller.add_start)
+        tray_menu.addAction(start_action)
+
+    def restore_window(self):
+        # Show window when tray icon is clicked
+        self.showNormal()
+        self.activateWindow()
+
+    def handle_tray_click(self, reason):
+        if reason == QSystemTrayIcon.DoubleClick or reason == QSystemTrayIcon.Trigger:  # type: ignore
+            self.restore_window()
 
     def set_objects(self):
         self.database_controller = DatabaseController()
