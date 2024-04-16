@@ -1,18 +1,25 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import Qt
 
 from ui.data_widget import Ui_DataWidget
 
+if TYPE_CHECKING:
+    from src.button_controller import ButtonController
+    from src.ui_mainwindow import MainWindow
+
 
 class DataWindow(QWidget, Ui_DataWidget):
-    def __init__(self, main_window, button_controller):
+    def __init__(self, main_window: MainWindow, button_controller: ButtonController):
         """Init. Many of the button and List connects are in pass_setup."""
         super(DataWindow, self).__init__()
         self.main_window = main_window
         self.setupUi(self)
         self.button_controller = button_controller
+        self.setWindowIcon(self.main_window.clock_icon)
         self.connect_buttons()
-        self.main_window.set_icon(self)
         self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)  # type: ignore
         self.setWindowModality(Qt.ApplicationModal)  # type: ignore
         self.delete_button = None

@@ -1,16 +1,20 @@
+from __future__ import annotations
+import datetime
+from typing import TYPE_CHECKING
+
 from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDialog, QDialog
-from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QDateTime
 from PyQt5 import QtCore, QtGui, QtWidgets
-
-import datetime
 
 from src.ui_datawindow import DataWindow
 from src.filepath import HOME_PATH
 
+if TYPE_CHECKING:
+    from src.ui_mainwindow import MainWindow
+
 
 class UiController:
-    def __init__(self, ui_element):
+    def __init__(self, ui_element: MainWindow):
         self.ui = ui_element
         self.pause_box = ui_element.pause_box
 
@@ -25,7 +29,7 @@ class UiController:
         msgBox = QMessageBox()
         msgBox.setStandardButtons(QMessageBox.Ok)
         msgBox.setText(str(message))
-        msgBox.setWindowIcon(QIcon(self.ui.clock_picture))
+        msgBox.setWindowIcon(self.ui.clock_icon)
         msgBox.setWindowTitle("Information")
         msgBox.show()
         msgBox.exec_()
@@ -34,7 +38,7 @@ class UiController:
         msgBox = QMessageBox()
         msgBox.setText("Would you like the report of the overtime (0 if none or the amount) or of the regular hours?")
         msgBox.setWindowTitle("Report Generation")
-        msgBox.setWindowIcon(QIcon(self.ui.clock_picture))
+        msgBox.setWindowIcon(self.ui.clock_icon)
         overtime_button = msgBox.addButton("Overtime", QMessageBox.YesRole)
         time_button = msgBox.addButton("Time", QMessageBox.NoRole)
         msgBox.addButton("Cancel", QMessageBox.RejectRole)
@@ -50,7 +54,7 @@ class UiController:
         msgBox = QMessageBox()
         msgBox.setText(text)
         msgBox.setWindowTitle("Confirmation required")
-        msgBox.setWindowIcon(QIcon(self.ui.clock_picture))
+        msgBox.setWindowIcon(self.ui.clock_icon)
         yes_button = msgBox.addButton("Yes", QMessageBox.YesRole)
         msgBox.addButton("No", QMessageBox.NoRole)
         msgBox.exec_()
@@ -99,12 +103,12 @@ class UiController:
         return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
 
     def get_past_date(self):
-        qt_object = self.ui.past_datetime_edit.dateTime()
+        qt_object = self.ui.past_datetime_edit.dateTime()  # type: ignore
         qt_date = qt_object.date()
         return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
 
     def get_past_datetime(self):
-        qt_object = self.ui.past_datetime_edit.dateTime()
+        qt_object = self.ui.past_datetime_edit.dateTime()  # type: ignore
         qt_date = qt_object.date()
         qt_time = qt_object.time()
         return datetime.datetime(

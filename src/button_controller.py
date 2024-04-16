@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from src.ui_controller import UiController
 from src.config_handler import ConfigHandler
 from src.data_exporter import DataExporter
@@ -9,10 +12,15 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 
+if TYPE_CHECKING:
+    from src.database_controller import DatabaseController
+    from src.ui_mainwindow import MainWindow
+
 
 class ButtonController:
-    def __init__(self, database_controller, ui_element):
+    def __init__(self, database_controller: DatabaseController, ui_element: MainWindow):
         self.version = __version__
+        self.mainwindow = ui_element
         self.db_controller = database_controller
         self.ui_controller = UiController(ui_element)
         self.config_handler = ConfigHandler()
@@ -205,5 +213,5 @@ class ButtonController:
         if self.report_df.empty:
             self.ui_controller.show_message("Please select a month with data")
             return
-        self.graph_window = GraphWindow(self.report_df)
+        self.graph_window = GraphWindow(self.mainwindow, self.report_df)
         self.graph_window.show()

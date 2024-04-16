@@ -1,18 +1,27 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.ticker as ticker
+import pandas as pd
 
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QPushButton, QDialog, QVBoxLayout
 
+if TYPE_CHECKING:
+    from src.ui_mainwindow import MainWindow
+
 
 class GraphWindow(QDialog):
-    def __init__(self, input_df):
+    def __init__(self, main_window: MainWindow, input_df: pd.DataFrame):
         super(GraphWindow, self).__init__()
+        self.main_window = main_window
         self.setAttribute(Qt.WA_DeleteOnClose)  # type: ignore
         self.resize(1200, 800)
         self.setWindowTitle("Plot of the Working time")
+        self.setWindowIcon(self.main_window.clock_icon)
         self.setWindowFlags(
             Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint  # type: ignore
         )
