@@ -1,13 +1,13 @@
 from typing import Callable
-from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction, QDateTimeEdit, QPushButton
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt, QDateTime, QSize
 
+from src.utils import get_app_icon
 from ui.mainwindow import Ui_MainWindow
 from src.button_controller import ButtonController
 from src.database_controller import DatabaseController
-from src.filepath import CLOCK_ICON
 from src.icons import get_preset_icons
 
 
@@ -16,7 +16,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Init. Many of the button and List connects are in pass_setup."""
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.clock_icon = QIcon(str(CLOCK_ICON))
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowMaximizeButtonHint)  # type: ignore
+        self.clock_icon = get_app_icon()
         self.set_objects()
         self.connect_buttons()
         self.connect_actions()
@@ -50,7 +51,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         icons = get_preset_icons()
         # Exit
-        self.add_tray_menu_option(tray_menu, icons.exit, "Exit", QApplication.quit)
+        self.add_tray_menu_option(tray_menu, icons.exit, "Exit", self.close_app)
         # graph
         self.add_tray_menu_option(
             tray_menu,
@@ -69,6 +70,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         start_action = QAction(icon, text, self)
         start_action.triggered.connect(action)
         tray_menu.addAction(start_action)
+
+    def close_app(self):
+        if self.button_controller.ui_controller.user_okay("Do you want to quit the application?"):
+            QApplication.quit()
 
     def restore_window(self):
         # Show window when tray icon is clicked
@@ -104,23 +109,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.resize_mainwindow(0, 80)
 
     def generate_datetime_edit(self):
-        self.past_datetime_edit = QtWidgets.QDateTimeEdit(self)
-        font = QtGui.QFont()
+        self.past_datetime_edit = QDateTimeEdit(self)
+        font = QFont()
         font.setPointSize(12)
         self.past_datetime_edit.setFont(font)
-        self.past_datetime_edit.setCurrentSection(QtWidgets.QDateTimeEdit.DaySection)
+        self.past_datetime_edit.setCurrentSection(QDateTimeEdit.DaySection)
         self.past_datetime_edit.setCalendarPopup(True)
-        self.past_datetime_edit.setDateTime(QtCore.QDateTime.currentDateTime())
-        self.past_datetime_edit.setMinimumSize(QtCore.QSize(0, 50))
-        self.past_datetime_edit.setMaximumSize(QtCore.QSize(200, 100))
+        self.past_datetime_edit.setDateTime(QDateTime.currentDateTime())
+        self.past_datetime_edit.setMinimumSize(QSize(0, 50))
+        self.past_datetime_edit.setMaximumSize(QSize(200, 100))
         self.past_datetime_edit.setObjectName("past_datetime_edit")
         self.verticalLayout.addWidget(self.past_datetime_edit)
 
     def generate_back_button(self):
-        self.back_button = QtWidgets.QPushButton(self)
-        self.back_button.setMinimumSize(QtCore.QSize(0, 50))
-        self.back_button.setMaximumSize(QtCore.QSize(200, 100))
-        font = QtGui.QFont()
+        self.back_button = QPushButton(self)
+        self.back_button.setMinimumSize(QSize(0, 50))
+        self.back_button.setMaximumSize(QSize(200, 100))
+        font = QFont()
         font.setPointSize(18)
         self.back_button.setFont(font)
         self.back_button.setObjectName("back_button")
