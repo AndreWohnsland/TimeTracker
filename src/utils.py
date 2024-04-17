@@ -12,8 +12,14 @@ APP_NAME = "time_tracker"
 
 
 def get_style_name() -> str:
+    """Returns if the system uses dark or light mode"""
     is_light: bool = darkdetect.isLight()  # type: ignore
     return "light" if is_light else "dark"
+
+
+def get_icon_color() -> str:
+    """Returns the icon color based on the light mode."""
+    return "black" if get_style_name() == "light" else "white"
 
 
 def _sanitize_name(name: str) -> str:
