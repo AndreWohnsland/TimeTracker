@@ -1,12 +1,14 @@
+from typing import Callable
 from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QStyle
+from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.mainwindow import Ui_MainWindow
 from src.button_controller import ButtonController
 from src.database_controller import DatabaseController
 from src.filepath import CLOCK_ICON
+from src.icons import get_preset_icons
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -46,22 +48,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         tray_menu = QMenu(self)
         self.tray_icon.setContextMenu(tray_menu)
 
+        icons = get_preset_icons()
         # Exit
-        close_icon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)  # type: ignore
-        close_action = QAction(close_icon, "Exit", self)
-        close_action.triggered.connect(QApplication.quit)  # type: ignore
-        tray_menu.addAction(close_action)
-
+        self.add_tray_menu_option(tray_menu, icons.exit, "Exit", QApplication.quit)
+        # graph
+        self.add_tray_menu_option(
+            tray_menu,
+            icons.stats,
+            "Plot",
+            lambda: self.button_controller.ui_controller.show_message("Not implemented yet"),
+        )
+        # table
+        self.add_tray_menu_option(tray_menu, icons.table, "Data", self.button_controller.show_events)
         # Stop
-        pause_icon = self.style().standardIcon(QStyle.SP_MediaPause)  # type: ignore
-        stop_action = QAction(pause_icon, "Stop", self)
-        stop_action.triggered.connect(self.button_controller.add_stop)
-        tray_menu.addAction(stop_action)
-
+        self.add_tray_menu_option(tray_menu, icons.stop, "Stop", self.button_controller.add_stop)
         # Start
-        play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)  # type: ignore
-        start_action = QAction(play_icon, "Start", self)
-        start_action.triggered.connect(self.button_controller.add_start)
+        self.add_tray_menu_option(tray_menu, icons.start, "Start", self.button_controller.add_start)
+
+    def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]):
+        start_action = QAction(icon, text, self)
+        start_action.triggered.connect(action)
         tray_menu.addAction(start_action)
 
     def restore_window(self):
