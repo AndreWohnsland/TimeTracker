@@ -4,7 +4,6 @@ from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt, QDateTime, QSize
 
-from src.utils import get_app_icon
 from ui.mainwindow import Ui_MainWindow
 from src.button_controller import ButtonController
 from src.database_controller import DatabaseController
@@ -17,7 +16,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowMaximizeButtonHint)  # type: ignore
-        self.clock_icon = get_app_icon()
+        self.icons = get_preset_icons()
+        self.clock_icon = self.icons.clock
         self.set_objects()
         self.connect_buttons()
         self.connect_actions()
@@ -49,22 +49,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         tray_menu = QMenu(self)
         self.tray_icon.setContextMenu(tray_menu)
 
-        icons = get_preset_icons()
         # Exit
-        self.add_tray_menu_option(tray_menu, icons.exit, "Exit", self.close_app)
+        self.add_tray_menu_option(tray_menu, self.icons.exit, "Exit", self.close_app)
         # graph
         self.add_tray_menu_option(
             tray_menu,
-            icons.stats,
+            self.icons.stats,
             "Plot",
             lambda: self.button_controller.ui_controller.show_message("Not implemented yet"),
         )
         # table
-        self.add_tray_menu_option(tray_menu, icons.table, "Data", self.button_controller.show_events)
+        self.add_tray_menu_option(tray_menu, self.icons.table, "Data", self.button_controller.show_events)
+        # Mainwindow
+        self.add_tray_menu_option(tray_menu, self.icons.setting, "Setup", self.restore_window)
         # Stop
-        self.add_tray_menu_option(tray_menu, icons.stop, "Stop", self.button_controller.add_stop)
+        self.add_tray_menu_option(tray_menu, self.icons.stop, "Stop", self.button_controller.add_stop)
         # Start
-        self.add_tray_menu_option(tray_menu, icons.start, "Start", self.button_controller.add_start)
+        self.add_tray_menu_option(tray_menu, self.icons.start, "Start", self.button_controller.add_start)
 
     def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]):
         start_action = QAction(icon, text, self)

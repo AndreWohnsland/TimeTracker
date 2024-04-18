@@ -12,6 +12,8 @@ class PresetIconNames:
     exit = "fa.close"
     stats = "fa5s.chart-line"
     table = "fa5s.table"
+    setting = "fa.gears"
+    clock = "fa5.clock"
 
 
 @dataclass
@@ -21,6 +23,8 @@ class PresetIcon:
     exit: QIcon
     stats: QIcon
     table: QIcon
+    setting: QIcon
+    clock: QIcon
 
 
 def generate_icon(icon_name: str, color: str = "white") -> QIcon:
@@ -33,6 +37,8 @@ def get_preset_icons() -> PresetIcon:
         start=generate_icon(PresetIconNames.start, "green"),
         stop=generate_icon(PresetIconNames.stop, "orange"),
         exit=generate_icon(PresetIconNames.exit, "red"),
-        stats=generate_icon(PresetIconNames.stats, default_color),
+        stats=generate_icon(PresetIconNames.stats, "#0F84FF"),
         table=generate_icon(PresetIconNames.table, default_color),
+        setting=generate_icon(PresetIconNames.setting, "gray"),
+        clock=generate_icon(PresetIconNames.clock, default_color),
     )
