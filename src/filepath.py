@@ -32,8 +32,6 @@ HOME_PATH = Path.home()
 
 # UI
 UI_PATH = ROOT_PATH / "ui"
-CLOCK_ICON = UI_PATH / "clock.png"
-CLOCK_ICON_DARK_MODE = UI_PATH / "clock_dark_mode.png"
 
 # DB
 SAVE_FOLDER = get_app_dir()
