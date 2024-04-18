@@ -3,7 +3,7 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 
-from src.filepath import DATABASE_PATH, OLD_DATABASE_PATH, SAVE_FOLDER
+from src.filepath import DATABASE_PATH
 
 
 class DatabaseController:
@@ -101,14 +101,8 @@ class DatabaseHandler:
     """Handler Class for Connecting and querying Databases"""
 
     def __init__(self):
-        # need to create the folder once
-        if not SAVE_FOLDER.exists():
-            SAVE_FOLDER.mkdir(parents=True)
         # check if the old database exists and move it to the new location
         self.database_path = DATABASE_PATH
-        if OLD_DATABASE_PATH.exists():
-            print(f"Old Database found at {OLD_DATABASE_PATH}, moving to new location to {self.database_path}")
-            OLD_DATABASE_PATH.rename(self.database_path)
         if not self.database_path.exists():
             print(f"No database detected, creating Database at {self.database_path}")
             self.create_tables()

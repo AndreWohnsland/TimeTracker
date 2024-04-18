@@ -33,11 +33,13 @@ HOME_PATH = Path.home()
 # UI
 UI_PATH = ROOT_PATH / "ui"
 
-# DB
+# Data folder (app data)
 SAVE_FOLDER = get_app_dir()
+
+# DB
 OLD_DATABASE_PATH = ROOT_PATH / "data" / "timedata.db"
 DATABASE_PATH = SAVE_FOLDER / "time_data.db"
 
 # config
-CONFIG_PATH = ROOT_PATH / "config"
-CONFIG_FILE = CONFIG_PATH / "config.json"
+OLD_CONFIG_PATH = ROOT_PATH / "config" / "config.json"
+CONFIG_PATH = SAVE_FOLDER / "config.json"
