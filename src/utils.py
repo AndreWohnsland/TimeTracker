@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import pyqtSlot
 
 import qdarktheme
 import darkdetect
@@ -22,7 +21,6 @@ def get_icon_color() -> str:
     return "black" if is_light() else "white"
 
 
-@pyqtSlot()
 def sync_theme() -> None:
     stylesheet = qdarktheme.load_stylesheet(get_style_name())
     QApplication.instance().setStyleSheet(stylesheet)  # type: ignore
