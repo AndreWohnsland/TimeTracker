@@ -42,3 +42,8 @@ def get_preset_icons() -> PresetIcon:
         setting=generate_icon(PresetIconNames.setting, "gray"),
         clock=generate_icon(PresetIconNames.clock, default_color),
     )
+
+
+def get_app_icon():
+    default_color = get_icon_color()
+    return generate_icon(PresetIconNames.clock, default_color)
