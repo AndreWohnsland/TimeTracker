@@ -12,7 +12,7 @@ class DatabaseController:
     def __init__(self):
         self.handler = DatabaseHandler()
 
-    def add_event(self, event, entry_datetime):
+    def add_event(self, event: str, entry_datetime: datetime.datetime):
         datetime_string = entry_datetime.isoformat()
         print(f"Add Event: {event}, timestamp: {datetime_string}")
         query = "INSERT INTO Events(Date, Action) VALUES(?, ?)"
@@ -24,14 +24,14 @@ class DatabaseController:
             ),
         )
 
-    def add_pause(self, pause_time, entry_date):
+    def add_pause(self, pause_time: int, entry_date: datetime.date):
         date_string = entry_date.isoformat()
         if self.day_exists(date_string):
             self.update_pause(pause_time, date_string)
         else:
             self.insert_pause(pause_time, date_string)
 
-    def update_pause(self, pause_time, date_string):
+    def update_pause(self, pause_time: int, date_string: str):
         print(f"Updating pause time by {pause_time} at {date_string}")
         query = "UPDATE OR IGNORE Pause SET Time = Time + ? WHERE Date = ?"
         self.handler.query_database(
@@ -42,7 +42,7 @@ class DatabaseController:
             ),
         )
 
-    def insert_pause(self, pause_time, date_string):
+    def insert_pause(self, pause_time: int, date_string: str):
         print(f"Inserting pause time by {pause_time} at {date_string}")
         query = "INSERT INTO Pause(Date, Time) VALUES(?, ?)"
         self.handler.query_database(
@@ -53,26 +53,26 @@ class DatabaseController:
             ),
         )
 
-    def day_exists(self, day):
+    def day_exists(self, date_str: str) -> int:
         query = "SELECT COUNT(*) FROM Pause WHERE Date = ?"
-        amount = self.handler.query_database(query, (day,))[0][0]
+        amount = self.handler.query_database(query, (date_str,))[0][0]
         return amount
 
-    def get_month_data(self, search_date):
+    def get_month_data(self, search_date: datetime.date):
         start = datetime.date(search_date.year, search_date.month, 1)
         end = start + relativedelta(months=+1)
         work = self.get_period_work(start, end)
         pause = self.get_period_pause(start, end)
         return work, pause
 
-    def get_day_data(self, day):
+    def get_day_data(self, day: datetime.date):
         start = day
         end = start + relativedelta(days=+1)
         work = self.get_period_work(start, end)
         pause = self.get_period_pause(start, start)
         return work, pause
 
-    def get_period_work(self, start, end):
+    def get_period_work(self, start: datetime.date, end: datetime.date) -> list[tuple[str, str]]:
         query = "SELECT Date, Action FROM Events WHERE Date BETWEEN ? AND ? ORDER BY Date"
         return self.handler.query_database(
             query,
@@ -82,7 +82,7 @@ class DatabaseController:
             ),
         )
 
-    def get_period_pause(self, start, end):
+    def get_period_pause(self, start: datetime.date, end: datetime.date) -> list[tuple[str, int]]:
         query = "SELECT Date, Time FROM Pause WHERE Date BETWEEN ? AND ? ORDER BY Date"
         return self.handler.query_database(
             query,
@@ -92,7 +92,7 @@ class DatabaseController:
             ),
         )
 
-    def delete_event(self, delete_datetime):
+    def delete_event(self, delete_datetime: str):
         query = "DELETE FROM Events WHERE Date = ?"
         self.handler.query_database(query, (delete_datetime,))
 
@@ -142,3 +142,6 @@ class DatabaseHandler:
         self.cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date ON Pause(Date)")
         self.database.commit()
         self.database.close()
+
+
+DB_CONTROLLER = DatabaseController()

@@ -25,3 +25,6 @@ class ConfigHandler:
             print("File not existing, creating config file")
             data = {"Name": "dummy", "Personal Number": "dummy", "save_path": ""}
             self.write_config_file(data)
+
+
+CONFIG_HANDLER = ConfigHandler()

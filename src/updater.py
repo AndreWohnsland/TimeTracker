@@ -11,3 +11,6 @@ class Updater:
     def update(self):
         repo = Repo(self.git_path)
         repo.remotes.origin.pull()
+
+
+UPDATER = Updater()

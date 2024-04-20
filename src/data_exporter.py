@@ -68,3 +68,6 @@ class DataExporter:
             if index.weekday() < 5:
                 _time = self.round_quarterly(max(row["final_time"] - time_to_subtract, 0))
                 worksheet.write(f"B{7+i}", _time, color)
+
+
+EXPORTER = DataExporter()
