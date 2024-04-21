@@ -41,7 +41,7 @@ class Store:
         df_data = pd.DataFrame(data, columns=["datetime", "event"])
         df_data["datetime"] = df_data["datetime"].apply(pd.to_datetime)
         df_data["time"] = df_data["datetime"].dt.time
-        df_data["date"] = df_data["datetime"].dt.floor("D")
+        df_data["date"] = df_data["datetime"].dt.date
         return df_data
 
     def _get_days_of_month(self, selected_date: datetime.date) -> pd.DatetimeIndex:
@@ -52,7 +52,7 @@ class Store:
     def _generate_monthly_time(self, df: pd.DataFrame, full_month: pd.DatetimeIndex) -> list[float]:
         time_list = []
         for _day in full_month:
-            days_data = df[df["date"] == _day]
+            days_data = df[df["date"] == _day.date()]
             calculated_time = self._calculate_day_time(days_data)
             time_list.append(calculated_time)
         return time_list
@@ -63,12 +63,24 @@ class Store:
         for _, row in df.iterrows():
             if not start_found and row["event"] == "start":
                 start_found = True
-                start_clock = row["time"]
-            if start_found and row["event"] == "stop":
+                start_time: datetime.datetime = row["datetime"]
+            elif start_found and row["event"] == "stop":
                 start_found = False
-                start = datetime.datetime.combine(datetime.date.min, start_clock)
-                stop = datetime.datetime.combine(datetime.date.min, row["time"])
-                total_time += stop - start
+                total_time += row["datetime"] - start_time
+        # check if a start was found, but no stop, in this case, either the user forgot to stop the clock or the
+        # day is currently ongoing (date = today)
+        if not start_found:
+            return round(total_time.seconds / 60, 2)
+        # check for today.
+        today = datetime.date.today()
+        # check if start clock is the same day as today
+        if df.iloc[0]["date"] == today:
+            total_time += datetime.datetime.now() - start_time
+        # else, use the midnight of this day as end
+        else:
+            next_day = start_time + datetime.timedelta(days=1)
+            end_of_day = datetime.datetime.combine(next_day, datetime.time.min)  # type: ignore
+            total_time += end_of_day - start_time
         return round(total_time.seconds / 60, 2)
 
     def _generate_report_df(
