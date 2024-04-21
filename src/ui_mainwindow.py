@@ -1,34 +1,45 @@
+import datetime
 from typing import Callable
-from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction, QDateTimeEdit, QPushButton
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt, QDateTime, QSize
+from PyQt5.QtCore import Qt
 
+from src.plot_window import GraphWindow
+from src.ui_datawindow import DataWindow
+from src.updater import UPDATER
 from ui.mainwindow import Ui_MainWindow
-from src.button_controller import ButtonController
-from src.database_controller import DatabaseController
+from src.database_controller import DB_CONTROLLER
+from src.ui_controller import UI_CONTROLLER as UIC
 from src.icons import get_preset_icons
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         """Init. Many of the button and List connects are in pass_setup."""
-        super(MainWindow, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowMaximizeButtonHint)  # type: ignore
         self.icons = get_preset_icons()
         self.clock_icon = self.icons.clock
-        self.set_objects()
         self.connect_buttons()
         self.connect_actions()
         self.set_tray()
         self.set_icon()
-        self.initialize_optional_elements()
+        # set manual here, since it does not recognize the hidden state at init somehow.
+        # The default app shows the elements and got the additional height.
+        self.past_datetime_edit.hide()
+        self.past_datetime_edit.setDateTime(datetime.datetime.now())
+        self.back_button.hide()
+        self.resize_mainwindow(0, -80)
+        self.event_window = DataWindow(self)
+        self.plot_window = GraphWindow(self)
 
     def connect_buttons(self):
-        self.start_button.clicked.connect(self.button_controller.add_start)
-        self.stop_button.clicked.connect(self.button_controller.add_stop)
-        self.pause_button.clicked.connect(self.button_controller.add_pause)
+        self.start_button.clicked.connect(self.add_start)
+        self.stop_button.clicked.connect(self.add_stop)
+        self.pause_button.clicked.connect(self.add_pause)
+        self.back_button.clicked.connect(self.hide_ui_elements)
 
     def set_icon(self):
         self.setWindowIcon(self.clock_icon)
@@ -52,20 +63,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Exit
         self.add_tray_menu_option(tray_menu, self.icons.exit, "Exit", self.close_app)
         # graph
-        self.add_tray_menu_option(
-            tray_menu,
-            self.icons.stats,
-            "Plot",
-            lambda: self.button_controller.ui_controller.show_message("Not implemented yet"),
-        )
+        self.add_tray_menu_option(tray_menu, self.icons.stats, "Plot", self.show_plot_window)
         # table
-        self.add_tray_menu_option(tray_menu, self.icons.table, "Data", self.button_controller.show_events)
+        self.add_tray_menu_option(tray_menu, self.icons.table, "Data", self.show_data_window)
         # Mainwindow
         self.add_tray_menu_option(tray_menu, self.icons.setting, "Setup", self.restore_window)
         # Stop
-        self.add_tray_menu_option(tray_menu, self.icons.stop, "Stop", self.button_controller.add_stop)
+        self.add_tray_menu_option(tray_menu, self.icons.stop, "Stop", self.add_stop)
         # Start
-        self.add_tray_menu_option(tray_menu, self.icons.start, "Start", self.button_controller.add_start)
+        self.add_tray_menu_option(tray_menu, self.icons.start, "Start", self.add_start)
 
     def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]):
         start_action = QAction(icon, text, self)
@@ -73,7 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         tray_menu.addAction(start_action)
 
     def close_app(self):
-        if self.button_controller.ui_controller.user_okay("Do you want to quit the application?"):
+        if UIC.user_okay("Do you want to quit the application?"):
             QApplication.quit()
 
     def restore_window(self):
@@ -85,69 +91,90 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if reason == QSystemTrayIcon.DoubleClick or reason == QSystemTrayIcon.Trigger:  # type: ignore
             self.restore_window()
 
-    def set_objects(self):
-        self.database_controller = DatabaseController()
-        self.button_controller = ButtonController(self.database_controller, self)
-
     def connect_actions(self):
-        self.action_configuration.triggered.connect(lambda: self.button_controller.get_user_data())
-        self.action_report.triggered.connect(lambda: self.button_controller.show_events())
-        self.action_save_folder.triggered.connect(lambda: self.button_controller.get_save_folder())
-        self.action_update.triggered.connect(lambda: self.button_controller.get_updates())
-        self.action_past_entry.triggered.connect(lambda: self.add_ui_elements())
-        self.action_about.triggered.connect(lambda: self.button_controller.display_about())
+        self.action_configuration.triggered.connect(lambda: UIC.get_user_data(self))
+        self.action_report.triggered.connect(self.show_data_window)
+        self.action_save_folder.triggered.connect(UIC.get_save_folder)
+        self.action_update.triggered.connect(self.get_updates)
+        self.action_past_entry.triggered.connect(self.show_ui_elements)
+        self.action_about.triggered.connect(UIC.display_about)
 
-    def initialize_optional_elements(self):
-        self.back_button = None
-        self.past_datetime_edit = None
-
-    def add_ui_elements(self):
-        if self.past_datetime_edit is not None:
+    def show_ui_elements(self):
+        if self.is_past_time:
             return
-        self.button_controller.past_time = True
-        self.generate_datetime_edit()
-        self.generate_back_button()
+        self.past_datetime_edit.show()
+        self.back_button.show()
         self.resize_mainwindow(0, 80)
 
-    def generate_datetime_edit(self):
-        self.past_datetime_edit = QDateTimeEdit(self)
-        font = QFont()
-        font.setPointSize(12)
-        self.past_datetime_edit.setFont(font)
-        self.past_datetime_edit.setCurrentSection(QDateTimeEdit.DaySection)
-        self.past_datetime_edit.setCalendarPopup(True)
-        self.past_datetime_edit.setDateTime(QDateTime.currentDateTime())
-        self.past_datetime_edit.setMinimumSize(QSize(0, 50))
-        self.past_datetime_edit.setMaximumSize(QSize(200, 100))
-        self.past_datetime_edit.setObjectName("past_datetime_edit")
-        self.verticalLayout.addWidget(self.past_datetime_edit)
-
-    def generate_back_button(self):
-        self.back_button = QPushButton(self)
-        self.back_button.setMinimumSize(QSize(0, 50))
-        self.back_button.setMaximumSize(QSize(200, 100))
-        font = QFont()
-        font.setPointSize(18)
-        self.back_button.setFont(font)
-        self.back_button.setObjectName("back_button")
-        self.back_button.setText("Back")
-        self.back_button.clicked.connect(lambda: self.remove_ui_elements())
-        self.verticalLayout_2.addWidget(self.back_button)
-
-    def remove_ui_elements(self):
-        if self.past_datetime_edit is None:
+    def hide_ui_elements(self):
+        if not self.is_past_time:
             return
-        self.button_controller.past_time = False
-        self.verticalLayout.removeWidget(self.past_datetime_edit)
-        self.past_datetime_edit.deleteLater()
-        self.past_datetime_edit = None
-
-        self.verticalLayout_2.removeWidget(self.back_button)
-        self.back_button.deleteLater()  # type: ignore
-        self.back_button = None
+        self.past_datetime_edit.hide()
+        self.back_button.hide()
         self.resize_mainwindow(0, -80)
+
+    @property
+    def is_past_time(self):
+        return self.past_datetime_edit.isVisible() and self.back_button.isVisible()
 
     def resize_mainwindow(self, width: int, height: int):
         h = self.geometry().height()
         w = self.geometry().width()
         self.resize(w + width, h + height)
+
+    def get_pause(self):
+        return int(self.pause_box.text())
+
+    def set_pause(self, value: int):
+        self.pause_box.setValue(value)
+
+    def add_pause(self):
+        pause = self.get_pause()
+        entry_date = datetime.date.today()
+        if self.is_past_time:
+            entry_date = self.get_past_date()
+        DB_CONTROLLER.add_pause(pause, entry_date)
+        self.set_pause(0)
+        UIC.show_message(f"Added pause of {pause} minutes on date {entry_date.strftime('%d-%m-%Y')}")
+
+    def get_past_date(self):
+        qt_object = self.past_datetime_edit.dateTime()  # type: ignore
+        qt_date = qt_object.date()
+        return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
+
+    def get_past_datetime(self):
+        qt_object = self.past_datetime_edit.dateTime()  # type: ignore
+        qt_date = qt_object.date()
+        qt_time = qt_object.time()
+        return datetime.datetime(
+            qt_date.year(), qt_date.month(), qt_date.day(), qt_time.hour(), qt_time.minute(), qt_time.second()
+        )
+
+    def add_event(self, event: str):
+        entry_datetime = datetime.datetime.now()
+        entry_datetime = entry_datetime.replace(microsecond=0)
+        if self.is_past_time:
+            entry_datetime = self.get_past_datetime()
+        DB_CONTROLLER.add_event(event, entry_datetime)
+        UIC.show_message(f"Added event {event} at {entry_datetime.strftime('%d-%m-%Y - %H:%M:%S')}")
+
+    def add_start(self):
+        self.add_event("start")
+
+    def add_stop(self):
+        self.add_event("stop")
+
+    def get_updates(self):
+        message = "Want to search and get updates? This could take a short time."
+        if UIC.user_okay(message):
+            print("Try to update ...")
+            UPDATER.update()
+            print("Done!")
+
+    def show_data_window(self):
+        self.event_window.update_data()
+        self.event_window.show()
+
+    def show_plot_window(self):
+        self.plot_window.plot()
+        self.plot_window.show()

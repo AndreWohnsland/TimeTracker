@@ -4,21 +4,21 @@ from typing import TYPE_CHECKING
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.ticker as ticker
-import pandas as pd
 
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QPushButton, QDialog, QVBoxLayout
+
+from src.datastore import store
 
 if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
 
 
 class GraphWindow(QDialog):
-    def __init__(self, main_window: MainWindow, input_df: pd.DataFrame):
+    def __init__(self, main_window: MainWindow):
         super(GraphWindow, self).__init__()
         self.main_window = main_window
-        self.setAttribute(Qt.WA_DeleteOnClose)  # type: ignore
         self.resize(1200, 800)
         self.setWindowTitle("Plot of the Working time")
         self.setWindowIcon(self.main_window.clock_icon)
@@ -26,10 +26,6 @@ class GraphWindow(QDialog):
             Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint  # type: ignore
         )
         self.setModal(True)
-
-        # a figure instance to plot on
-        plt.rcParams["date.autoformatter.day"] = "%y/%m/%d"
-        self.figure = plt.figure(figsize=(13, 8), dpi=128)
         # adds a button to go back
         self.back_button = QPushButton("< Back")
         # sets the minimum size and the fontsize
@@ -42,17 +38,24 @@ class GraphWindow(QDialog):
         self.back_button.clicked.connect(self.close)  # type: ignore
         # this is the Canvas Widget that displays the `figure`
         # it takes the `figure` instance as a parameter to __init__
-        self.canvas = FigureCanvas(self.figure)
+        # a figure instance to plot on
+        plt.rcParams["date.autoformatter.day"] = "%y/%m/%d"
         # set the layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.back_button)
-        layout.addWidget(self.canvas)
-        self.setLayout(layout)
+        self.container = QVBoxLayout()
+        self.container.addWidget(self.back_button)
+        self.figure = plt.figure(figsize=(13, 8), dpi=128)
+        self.canvas = FigureCanvas(self.figure)
+        self.container.addWidget(self.canvas)
+        self.setLayout(self.container)
+
+    def plot(self):
         # clears the old values and then adds a subplot to insert all the data
         self.figure.clear()
         ax = self.figure.add_subplot(111)
 
-        df = input_df.copy()
+        # update the store before plotting
+        store.update_data(None)
+        df = store.df.copy()
         df["pause"] = df["pause"] / 60
         df["work"] = df["work_time"] / 60 - df["pause"]
         df["overtime"] = df["work"] - 8

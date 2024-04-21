@@ -1,35 +1,21 @@
-from __future__ import annotations
-import datetime
-from typing import TYPE_CHECKING
+from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDialog, QDialog, QTableWidget
 
-from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDialog, QDialog
-from PyQt5.QtCore import QDateTime
-from PyQt5 import QtCore, QtGui, QtWidgets
-
-from src.ui_datawindow import DataWindow
 from src.filepath import HOME_PATH
-
-if TYPE_CHECKING:
-    from src.ui_mainwindow import MainWindow
+from src.icons import get_app_icon
+from src import __version__
+from src.config_handler import CONFIG_HANDLER
 
 
 class UiController:
-    def __init__(self, ui_element: MainWindow):
-        self.ui = ui_element
-        self.pause_box = ui_element.pause_box
-
-    def get_pause(self):
-        return int(self.pause_box.text())
-
-    def set_pause(self, value):
-        self.pause_box.setValue(value)
+    def __init__(self):
+        pass
 
     def show_message(self, message: str):
         """The default messagebox. Uses a QMessageBox with OK-Button"""
         msgBox = QMessageBox()
-        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.setStandardButtons(QMessageBox.Ok)  # type: ignore
         msgBox.setText(str(message))
-        msgBox.setWindowIcon(self.ui.clock_icon)
+        msgBox.setWindowIcon(get_app_icon())
         msgBox.setWindowTitle("Information")
         msgBox.show()
         msgBox.exec_()
@@ -38,10 +24,10 @@ class UiController:
         msgBox = QMessageBox()
         msgBox.setText("Would you like the report of the overtime (0 if none or the amount) or of the regular hours?")
         msgBox.setWindowTitle("Report Generation")
-        msgBox.setWindowIcon(self.ui.clock_icon)
-        overtime_button = msgBox.addButton("Overtime", QMessageBox.YesRole)
-        time_button = msgBox.addButton("Time", QMessageBox.NoRole)
-        msgBox.addButton("Cancel", QMessageBox.RejectRole)
+        msgBox.setWindowIcon(get_app_icon())
+        overtime_button = msgBox.addButton("Overtime", QMessageBox.YesRole)  # type: ignore
+        time_button = msgBox.addButton("Time", QMessageBox.NoRole)  # type: ignore
+        msgBox.addButton("Cancel", QMessageBox.RejectRole)  # type: ignore
 
         msgBox.exec_()
         if msgBox.clickedButton() == overtime_button:
@@ -54,121 +40,69 @@ class UiController:
         msgBox = QMessageBox()
         msgBox.setText(text)
         msgBox.setWindowTitle("Confirmation required")
-        msgBox.setWindowIcon(self.ui.clock_icon)
-        yes_button = msgBox.addButton("Yes", QMessageBox.YesRole)
-        msgBox.addButton("No", QMessageBox.NoRole)
+        msgBox.setWindowIcon(get_app_icon())
+        yes_button = msgBox.addButton("Yes", QMessageBox.YesRole)  # type: ignore
+        msgBox.addButton("No", QMessageBox.NoRole)  # type: ignore
         msgBox.exec_()
         if msgBox.clickedButton() == yes_button:
             return True
         return False
 
-    def get_text(self, attribute):
-        text, ok = QInputDialog.getText(self.ui, "Getting data for config", f"Enter your {attribute}:")
+    def display_about(self):
+        message = f"Version: {__version__}. This App was made with Python and Qt by Andre Wohnsland. Check https://github.com/AndreWohnsland/TimeTracker for more information."
+        self.show_message(message)
+
+    def get_text(self, attribute, parent):
+        text, ok = QInputDialog.getText(parent, "Getting data for config", f"Enter your {attribute}:")
         return (text, ok)
 
-    def get_folder(self, current_path: str):
+    def get_folder(self, current_path: str, parent=None):
         if not current_path:
             current_path = str(HOME_PATH)
 
-        dialog = QFileDialog(self.ui)
-        dialog.setFileMode(QFileDialog.DirectoryOnly)
+        dialog = QFileDialog(parent)
+        dialog.setFileMode(QFileDialog.DirectoryOnly)  # type: ignore
         dialog.setDirectory(current_path)
 
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec_() == QDialog.Accepted:  # type: ignore
             path = dialog.selectedFiles()[0]  # returns a list
             return path
         else:
             return ""
 
-        # fname = QFileDialog.getOpenFileName(self.ui, "Set folder to save reports", current_path)
-        # return fname
-
-    def open_event_window(self, button_controller):
-        self.ui.event_window = DataWindow(self.ui, button_controller)
-        self.ui.event_window.date_edit.setDateTime(QDateTime.currentDateTime())
-        self.ui.event_window.show()
-
-    def fill_table(self, entry):
-        rowPosition = self.ui.event_window.tableWidget.rowCount()
-        self.ui.event_window.tableWidget.insertRow(rowPosition)
+    def fill_table(self, table: QTableWidget, entry):
+        rowPosition = table.rowCount()
+        table.insertRow(rowPosition)
         for i, data in enumerate(entry):
-            self.ui.event_window.tableWidget.setItem(rowPosition, i, QTableWidgetItem(data))
+            table.setItem(rowPosition, i, QTableWidgetItem(data))
 
-    def clear_table(self):
-        while self.ui.event_window.tableWidget.rowCount() > 0:
-            self.ui.event_window.tableWidget.removeRow(0)
+    def clear_table(self, table: QTableWidget):
+        while table.rowCount() > 0:
+            table.removeRow(0)
 
-    def get_event_date(self):
-        qt_date = self.ui.event_window.date_edit.date()
-        return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
+    def set_header_names(self, table: QTableWidget, name1: str, name2: str):
+        table.horizontalHeaderItem(0).setText(name1)
+        table.horizontalHeaderItem(1).setText(name2)
 
-    def get_past_date(self):
-        qt_object = self.ui.past_datetime_edit.dateTime()  # type: ignore
-        qt_date = qt_object.date()
-        return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
+    def get_user_data(self, parent):
+        all_data = CONFIG_HANDLER.get_config_file_data()
+        needed_keys = ["Name", "Personal Number"]
+        needed_data = {k: all_data[k] for k in needed_keys}
+        for data in needed_data:
+            text, ok = self.get_text(data, parent)
+            if not ok:
+                return
+            if text != "":
+                all_data[data] = text
+        CONFIG_HANDLER.write_config_file(all_data)
 
-    def get_past_datetime(self):
-        qt_object = self.ui.past_datetime_edit.dateTime()  # type: ignore
-        qt_date = qt_object.date()
-        qt_time = qt_object.time()
-        return datetime.datetime(
-            qt_date.year(), qt_date.month(), qt_date.day(), qt_time.hour(), qt_time.minute(), qt_time.second()
-        )
+    def get_save_folder(self):
+        all_data = CONFIG_HANDLER.get_config_file_data()
+        user_path = all_data.get("save_path", "")
+        returned_path = self.get_folder(user_path)
+        if returned_path:
+            all_data["save_path"] = returned_path
+        CONFIG_HANDLER.write_config_file(all_data)
 
-    def view_day(self):
-        if self.ui.event_window.switch_button.isChecked():
-            return True
-        return False
 
-    def set_date_toggle(self):
-        if self.view_day():
-            self.ui.event_window.switch_button.setText("Day")
-        else:
-            self.ui.event_window.switch_button.setText("Month")
-
-    def set_monthly_header(self):
-        self.set_header_names("Date", "Worktime (h)")
-
-    def set_daily_header(self):
-        self.set_header_names("Datetime / Type", "Event / Pausetime (min)")
-
-    def set_header_names(self, name1, name2):
-        item = self.ui.event_window.tableWidget.horizontalHeaderItem(0)
-        item.setText(name1)
-        item = self.ui.event_window.tableWidget.horizontalHeaderItem(1)
-        item.setText(name2)
-
-    def handle_delete_button(self, trigger_function):
-        if self.view_day():
-            self.create_delete_button(trigger_function)
-        else:
-            self.remove_delete_button()
-
-    def create_delete_button(self, trigger_function):
-        delete_button = QtWidgets.QPushButton(self.ui.event_window)
-        delete_button.setMinimumSize(QtCore.QSize(0, 50))
-        delete_button.setMaximumSize(QtCore.QSize(10000, 100))
-        font = QtGui.QFont()
-        font.setPointSize(18)
-        delete_button.setFont(font)
-        delete_button.setObjectName("delete_button")
-        delete_button.setText("Delete")
-        delete_button.clicked.connect(trigger_function)
-        self.ui.event_window.delete_button = delete_button
-        self.ui.event_window.verticalLayout.addWidget(self.ui.event_window.delete_button)
-
-    def remove_delete_button(self):
-        self.ui.event_window.verticalLayout.removeWidget(self.ui.event_window.delete_button)
-        self.ui.event_window.delete_button.deleteLater()
-        self.ui.event_window.delete_button = None
-
-    def get_selected_event(self):
-        indexes = self.ui.event_window.tableWidget.selectionModel().selectedRows()
-        if indexes:
-            row = indexes[0].row()
-            event_datetime = self.ui.event_window.tableWidget.item(row, 0).text()
-            event = self.ui.event_window.tableWidget.item(row, 1).text()
-            if event_datetime == "Pause":
-                return None, None
-            return event_datetime, event
-        return None, None
+UI_CONTROLLER = UiController()
