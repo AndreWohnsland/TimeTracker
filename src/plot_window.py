@@ -64,13 +64,13 @@ class GraphWindow(QDialog):
         plot_df = df[["work", "overtime", "pause"]]
         plot_df.plot.bar(stacked=True, ax=ax, width=0.8, color=["#2693ff", "#ff4e26", "#25cf5e"])
         ax.legend(fancybox=True, framealpha=0.7)
-        plt.axhline(8, color="k", ls="--", lw=1)
+        ax.axhline(8, color="k", ls="--", lw=1)
         ax.xaxis.get_label().set_visible(False)
 
         tick_labels = [""] * len(df.index)
         tick_labels[::2] = [item.strftime("%y/%m/%d") for item in df.index[::2]]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(tick_labels))
-        plt.gcf().autofmt_xdate()
+        self.figure.autofmt_xdate()
 
         # plt.tight_layout()
         self.canvas.draw()
