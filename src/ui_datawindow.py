@@ -107,6 +107,7 @@ class DataWindow(QWidget, Ui_DataWidget):
             print(f"Delete event {event} at: {selected_datetime}")
             DB_CONTROLLER.delete_event(selected_datetime)
             self.on_date_change()
+            self.main_window.update_plot_window()
 
     def get_selected_event(self) -> tuple[str, str] | tuple[None, None]:
         indexes = self.tableWidget.selectionModel().selectedRows()

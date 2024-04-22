@@ -136,6 +136,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         DB_CONTROLLER.add_pause(pause, entry_date)
         self.set_pause(0)
         UIC.show_message(f"Added pause of {pause} minutes on date {entry_date.strftime('%d-%m-%Y')}")
+        self.update_other_windows()
 
     def get_past_date(self):
         qt_object = self.past_datetime_edit.dateTime()  # type: ignore
@@ -160,9 +161,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def add_start(self):
         self.add_event("start")
+        self.update_other_windows()
 
     def add_stop(self):
         self.add_event("stop")
+        self.update_other_windows()
 
     def get_updates(self):
         message = "Want to search and get updates? This could take a short time."
@@ -178,3 +181,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def show_plot_window(self):
         self.plot_window.plot()
         self.plot_window.show()
+
+    def update_other_windows(self):
+        """Updates the view of the other windows if they are open."""
+        self.update_data_window()
+        self.update_plot_window()
+
+    def update_plot_window(self):
+        if self.plot_window.isVisible():
+            self.plot_window.plot()
+
+    def update_data_window(self):
+        if self.event_window.isVisible():
+            self.event_window.update_data()
