@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.ticker as ticker
 
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont
@@ -38,11 +37,11 @@ class GraphWindow(QDialog):
         # this is the Canvas Widget that displays the `figure`
         # it takes the `figure` instance as a parameter to __init__
         # a figure instance to plot on
-        plt.rcParams["date.autoformatter.day"] = "%y/%m/%d"
+        plt.rcParams["date.autoformatter.day"] = "%d"
         # set the layout
         self.container = QVBoxLayout()
         self.container.addWidget(self.back_button)
-        self.figure = plt.figure(figsize=(13, 8), dpi=128)
+        self.figure = plt.figure(figsize=(13, 8), dpi=128, tight_layout=True)
         self.canvas = FigureCanvas(self.figure)
         self.container.addWidget(self.canvas)
         self.setLayout(self.container)
@@ -66,10 +65,12 @@ class GraphWindow(QDialog):
         ax.axhline(8, color="k", ls="--", lw=1)
         ax.xaxis.get_label().set_visible(False)
 
-        tick_labels = [""] * len(df.index)
-        tick_labels[::2] = [item.strftime("%y/%m/%d") for item in df.index[::2]]
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(tick_labels))
-        self.figure.autofmt_xdate()
+        tick_labels = [item.strftime("%d") for item in df.index]
+        # shift the xticks to the middle of the bars
+        ax.set_xticks([x + 0.3 for x in range(len(tick_labels))], tick_labels, rotation="vertical")
+        # hide the x ticks
+        ax.tick_params(axis="x", which="both", bottom=False, top=False)
+        ax.set_title(f"Working time for {df.index[0].strftime('%B %Y')}")
+        self.figure.autofmt_xdate(rotation=90)
 
-        # plt.tight_layout()
         self.canvas.draw()
