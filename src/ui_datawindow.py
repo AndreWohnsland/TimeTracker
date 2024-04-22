@@ -25,7 +25,6 @@ class DataWindow(QWidget, Ui_DataWidget):
         self.setWindowIcon(get_app_icon())
         self.connect_buttons()
         self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)  # type: ignore
-        self.setWindowModality(Qt.ApplicationModal)  # type: ignore
         self.delete_button = None
         self.date_edit.setDateTime(QDateTime.currentDateTime())
         self.handle_delete_button()

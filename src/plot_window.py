@@ -23,9 +23,8 @@ class GraphWindow(QDialog):
         self.setWindowTitle("Plot of the Working time")
         self.setWindowIcon(self.main_window.clock_icon)
         self.setWindowFlags(
-            Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint  # type: ignore
+            Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint  # type: ignore
         )
-        self.setModal(True)
         # adds a button to go back
         self.back_button = QPushButton("< Back")
         # sets the minimum size and the fontsize
