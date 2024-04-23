@@ -1,4 +1,4 @@
-name: Build and Release with PyInstaller
+name: Manual Build with PyInstaller
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.12
+        python-version: 3.10
 
     - name: Install dependencies
       run: |
