@@ -11,14 +11,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: timetracker_latest
-            asset_name: timetracker-linux-amd64
+            artifact_name: timetracker_latest_ubuntu
           - os: windows-latest
-            artifact_name: timetracker_latest.exe
-            asset_name: timetracker-windows-amd64
+            artifact_name: timetracker_latest_win.exe
           - os: macos-latest
-            artifact_name: timetracker_latest.app
-            asset_name: timetracker-macos-amd64
+            artifact_name: timetracker_latest_mac
 
     steps:
     - name: Checkout code
@@ -37,10 +34,10 @@ jobs:
 
     - name: Build
       run: |
-        pyinstaller --onefile --name timetracker_latest_${{ matrix.os }} runme.py
+        pyinstaller --onefile -w --name timetracker_latest_${{ matrix.artifact_name }} --icon="ui/clock.png"  runme.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.os }}
-        path: dist/
+        name: ${{ matrix.artifact_name }}
+        path: dist/${{ matrix.artifact_name }}
