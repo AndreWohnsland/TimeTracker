@@ -5,3 +5,4 @@ pyqt5
 xlsxwriter
 pyqtdarktheme
 qtawesome
+holidays
