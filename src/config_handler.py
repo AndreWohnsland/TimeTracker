@@ -47,17 +47,16 @@ class Config:
 
 class ConfigHandler:
     def __init__(self):
-        self.config_path = CONFIG_PATH
-        self.config = self.get_config_file_data()
+        self.config = self.get_config()
 
-    def get_config_file_data(self):
+    def get_config(self):
         config_file = self.read_config_file()
         return Config.from_kwargs(**config_file)
 
     def read_config_file(self) -> dict:
-        if not self.config_path.exists():
+        if not CONFIG_PATH.exists():
             return NEEDED_DATA
-        with open(self.config_path, "r") as f:
+        with open(CONFIG_PATH, "r") as f:
             config = json.load(f)
         for d in NEEDED_DATA.items():
             if d[0] not in config:
@@ -65,7 +64,7 @@ class ConfigHandler:
         return config
 
     def write_config_file(self):
-        with open(self.config_path, "w") as write_file:
+        with open(CONFIG_PATH, "w") as write_file:
             json.dump(self.config.to_json(), write_file)  # type: ignore
 
     def set_config_value(self, key: CONFIG_NAMES, value: Any, write: bool = True):
