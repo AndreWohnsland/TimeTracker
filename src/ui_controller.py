@@ -85,24 +85,22 @@ class UiController:
         table.horizontalHeaderItem(1).setText(name2)
 
     def get_user_data(self, parent):
-        all_data = CONFIG_HANDLER.get_config_file_data()
         needed_keys = ["Name", "Personal Number"]
-        needed_data = {k: all_data[k] for k in needed_keys}
-        for data in needed_data:
+        # todo adjust to new class logic
+        for data in needed_keys:
             text, ok = self.get_text(data, parent)
             if not ok:
                 return
             if text != "":
-                all_data[data] = text
-        CONFIG_HANDLER.write_config_file(all_data)
+                CONFIG_HANDLER.set_config_value(data, text, write=False)
+        CONFIG_HANDLER.write_config_file()
 
     def get_save_folder(self):
-        all_data = CONFIG_HANDLER.get_config_file_data()
-        user_path = all_data.get("save_path", "")
+        user_path = CONFIG_HANDLER.config.save_path
         returned_path = self.get_folder(user_path)
         if returned_path:
-            all_data["save_path"] = returned_path
-        CONFIG_HANDLER.write_config_file(all_data)
+            CONFIG_HANDLER.config.save_path = returned_path
+        CONFIG_HANDLER.write_config_file()
 
 
 UI_CONTROLLER = UiController()
