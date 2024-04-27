@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, Literal
 from dataclasses_json import dataclass_json
 from inspect import signature
 import json
@@ -13,6 +14,7 @@ NEEDED_DATA = {
     "country": "US",
     "subdiv": None,
 }
+CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv"]
 
 
 @dataclass
@@ -39,6 +41,9 @@ class Config:
             setattr(c, new_name, new_val)
         return c
 
+    def __getitem__(self, item):
+        return getattr(self, item)
+
 
 class ConfigHandler:
     def __init__(self):
@@ -63,7 +68,7 @@ class ConfigHandler:
         with open(self.config_path, "w") as write_file:
             json.dump(self.config.to_json(), write_file)  # type: ignore
 
-    def set_config_value(self, key, value, write=True):
+    def set_config_value(self, key: CONFIG_NAMES, value: Any, write: bool = True):
         setattr(self.config, key, value)
         if not write:
             return

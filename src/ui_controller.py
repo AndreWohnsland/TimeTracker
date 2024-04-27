@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDi
 from src.filepath import HOME_PATH
 from src.icons import get_app_icon
 from src import __version__
-from src.config_handler import CONFIG_HANDLER
+from src.config_handler import CONFIG_HANDLER, CONFIG_NAMES
 
 
 class UiController:
@@ -85,7 +85,7 @@ class UiController:
         table.horizontalHeaderItem(1).setText(name2)
 
     def get_user_data(self, parent):
-        needed_keys = ["Name", "Personal Number"]
+        needed_keys: list[CONFIG_NAMES] = ["name"]
         # todo adjust to new class logic
         for data in needed_keys:
             text, ok = self.get_text(data, parent)
