@@ -43,3 +43,6 @@ DATABASE_PATH = SAVE_FOLDER / "time_data.db"
 # config
 OLD_CONFIG_PATH = ROOT_PATH / "config" / "config.json"
 CONFIG_PATH = SAVE_FOLDER / "config.json"
+
+# saved reports (default one)
+REPORTS_PATH = SAVE_FOLDER / "reports"

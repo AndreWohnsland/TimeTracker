@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication
 import qdarktheme
 import darkdetect
 
-from src.filepath import SAVE_FOLDER, CONFIG_PATH, DATABASE_PATH, OLD_CONFIG_PATH, OLD_DATABASE_PATH
+from src.filepath import SAVE_FOLDER, CONFIG_PATH, DATABASE_PATH, OLD_CONFIG_PATH, OLD_DATABASE_PATH, REPORTS_PATH
 
 
 def is_light() -> bool:
@@ -32,6 +32,8 @@ def prepare_data_location_and_files():
     # need to create the folder once
     if not SAVE_FOLDER.exists():
         SAVE_FOLDER.mkdir(parents=True)
+    if not REPORTS_PATH.exists():
+        REPORTS_PATH.mkdir(parents=True)
     # move config file
     if OLD_CONFIG_PATH.exists():
         print(f"Old Config found at {OLD_DATABASE_PATH}, moving to new location to {DATABASE_PATH}")
