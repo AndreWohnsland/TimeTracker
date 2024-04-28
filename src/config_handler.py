@@ -11,10 +11,11 @@ from src.filepath import CONFIG_PATH
 NEEDED_DATA = {
     "name": "",
     "save_path": "",
+    "daily_hours": 8.0,
     "country": "US",
     "subdiv": None,
 }
-CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv"]
+CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv", "daily_hours"]
 
 
 @dataclass
@@ -22,6 +23,7 @@ CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv"]
 class Config:
     name: str
     save_path: str
+    daily_hours: float
     country: str
     subdiv: str | None
 
@@ -47,9 +49,9 @@ class Config:
 
 class ConfigHandler:
     def __init__(self):
-        self.config = self.get_config()
+        self.config = self._get_config()
 
-    def get_config(self):
+    def _get_config(self):
         config_file = self.read_config_file()
         return Config.from_kwargs(**config_file)
 
