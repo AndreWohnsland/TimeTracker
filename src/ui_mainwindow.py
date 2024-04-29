@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 
 from src.plot_window import GraphWindow
+from src.ui_config_window import ConfigWindow
 from src.ui_datawindow import DataWindow
 from src.updater import UPDATER
 from ui.mainwindow import Ui_MainWindow
@@ -34,6 +35,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.resize_mainwindow(0, -80)
         self.event_window = DataWindow(self)
         self.plot_window = GraphWindow(self)
+        self.config_window: ConfigWindow | None = None
 
     def connect_buttons(self):
         self.start_button.clicked.connect(self.add_start)
@@ -92,7 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.restore_window()
 
     def connect_actions(self):
-        self.action_configuration.triggered.connect(lambda: UIC.get_user_data(self))
+        self.action_configuration.triggered.connect(self.show_config_window)
         self.action_report.triggered.connect(self.show_data_window)
         self.action_save_folder.triggered.connect(UIC.get_save_folder)
         self.action_update.triggered.connect(self.get_updates)
@@ -194,3 +196,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def update_data_window(self):
         if self.event_window.isVisible():
             self.event_window.update_data()
+
+    def show_config_window(self):
+        self.config_window = ConfigWindow(self)
+        self.config_window.show()
