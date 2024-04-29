@@ -67,7 +67,7 @@ class ConfigHandler:
 
     def write_config_file(self):
         with open(CONFIG_PATH, "w") as write_file:
-            json.dump(self.config.to_json(), write_file)  # type: ignore
+            json.dump(self.config.to_dict(), write_file)  # type: ignore
 
     def set_config_value(self, key: CONFIG_NAMES, value: Any, write: bool = True):
         setattr(self.config, key, value)
