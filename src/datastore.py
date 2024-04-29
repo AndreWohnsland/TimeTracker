@@ -2,13 +2,17 @@ import datetime
 from dataclasses import dataclass, field
 from dateutil.relativedelta import relativedelta
 
+import holidays
+from holidays import HolidayBase
 import pandas as pd
 
 from src.database_controller import DB_CONTROLLER
+from src.config_handler import CONFIG_HANDLER
 
 
 @dataclass
 class Store:
+    holidays: HolidayBase
     df: pd.DataFrame = pd.DataFrame()
     daily_data: list[tuple[str, str]] = field(default_factory=list)
     current_date: datetime.date = datetime.date.today()
@@ -102,4 +106,6 @@ class Store:
         return combined_df
 
 
-store = Store()
+store = Store(
+    holidays=holidays.CountryHoliday(CONFIG_HANDLER.config.country, prov=CONFIG_HANDLER.config.subdiv or None),
+)
