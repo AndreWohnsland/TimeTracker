@@ -200,6 +200,7 @@
     <addaction name="action_update"/>
     <addaction name="separator"/>
     <addaction name="action_about"/>
+    <addaction name="action_open_folder"/>
    </widget>
    <addaction name="menuOptions"/>
   </widget>
@@ -246,6 +247,11 @@
   <action name="action_about">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="action_open_folder">
+   <property name="text">
+    <string>Open Config Folder</string>
    </property>
   </action>
  </widget>

@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 import platform
 from PyQt5.QtWidgets import QApplication
 
@@ -52,3 +54,14 @@ def prepare_data_location_and_files():
     if OLD_DATABASE_PATH.exists():
         print(f"Old Database found at {OLD_DATABASE_PATH}, moving to new location to {DATABASE_PATH}")
         OLD_DATABASE_PATH.rename(DATABASE_PATH)
+
+
+def open_folder_in_explorer(p: Path = SAVE_FOLDER):
+    system = platform.system()
+    resolved_path = str(p.resolve())
+    if system == "Windows":
+        os.startfile(resolved_path)
+    elif system == "Darwin":  # Mac
+        os.system(f"open {resolved_path}")
+    elif system == "Linux":
+        os.system(f"xdg-open {resolved_path}")

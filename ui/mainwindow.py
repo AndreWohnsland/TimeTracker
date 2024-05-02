@@ -103,6 +103,8 @@ class Ui_MainWindow(object):
         self.action_tmp2.setObjectName("action_tmp2")
         self.action_about = QtWidgets.QAction(MainWindow)
         self.action_about.setObjectName("action_about")
+        self.action_open_folder = QtWidgets.QAction(MainWindow)
+        self.action_open_folder.setObjectName("action_open_folder")
         self.menuOptions.addAction(self.action_report)
         self.menuOptions.addAction(self.action_past_entry)
         self.menuOptions.addSeparator()
@@ -112,6 +114,7 @@ class Ui_MainWindow(object):
         self.menuOptions.addAction(self.action_update)
         self.menuOptions.addSeparator()
         self.menuOptions.addAction(self.action_about)
+        self.menuOptions.addAction(self.action_open_folder)
         self.menubar.addAction(self.menuOptions.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -134,6 +137,7 @@ class Ui_MainWindow(object):
         self.action_past_entry.setText(_translate("MainWindow", "Switch to Past Entry"))
         self.action_tmp2.setText(_translate("MainWindow", "tmp2"))
         self.action_about.setText(_translate("MainWindow", "About"))
+        self.action_open_folder.setText(_translate("MainWindow", "Open Config Folder"))
 
 
 if __name__ == "__main__":

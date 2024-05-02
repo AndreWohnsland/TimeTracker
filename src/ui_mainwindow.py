@@ -9,6 +9,7 @@ from src.plot_window import GraphWindow
 from src.ui_config_window import ConfigWindow
 from src.ui_datawindow import DataWindow
 from src.updater import UPDATER
+from src.utils import open_folder_in_explorer
 from ui.mainwindow import Ui_MainWindow
 from src.database_controller import DB_CONTROLLER
 from src.ui_controller import UI_CONTROLLER as UIC
@@ -100,6 +101,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_update.triggered.connect(self.get_updates)
         self.action_past_entry.triggered.connect(self.show_ui_elements)
         self.action_about.triggered.connect(UIC.display_about)
+        self.action_open_folder.triggered.connect(lambda _: open_folder_in_explorer())
 
     def show_ui_elements(self):
         if self.is_past_time:
