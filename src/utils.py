@@ -1,3 +1,4 @@
+import platform
 from PyQt5.QtWidgets import QApplication
 
 import qdarktheme
@@ -24,6 +25,15 @@ def get_icon_color() -> str:
 def sync_theme() -> None:
     stylesheet = qdarktheme.load_stylesheet(get_style_name())
     QApplication.instance().setStyleSheet(stylesheet)  # type: ignore
+
+
+def get_additional_run_args() -> list[str]:
+    """Returns the additional run arguments for the app."""
+    system = platform.system()
+    # windows need some extra love for the window header to be dark
+    if system == "Windows" and not is_light():
+        return ["-platform", "windows:darkmode=1"]
+    return []
 
 
 def prepare_data_location_and_files():
