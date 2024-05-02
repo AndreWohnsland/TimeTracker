@@ -73,7 +73,7 @@ class DataExporter:
             time_to_subtract = CONFIG_HANDLER.config.daily_hours
         for i, (index, row) in enumerate(df.iterrows()):
             worksheet.write(f"A{7+i}", index.strftime("%d.%m.%Y"))  # type: ignore
-            _time = self._round_quarterly(max(row["final_time"] - time_to_subtract, 0))
+            _time = self._round_quarterly(max(row["work"] - time_to_subtract, 0))
             worksheet.write(f"B{7+i}", _time, color)
 
 

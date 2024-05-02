@@ -72,7 +72,7 @@ class DataWindow(QWidget, Ui_DataWidget):
         UIC.clear_table(self.tableWidget)
         UIC.set_header_names(self.tableWidget, "Date", "Worktime (h)")
         for index, entry in store.df.iterrows():
-            needed_data = [index.strftime("%d/%m/%Y"), str(entry["final_time"])]  # type: ignore
+            needed_data = [index.strftime("%d/%m/%Y"), str(entry["work"])]  # type: ignore
             UIC.fill_table(self.tableWidget, needed_data)
 
     def fill_daily_data(self):

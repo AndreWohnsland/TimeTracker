@@ -12,10 +12,11 @@ NEEDED_DATA = {
     "name": "",
     "save_path": "",
     "daily_hours": 8.0,
+    "weekly_hours": 40.0,
     "country": "US",
     "subdiv": None,
 }
-CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv", "daily_hours"]
+CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv", "daily_hours", "weekly_hours"]
 
 
 @dataclass
@@ -24,6 +25,7 @@ class Config:
     name: str
     save_path: str
     daily_hours: float
+    weekly_hours: float
     country: str
     subdiv: str | None
 
