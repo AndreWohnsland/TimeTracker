@@ -66,17 +66,20 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
 
     def set_config_values(self):
         self.input_name.setText(CONFIG_HANDLER.config.name)
-        self.input_working_hours.setValue(CONFIG_HANDLER.config.daily_hours)
+        self.input_daily_hours.setValue(CONFIG_HANDLER.config.daily_hours)
+        self.input_weekly_hours.setValue(CONFIG_HANDLER.config.weekly_hours)
 
     def apply_config(self):
         country = self.input_country.currentText()
         subdiv = self.input_subdiv.currentText() or None
         name = self.input_name.text()
-        working_hours = self.input_working_hours.value()
+        daily_hours = self.input_daily_hours.value()
+        weekly_hours = self.input_weekly_hours.value()
         CONFIG_HANDLER.config.country = country
         CONFIG_HANDLER.config.subdiv = subdiv
         CONFIG_HANDLER.config.name = name
-        CONFIG_HANDLER.config.daily_hours = working_hours
+        CONFIG_HANDLER.config.daily_hours = daily_hours
+        CONFIG_HANDLER.config.weekly_hours = weekly_hours
         CONFIG_HANDLER.write_config_file()
         self.close()
 
