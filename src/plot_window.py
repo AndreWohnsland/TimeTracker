@@ -15,6 +15,7 @@ from src.filepath import REPORTS_PATH
 from src.ui_controller import UI_CONTROLLER
 from ui import Ui_PlotWindow
 from src.datastore import store
+from src.utils import get_font_color
 
 if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
@@ -29,8 +30,22 @@ class GraphWindow(QWidget, Ui_PlotWindow):
         self.setWindowFlags(
             Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint  # type: ignore
         )
+        # setting all the params
         plt.rcParams["date.autoformatter.day"] = "%d"
-        # plt.rcParams["date.autoformatter.month"] = "%b"
+        plt.rcParams["date.autoformatter.month"] = "%b"
+        plt.rcParams["figure.facecolor"] = "none"
+        plt.rcParams["axes.facecolor"] = "none"
+        text_color = get_font_color()
+        plt.rcParams["text.color"] = text_color
+        plt.rcParams["axes.edgecolor"] = text_color
+        plt.rcParams["xtick.color"] = text_color
+        plt.rcParams["ytick.color"] = text_color
+        plt.rcParams["axes.labelcolor"] = text_color
+        plt.rcParams["axes.titlecolor"] = text_color
+        # Despine the plot right and top
+        plt.rcParams["axes.spines.right"] = False
+        plt.rcParams["axes.spines.top"] = False
+        self.text_color = text_color
         # this is the Canvas Widget that displays the `figure`
         # it takes the `figure` instance as a parameter to __init__
         # a figure instance to plot on
@@ -75,19 +90,21 @@ class GraphWindow(QWidget, Ui_PlotWindow):
             # lets use "easy" constant monthly working hours for now
             needed_hours = CONFIG_HANDLER.config.weekly_hours * 52 / 12
         plot_df = self.adjust_df_for_plot(df, needed_hours)
-        plot_df.plot.bar(stacked=True, ax=ax, width=0.8, color=["#2693ff", "#ff4e26", "#25cf5e"])
-        ax.legend(fancybox=True, framealpha=0.7)
+        plot_df.plot.bar(stacked=True, ax=ax, width=0.8, color=["#2693ff", "#ff4e26", "#25cf5e"], zorder=2)
+        ax.legend(fancybox=True, framealpha=0.9)
 
-        ax.axhline(needed_hours, color="k", ls="--", lw=1)
+        ax.axhline(needed_hours, color=self.text_color, ls="--", lw=1, zorder=3)
+        ax.yaxis.grid(True, lw=1, ls=":", color=self.text_color, alpha=0.2, zorder=1)
         ax.xaxis.get_label().set_visible(False)
 
         if self.radio_month.isChecked():
             tick_labels = [day.strftime("%d") for day in df.index]
+            rotation = "vertical"
             # shift the xticks to the middle of the bars
-            ax.set_xticks([x + 0.3 for x in range(len(tick_labels))], tick_labels, rotation="vertical")
         else:
             tick_labels = [month.strftime("%b") for month in df.index]
-            ax.set_xticklabels(tick_labels, rotation="horizontal")
+            rotation = "horizontal"
+        ax.set_xticklabels(tick_labels, rotation=rotation)
 
         # hide the x ticks
         ax.tick_params(axis="x", which="both", bottom=False, top=False)
