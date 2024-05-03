@@ -24,6 +24,11 @@ def get_icon_color() -> str:
     return "black" if is_light() else "white"
 
 
+def get_font_color() -> str:
+    """Returns the font color based on the light mode."""
+    return "#4d5157" if is_light() else "#e4e7eb"
+
+
 def sync_theme() -> None:
     stylesheet = qdarktheme.load_stylesheet(get_style_name())
     QApplication.instance().setStyleSheet(stylesheet)  # type: ignore
