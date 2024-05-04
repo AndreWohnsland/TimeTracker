@@ -39,9 +39,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config_window: ConfigWindow | None = None
 
     def connect_buttons(self):
-        self.start_button.clicked.connect(self.add_start)
-        self.stop_button.clicked.connect(self.add_stop)
-        self.pause_button.clicked.connect(self.add_pause)
+        self.start_button.clicked.connect(lambda: self.add_start())
+        self.stop_button.clicked.connect(lambda: self.add_stop())
+        self.pause_button.clicked.connect(lambda: self.add_pause())
         self.back_button.clicked.connect(self.hide_ui_elements)
 
     def set_icon(self):
@@ -72,9 +72,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Mainwindow
         self.add_tray_menu_option(tray_menu, self.icons.setting, "Setup", self.restore_window)
         # Stop
-        self.add_tray_menu_option(tray_menu, self.icons.stop, "Stop", self.add_stop)
+        self.add_tray_menu_option(tray_menu, self.icons.stop, "Stop", lambda: self.add_stop(False))
         # Start
-        self.add_tray_menu_option(tray_menu, self.icons.start, "Start", self.add_start)
+        self.add_tray_menu_option(tray_menu, self.icons.start, "Start", lambda: self.add_start(False))
 
     def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]):
         start_action = QAction(icon, text, self)
@@ -107,6 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.is_past_time:
             return
         self.past_datetime_edit.show()
+        self.past_datetime_edit.setDateTime(datetime.datetime.now())
         self.back_button.show()
         self.resize_mainwindow(0, 80)
 
@@ -132,10 +133,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def set_pause(self, value: int):
         self.pause_box.setValue(value)
 
-    def add_pause(self):
+    def add_pause(self, check_past_entry: bool = True):
         pause = self.get_pause()
         entry_date = datetime.date.today()
-        if self.is_past_time:
+        if self.is_past_time and check_past_entry:
             entry_date = self.get_past_date()
         DB_CONTROLLER.add_pause(pause, entry_date)
         self.set_pause(0)
@@ -155,20 +156,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             qt_date.year(), qt_date.month(), qt_date.day(), qt_time.hour(), qt_time.minute(), qt_time.second()
         )
 
-    def add_event(self, event: str):
+    def add_event(self, event: str, check_past_entry: bool = True):
         entry_datetime = datetime.datetime.now()
         entry_datetime = entry_datetime.replace(microsecond=0)
-        if self.is_past_time:
+        if self.is_past_time and check_past_entry:
             entry_datetime = self.get_past_datetime()
         DB_CONTROLLER.add_event(event, entry_datetime)
         UIC.show_message(f"Added event {event} at {entry_datetime.strftime('%d-%m-%Y - %H:%M:%S')}")
 
-    def add_start(self):
-        self.add_event("start")
+    def add_start(self, check_past_entry: bool = True):
+        self.add_event("start", check_past_entry)
         self.update_other_windows()
 
-    def add_stop(self):
-        self.add_event("stop")
+    def add_stop(self, check_past_entry: bool = True):
+        self.add_event("stop", check_past_entry)
         self.update_other_windows()
 
     def get_updates(self):
