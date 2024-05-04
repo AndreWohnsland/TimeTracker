@@ -15,7 +15,7 @@ from src.filepath import REPORTS_PATH
 from src.ui_controller import UI_CONTROLLER
 from ui import Ui_PlotWindow
 from src.datastore import store
-from src.utils import get_font_color
+from src.utils import get_font_color, get_background_color
 
 if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
@@ -31,21 +31,21 @@ class GraphWindow(QWidget, Ui_PlotWindow):
             Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint  # type: ignore
         )
         # setting all the params
+        self.text_color = get_font_color()
+        self.background_color = get_background_color()
         plt.rcParams["date.autoformatter.day"] = "%d"
         plt.rcParams["date.autoformatter.month"] = "%b"
-        plt.rcParams["figure.facecolor"] = "none"
-        plt.rcParams["axes.facecolor"] = "none"
-        text_color = get_font_color()
-        plt.rcParams["text.color"] = text_color
-        plt.rcParams["axes.edgecolor"] = text_color
-        plt.rcParams["xtick.color"] = text_color
-        plt.rcParams["ytick.color"] = text_color
-        plt.rcParams["axes.labelcolor"] = text_color
-        plt.rcParams["axes.titlecolor"] = text_color
+        plt.rcParams["figure.facecolor"] = self.background_color
+        plt.rcParams["axes.facecolor"] = self.background_color
+        plt.rcParams["text.color"] = self.text_color
+        plt.rcParams["axes.edgecolor"] = self.text_color
+        plt.rcParams["xtick.color"] = self.text_color
+        plt.rcParams["ytick.color"] = self.text_color
+        plt.rcParams["axes.labelcolor"] = self.text_color
+        plt.rcParams["axes.titlecolor"] = self.text_color
         # Despine the plot right and top
         plt.rcParams["axes.spines.right"] = False
         plt.rcParams["axes.spines.top"] = False
-        self.text_color = text_color
         # this is the Canvas Widget that displays the `figure`
         # it takes the `figure` instance as a parameter to __init__
         # a figure instance to plot on
@@ -109,9 +109,10 @@ class GraphWindow(QWidget, Ui_PlotWindow):
         # hide the x ticks
         ax.tick_params(axis="x", which="both", bottom=False, top=False)
         if self.radio_month.isChecked():
-            ax.set_title(f"Working time for {store.current_date.strftime('%B %Y')}")
+            title = f"Working time for {store.current_date.strftime('%B %Y')}"
         else:
-            ax.set_title(f"Working time for {store.current_date.year}")
+            title = f"Working time for {store.current_date.year}"
+        ax.set_title(title, weight="bold", fontsize=15)
         # self.figure.autofmt_xdate(rotation=90)
 
         self.canvas.draw()
@@ -163,5 +164,5 @@ class GraphWindow(QWidget, Ui_PlotWindow):
             save_file_name = folder / f"{file_name.stem}_{suffix}{file_name.suffix}"
             suffix += 1
 
-        self.figure.savefig(save_file_name)
+        self.figure.savefig(save_file_name, transparent=False)
         UI_CONTROLLER.show_message(f"Plot saved to {save_file_name}")

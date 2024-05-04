@@ -19,9 +19,9 @@ def get_style_name() -> str:
     return "light" if is_light() else "dark"
 
 
-def get_icon_color() -> str:
+def get_background_color() -> str:
     """Returns the icon color based on the light mode."""
-    return "black" if is_light() else "white"
+    return "#f8f9fa" if is_light() else "#202124"
 
 
 def get_font_color() -> str:
