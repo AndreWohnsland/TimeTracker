@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import qtawesome as qta
 from PyQt5.QtGui import QIcon
 
-from src.utils import get_icon_color
+from src.utils import get_font_color
 
 
 @dataclass
@@ -32,7 +32,7 @@ def generate_icon(icon_name: str, color: str = "white") -> QIcon:
 
 
 def get_preset_icons() -> PresetIcon:
-    default_color = get_icon_color()
+    default_color = get_font_color()
     return PresetIcon(
         start=generate_icon(PresetIconNames.start, "green"),
         stop=generate_icon(PresetIconNames.stop, "orange"),
@@ -45,5 +45,5 @@ def get_preset_icons() -> PresetIcon:
 
 
 def get_app_icon():
-    default_color = get_icon_color()
+    default_color = get_font_color()
     return generate_icon(PresetIconNames.clock, default_color)
