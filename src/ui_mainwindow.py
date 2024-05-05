@@ -8,9 +8,10 @@ from PyQt5.QtCore import Qt
 from src.plot_window import GraphWindow
 from src.ui_config_window import ConfigWindow
 from src.ui_datawindow import DataWindow
+from src.ui_vacation_window import VacationWindow
 from src.updater import UPDATER
 from src.utils import open_folder_in_explorer
-from ui.mainwindow import Ui_MainWindow
+from ui import Ui_MainWindow
 from src.database_controller import DB_CONTROLLER
 from src.ui_controller import UI_CONTROLLER as UIC
 from src.icons import get_preset_icons
@@ -37,6 +38,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.event_window = DataWindow(self)
         self.plot_window = GraphWindow(self)
         self.config_window: ConfigWindow | None = None
+        self.vacation_window: VacationWindow | None = None
 
     def connect_buttons(self):
         self.start_button.clicked.connect(lambda: self.add_start())
@@ -102,6 +104,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_past_entry.triggered.connect(self.show_ui_elements)
         self.action_about.triggered.connect(UIC.display_about)
         self.action_open_folder.triggered.connect(lambda _: open_folder_in_explorer())
+        self.action_set_vacation.triggered.connect(self.show_vacation_window)
 
     def show_ui_elements(self):
         if self.is_past_time:
@@ -203,3 +206,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def show_config_window(self):
         self.config_window = ConfigWindow(self)
         self.config_window.show()
+
+    def show_vacation_window(self):
+        self.vacation_window = VacationWindow(self)
+        self.vacation_window.show()

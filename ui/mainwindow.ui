@@ -195,12 +195,12 @@
     <addaction name="action_past_entry"/>
     <addaction name="separator"/>
     <addaction name="action_configuration"/>
+    <addaction name="action_set_vacation"/>
     <addaction name="action_save_folder"/>
-    <addaction name="separator"/>
-    <addaction name="action_update"/>
     <addaction name="separator"/>
     <addaction name="action_about"/>
     <addaction name="action_open_folder"/>
+    <addaction name="action_update"/>
    </widget>
    <addaction name="menuOptions"/>
   </widget>
@@ -252,6 +252,11 @@
   <action name="action_open_folder">
    <property name="text">
     <string>Open Config Folder</string>
+   </property>
+  </action>
+  <action name="action_set_vacation">
+   <property name="text">
+    <string>Set Vacation Days</string>
    </property>
   </action>
  </widget>

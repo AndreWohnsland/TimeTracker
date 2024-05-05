@@ -1,7 +1,8 @@
 cd .\ui\
 
 $files = @(
-  "data_widget", "mainwindow", "config_window", "plot_window"
+  "data_widget", "mainwindow", "config_window", "plot_window",
+  "vacation_window"
 )
 
 foreach ($f in $files) {

@@ -105,16 +105,18 @@ class Ui_MainWindow(object):
         self.action_about.setObjectName("action_about")
         self.action_open_folder = QtWidgets.QAction(MainWindow)
         self.action_open_folder.setObjectName("action_open_folder")
+        self.action_set_vacation = QtWidgets.QAction(MainWindow)
+        self.action_set_vacation.setObjectName("action_set_vacation")
         self.menuOptions.addAction(self.action_report)
         self.menuOptions.addAction(self.action_past_entry)
         self.menuOptions.addSeparator()
         self.menuOptions.addAction(self.action_configuration)
+        self.menuOptions.addAction(self.action_set_vacation)
         self.menuOptions.addAction(self.action_save_folder)
-        self.menuOptions.addSeparator()
-        self.menuOptions.addAction(self.action_update)
         self.menuOptions.addSeparator()
         self.menuOptions.addAction(self.action_about)
         self.menuOptions.addAction(self.action_open_folder)
+        self.menuOptions.addAction(self.action_update)
         self.menubar.addAction(self.menuOptions.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -138,6 +140,7 @@ class Ui_MainWindow(object):
         self.action_tmp2.setText(_translate("MainWindow", "tmp2"))
         self.action_about.setText(_translate("MainWindow", "About"))
         self.action_open_folder.setText(_translate("MainWindow", "Open Config Folder"))
+        self.action_set_vacation.setText(_translate("MainWindow", "Set Vacation Days"))
 
 
 if __name__ == "__main__":
