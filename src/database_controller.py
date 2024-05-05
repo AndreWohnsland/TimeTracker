@@ -96,6 +96,26 @@ class DatabaseController:
         query = "DELETE FROM Events WHERE Date = ?"
         self.handler.query_database(query, (delete_datetime,))
 
+    def add_vacation(self, vacation_date: datetime.date):
+        date_string = vacation_date.isoformat()
+        print(f"Adding Vacation on {date_string}")
+        # only enter (ignore) if the date does not exist
+        query = "INSERT OR IGNORE INTO Vacation(Date) VALUES(?)"
+        self.handler.query_database(query, (date_string,))
+
+    def get_vacation_days(self, year: int) -> list[datetime.date]:
+        query = "SELECT Date FROM Vacation WHERE strftime('%Y', Date) = ?"
+        # using str(year) is important, since strftime returns a string
+        days: list[tuple[str]] = self.handler.query_database(query, (str(year),))
+        # convert to a list of dates
+        return [datetime.date.fromisoformat(day[0]) for day in days]
+
+    def remove_vacation(self, vacation_date: datetime.date):
+        date_string = vacation_date.isoformat()
+        print(f"Removing Vacation on {date_string}")
+        query = "DELETE FROM Vacation WHERE Date = ?"
+        self.handler.query_database(query, (date_string,))
+
 
 class DatabaseHandler:
     """Handler Class for Connecting and querying Databases"""
@@ -105,7 +125,7 @@ class DatabaseHandler:
         self.database_path = DATABASE_PATH
         if not self.database_path.exists():
             print(f"No database detected, creating Database at {self.database_path}")
-            self.create_tables()
+        self.create_tables()
 
     def connect_database(self):
         self.database = sqlite3.connect(self.database_path)
@@ -125,7 +145,7 @@ class DatabaseHandler:
 
     def create_tables(self):
         self.connect_database()
-        # Creates each Table
+        # get all table names from the database
         self.cursor.execute(
             """CREATE TABLE IF NOT EXISTS Events(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -138,8 +158,15 @@ class DatabaseHandler:
                 Date DATE NOT NULL,
                 Time INTEGER NOT NULL);"""
         )
+        # create vacation table (id and date)
+        self.cursor.execute(
+            """CREATE TABLE IF NOT EXISTS Vacation(
+                ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                Date DATE NOT NULL);"""
+        )
         # Creating the Unique Indexes
         self.cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date ON Pause(Date)")
+        self.cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date_vacation ON Vacation(Date)")
         self.database.commit()
         self.database.close()
 

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDialog, QDialog, QTableWidget
+from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDialog, QDialog, QTableWidget, QLayout
 
 from src.filepath import HOME_PATH
 from src.icons import get_app_icon
@@ -101,6 +101,17 @@ class UiController:
         if returned_path:
             CONFIG_HANDLER.config.save_path = returned_path
         CONFIG_HANDLER.write_config_file()
+
+    def delete_items_of_layout(self, layout: QLayout | None = None):
+        """Recursively delete all items of the given layout"""
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.setParent(None)  # type: ignore
+                else:
+                    self.delete_items_of_layout(item.layout())
 
 
 UI_CONTROLLER = UiController()

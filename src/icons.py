@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import qtawesome as qta
 from PyQt5.QtGui import QIcon
 
-from src.utils import get_font_color
+from src.utils import get_font_color, get_background_color
 
 
 @dataclass
@@ -14,6 +14,7 @@ class PresetIconNames:
     table = "fa5s.table"
     setting = "fa.gears"
     clock = "fa5.clock"
+    delete = "fa5.trash-alt"
 
 
 @dataclass
@@ -25,6 +26,8 @@ class PresetIcon:
     table: QIcon
     setting: QIcon
     clock: QIcon
+    delete: QIcon
+    delete_inverted: QIcon
 
 
 def generate_icon(icon_name: str, color: str = "white") -> QIcon:
@@ -33,6 +36,7 @@ def generate_icon(icon_name: str, color: str = "white") -> QIcon:
 
 def get_preset_icons() -> PresetIcon:
     default_color = get_font_color()
+    bg_color = get_background_color()
     return PresetIcon(
         start=generate_icon(PresetIconNames.start, "green"),
         stop=generate_icon(PresetIconNames.stop, "orange"),
@@ -41,6 +45,8 @@ def get_preset_icons() -> PresetIcon:
         table=generate_icon(PresetIconNames.table, default_color),
         setting=generate_icon(PresetIconNames.setting, "gray"),
         clock=generate_icon(PresetIconNames.clock, default_color),
+        delete=generate_icon(PresetIconNames.delete, "red"),
+        delete_inverted=generate_icon(PresetIconNames.delete, bg_color),
     )
 
 
