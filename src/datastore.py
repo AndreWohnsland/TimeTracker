@@ -55,8 +55,11 @@ class Store:
     def generate_month_data(self, selected_date: datetime.date):
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
         data_hash = hash((tuple(work_data), tuple(pause_data)))
-        # check if data is already in store, compare hash
-        if (selected_date.year, selected_date.month) in self.all_data:
+        # check if data is already in store, compare hash, also only use cache if not current month
+        # This is due to the recomputation of open days (no stop event) and ongoing days (today)
+        # increasing over the time of the day, even the data did not change.
+        cache_available = (selected_date.year, selected_date.month) in self.all_data
+        if cache_available and not self.is_current_month(selected_date):
             last_hash, df = self.all_data[(selected_date.year, selected_date.month)]
             if last_hash == data_hash:
                 return (data_hash, df)
@@ -131,6 +134,10 @@ class Store:
         combined_df["work"] = combined_df["work_time"] - combined_df["pause"]
         combined_df["work"] = combined_df["work"].apply(lambda x: max(x, 0)).apply(lambda x: round(x, 2))
         return combined_df
+
+    def is_current_month(self, date: datetime.date) -> bool:
+        now = datetime.date.today()
+        return (date.year, date.month) == (now.year, now.month)
 
 
 store = Store(
