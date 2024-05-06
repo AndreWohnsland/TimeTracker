@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from dateutil.relativedelta import relativedelta
 
 import holidays
-from holidays import HolidayBase
 import pandas as pd
 
 from src.database_controller import DB_CONTROLLER
@@ -12,7 +11,6 @@ from src.config_handler import CONFIG_HANDLER
 
 @dataclass
 class Store:
-    holidays: HolidayBase
     df: pd.DataFrame = pd.DataFrame()
     daily_data: list[tuple[str, str]] = field(default_factory=list)
     current_date: datetime.date = datetime.date.today()
@@ -29,6 +27,19 @@ class Store:
         self.generate_daily_data(selected_date)
         _, df = self.generate_month_data(selected_date)
         self.df = df
+
+    def _get_holidays(self, year: int) -> list[datetime.date]:
+        available_holidays = holidays.CountryHoliday(
+            CONFIG_HANDLER.config.country, prov=CONFIG_HANDLER.config.subdiv or None, years=year
+        )
+        return list(available_holidays.keys())
+
+    def _get_free_days(self, year: int) -> list[datetime.date]:
+        vacation_days = DB_CONTROLLER.get_vacation_days(year)
+        holiday_list = self._get_holidays(year)
+        unique_days = list(set(vacation_days + holiday_list))
+        # TODO: only exclude weekend, if config is set to no weekend or something
+        return [day for day in unique_days if day.weekday() < 5]
 
     def generate_all_data(self):
         for year in range(2023, datetime.date.today().year + 1):
@@ -54,7 +65,8 @@ class Store:
 
     def generate_month_data(self, selected_date: datetime.date):
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
-        data_hash = hash((tuple(work_data), tuple(pause_data)))
+        free_days = self._get_free_days(selected_date.year)
+        data_hash = hash((tuple(work_data), tuple(pause_data), tuple(free_days)))
         # check if data is already in store, compare hash, also only use cache if not current month
         # This is due to the recomputation of open days (no stop event) and ongoing days (today)
         # increasing over the time of the day, even the data did not change.
@@ -67,7 +79,7 @@ class Store:
             return (data_hash, pd.DataFrame([]))
         work_df = self._create_work_df(work_data)
         day_list = self._get_days_of_month(selected_date)
-        daily_time_list = self._generate_monthly_time(work_df, day_list)
+        daily_time_list = self._generate_monthly_time(work_df, day_list, free_days)
         return (data_hash, self._generate_report_df(day_list, daily_time_list, pause_data))
 
     def _create_work_df(self, data: list[tuple[str, str]]):
@@ -82,15 +94,20 @@ class Store:
         end = start + relativedelta(months=+1)
         return pd.date_range(start, end - datetime.timedelta(days=1), freq="d")
 
-    def _generate_monthly_time(self, df: pd.DataFrame, full_month: pd.DatetimeIndex) -> list[float]:
+    def _generate_monthly_time(
+        self, df: pd.DataFrame, full_month: pd.DatetimeIndex, free_days: list[datetime.date]
+    ) -> list[float]:
         time_list = []
         for _day in full_month:
             days_data = df[df["date"] == _day.date()]
-            calculated_time = self._calculate_day_time(days_data)
+            if _day.date() in free_days:
+                calculated_time = CONFIG_HANDLER.config.daily_hours * 60
+            else:
+                calculated_time = self._calculate_day_time(days_data)
             time_list.append(calculated_time)
         return time_list
 
-    def _calculate_day_time(self, df: pd.DataFrame):
+    def _calculate_day_time(self, df: pd.DataFrame) -> float:
         total_time = datetime.timedelta()
         start_found = False
         for _, row in df.iterrows():
@@ -140,6 +157,4 @@ class Store:
         return (date.year, date.month) == (now.year, now.month)
 
 
-store = Store(
-    holidays=holidays.CountryHoliday(CONFIG_HANDLER.config.country, prov=CONFIG_HANDLER.config.subdiv or None),
-)
+store = Store()
