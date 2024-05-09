@@ -31,6 +31,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.input_country.currentTextChanged.connect(self._adjust_subdiv)
 
     def _update_country_list(self, country=None):
+        """Update the country and subdiv list. If country is given, use this as the selected country."""
         # first choose which country to use, if selection, use this,
         # otherwise use the config country
         if country is None and self.input_country.currentText() != "":
@@ -65,25 +66,23 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.input_subdiv.setCurrentText(CONFIG_HANDLER.config.subdiv)
 
     def set_config_values(self):
+        """Set config values to the input fields, other than country and subdiv."""
         self.input_name.setText(CONFIG_HANDLER.config.name)
         self.input_daily_hours.setValue(CONFIG_HANDLER.config.daily_hours)
         self.input_weekly_hours.setValue(CONFIG_HANDLER.config.weekly_hours)
 
     def apply_config(self):
-        country = self.input_country.currentText()
-        subdiv = self.input_subdiv.currentText() or None
-        name = self.input_name.text()
-        daily_hours = self.input_daily_hours.value()
-        weekly_hours = self.input_weekly_hours.value()
-        CONFIG_HANDLER.config.country = country
-        CONFIG_HANDLER.config.subdiv = subdiv
-        CONFIG_HANDLER.config.name = name
-        CONFIG_HANDLER.config.daily_hours = daily_hours
-        CONFIG_HANDLER.config.weekly_hours = weekly_hours
+        """Apply the config values to the config file and close the window."""
+        CONFIG_HANDLER.config.country = self.input_country.currentText()
+        CONFIG_HANDLER.config.subdiv = self.input_subdiv.currentText() or None
+        CONFIG_HANDLER.config.name = self.input_name.text()
+        CONFIG_HANDLER.config.daily_hours = self.input_daily_hours.value()
+        CONFIG_HANDLER.config.weekly_hours = self.input_daily_hours.value()
         CONFIG_HANDLER.write_config_file()
         self.close()
 
     def _apply_subdiv_filter(self):
+        """Apply the filter to the subdiv list and update the list."""
         country = self.input_country.currentText()
         subdiv_list = self.country_list.get(country, [])
         filter_text = self.filter_subdiv.text()
@@ -96,6 +95,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
             self.input_subdiv.setCurrentText(current_subdiv)
 
     def _apply_country_filter(self):
+        """Apply the filter to the country list and update the list."""
         country_list = list(self.country_list.keys())
         filter_text = self.filter_country.text()
         current_country = self.input_country.currentText()
