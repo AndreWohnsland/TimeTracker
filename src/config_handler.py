@@ -15,8 +15,9 @@ NEEDED_DATA = {
     "weekly_hours": 40.0,
     "country": "US",
     "subdiv": None,
+    "workdays": [0, 1, 2, 3, 4],  # 0-6, 0=Monday, 6=Sunday
 }
-CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv", "daily_hours", "weekly_hours"]
+CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv", "daily_hours", "weekly_hours", "workdays"]
 
 
 @dataclass
@@ -28,6 +29,7 @@ class Config:
     weekly_hours: float
     country: str
     subdiv: str | None
+    workdays: list[int]
 
     @classmethod
     def from_kwargs(cls, **kwargs):

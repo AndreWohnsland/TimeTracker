@@ -70,6 +70,8 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.input_name.setText(CONFIG_HANDLER.config.name)
         self.input_daily_hours.setValue(CONFIG_HANDLER.config.daily_hours)
         self.input_weekly_hours.setValue(CONFIG_HANDLER.config.weekly_hours)
+        for day in CONFIG_HANDLER.config.workdays:
+            getattr(self, f"radio_weekday_{day}").setChecked(True)
 
     def apply_config(self):
         """Apply the config values to the config file and close the window."""
@@ -78,6 +80,12 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.name = self.input_name.text()
         CONFIG_HANDLER.config.daily_hours = self.input_daily_hours.value()
         CONFIG_HANDLER.config.weekly_hours = self.input_daily_hours.value()
+        selected_days: list[int] = []
+        for day in range(7):
+            if getattr(self, f"radio_weekday_{day}").isChecked():
+                selected_days.append(day)
+        CONFIG_HANDLER.config.workdays = selected_days
+
         CONFIG_HANDLER.write_config_file()
         self.close()
 
