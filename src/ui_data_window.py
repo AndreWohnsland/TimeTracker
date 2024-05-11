@@ -1,12 +1,14 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 import calendar
+import datetime
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 
-from PyQt5.QtCore import Qt, QDateTime
+from PyQt5.QtCore import Qt, QDateTime, QDate
 from PyQt5.QtWidgets import QWidget
 import pandas as pd
 
@@ -25,7 +27,13 @@ if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
 
 
-class GraphWindow(QWidget, Ui_DataWindow):
+@dataclass
+class EventData:
+    event_time: str
+    event: str
+
+
+class DataWindow(QWidget, Ui_DataWindow):
     def __init__(self, main_window: MainWindow):
         super().__init__()
         self.setupUi(self)
@@ -35,6 +43,7 @@ class GraphWindow(QWidget, Ui_DataWindow):
             Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint  # type: ignore
         )
         # setting all the params
+        self.date_edit.setDateTime(QDateTime.currentDateTime())
         self.text_color = get_font_color()
         self.background_color = get_background_color()
         self.set_plot_parameters()
@@ -55,8 +64,16 @@ class GraphWindow(QWidget, Ui_DataWindow):
         self.delete_button = None
         # workaround to prevent the date change to trigger the plot
         self.programmatic_change = False
-        self.date_edit.setDateTime(QDateTime.currentDateTime())
-        self.handle_delete_button()
+
+    @property
+    def view_day(self):
+        if self.switch_button.isChecked():
+            return True
+        return False
+
+    @property
+    def selected_date(self):
+        return self.date_edit.date().toPyDate()
 
     def set_plot_parameters(self):
         plt.rcParams["date.autoformatter.day"] = "%d"
@@ -77,18 +94,20 @@ class GraphWindow(QWidget, Ui_DataWindow):
         """Update the date and plot the new data."""
         prev_date = self.prev_date
         self.prev_date = self.date_edit.date()
+        month_changed = prev_date.month() != self.date_edit.date().month()
         if self.programmatic_change:
             return
-        store.current_date = self.date_edit.date().toPyDate()
-        UIC.clear_table(self.tableWidget)
-        store.update_data(self.selected_date)
-        if self.view_day:
-            self.fill_daily_data()
-        else:
-            self.fill_monthly_data()
+        store.current_date = self.selected_date
+        self.update_table_data()
         # only plot on month change (otherwise no plot will change)
-        if prev_date.month() != self.date_edit.date().month():
+        if month_changed:
             self.plot()
+
+    def _only_change_date(self, set_date: QDate | datetime.date):
+        """Changes date while suppressing the on change event of the date edit."""
+        self.programmatic_change = True
+        self.date_edit.setDate(set_date)
+        self.programmatic_change = False
 
     def plot(self):
         # clears the old values and then adds a subplot to insert all the data
@@ -96,12 +115,10 @@ class GraphWindow(QWidget, Ui_DataWindow):
         ax = self.figure.add_subplot(111)
 
         # update the store before plotting
-        store.update_data(None)
+        store.update_data(self.selected_date)
         # get the store date -> this is needed to show the correct month in the dropdown
         # if the user did not change it there before
-        self.programmatic_change = True
-        self.date_edit.setDate(store.current_date)
-        self.programmatic_change = False
+        self._only_change_date(store.current_date)
 
         if self.radio_month.isChecked():
             df = store.df.copy()
@@ -188,11 +205,7 @@ class GraphWindow(QWidget, Ui_DataWindow):
         UI_CONTROLLER.show_message(f"Plot saved to {save_file_name}")
 
     # Data Things
-
-    def update_data(self):
-        self.on_date_change()
-
-    def on_date_change(self):
+    def update_table_data(self):
         UIC.clear_table(self.tableWidget)
         store.update_data(self.selected_date)
         if self.view_day:
@@ -204,20 +217,18 @@ class GraphWindow(QWidget, Ui_DataWindow):
         overtime_report = UIC.report_choice()
         if overtime_report is None:
             return
-        successful, message = EXPORTER.export_data(store.df, self.selected_date, overtime_report)
-        if successful:
-            UIC.show_message(f"File saved under: {message}")
-        else:
-            UIC.show_message(message)
+        message = EXPORTER.export_data(store.df, self.selected_date, overtime_report)
+        UIC.show_message(message)
 
     def switch_data_view(self):
-        self.handle_delete_button()
-
-        self.set_date_toggle()
         if self.view_day:
             self.fill_daily_data()
-        else:
-            self.fill_monthly_data()
+            self.switch_button.setText("Day")
+            self.delete_event_button.show()
+            return
+        self.fill_monthly_data()
+        self.switch_button.setText("Month")
+        self.delete_event_button.hide()
 
     def fill_monthly_data(self):
         UIC.clear_table(self.tableWidget)
@@ -232,45 +243,23 @@ class GraphWindow(QWidget, Ui_DataWindow):
         for entry in store.daily_data:
             UIC.fill_table(self.tableWidget, entry)
 
-    @property
-    def view_day(self):
-        if self.switch_button.isChecked():
-            return True
-        return False
-
-    def handle_delete_button(self):
-        if self.view_day:
-            self.delete_event_button.show()
-        else:
-            self.delete_event_button.hide()
-
-    def set_date_toggle(self):
-        if self.view_day:
-            self.switch_button.setText("Day")
-        else:
-            self.switch_button.setText("Month")
-
     def delete_selected_event(self):
-        selected_datetime, event = self.get_selected_event()
-        if selected_datetime is None or event is None:
+        event_data = self.get_selected_event()
+        if event_data is None:
             return
-        if UIC.user_okay(f"Do you want to delete event {event} at: {selected_datetime}?"):
-            print(f"Delete event {event} at: {selected_datetime}")
-            DB_CONTROLLER.delete_event(selected_datetime)
-            self.on_date_change()
-            self.main_window.update_plot_window()
+        if UIC.user_okay(f"Do you want to delete event {event_data.event} at: {event_data.event_time}?"):
+            print(f"Delete event {event_data.event} at: {event_data.event_time}")
+            DB_CONTROLLER.delete_event(event_data.event_time)
+            self.update_table_data()
+            self.plot()
 
-    def get_selected_event(self) -> tuple[str, str] | tuple[None, None]:
+    def get_selected_event(self) -> EventData | None:
         indexes = self.tableWidget.selectionModel().selectedRows()
         if indexes:
             row = indexes[0].row()
             event_datetime = self.tableWidget.item(row, 0).text()
             event = self.tableWidget.item(row, 1).text()
             if event_datetime == "Pause":
-                return None, None
-            return event_datetime, event
-        return None, None
-
-    @property
-    def selected_date(self):
-        return self.date_edit.date().toPyDate()
+                return None
+            return EventData(event_datetime, event)
+        return None

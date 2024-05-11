@@ -9,11 +9,11 @@ from src.filepath import REPORTS_PATH
 
 
 class DataExporter:
-    def export_data(self, df: pd.DataFrame, report_date: datetime.date, overtime_report: bool = True):
+    def export_data(self, df: pd.DataFrame, report_date: datetime.date, overtime_report: bool = True) -> str:
         if df.empty:
             message = "No data to export, will no generate file..."
             print(message)
-            return False, message
+            return message
         file_suffix = "time"
         if overtime_report:
             file_suffix = "overtime"
@@ -32,11 +32,12 @@ class DataExporter:
             self._write_information(worksheet, df, bold, color, overtime_report)
             self._write_times(worksheet, df, color, overtime_report)
             workbook.close()
-            return True, file_path
+            message = f"File saved at: {file_path}"
+            return message
         except:
             message = f"Could not open Workbook: {file_name}, is it still opened?"
             print(message)
-            return False, message
+            return message
 
     def _round_quarterly(self, number):
         return round(number * 4) / 4
