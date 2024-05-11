@@ -38,8 +38,7 @@ class Store:
         vacation_days = DB_CONTROLLER.get_vacation_days(year)
         holiday_list = self._get_holidays(year)
         unique_days = list(set(vacation_days + holiday_list))
-        # TODO: only exclude weekend, if config is set to no weekend or something
-        return [day for day in unique_days if day.weekday() < 5]
+        return [day for day in unique_days if day.weekday() in CONFIG_HANDLER.config.workdays]
 
     def generate_all_data(self):
         for year in range(2023, datetime.date.today().year + 1):
@@ -98,12 +97,15 @@ class Store:
         self, df: pd.DataFrame, full_month: pd.DatetimeIndex, free_days: list[datetime.date]
     ) -> list[float]:
         time_list = []
+        daily_minutes = CONFIG_HANDLER.config.daily_hours * 60
         for _day in full_month:
             days_data = df[df["date"] == _day.date()]
+            calculated_time = 0
+            # when we got a free day, we get the working time for this day
             if _day.date() in free_days:
-                calculated_time = CONFIG_HANDLER.config.daily_hours * 60
-            else:
-                calculated_time = self._calculate_day_time(days_data)
+                calculated_time += daily_minutes
+            # also adds working time (in case of work in free day we get overtime)
+            calculated_time += self._calculate_day_time(days_data)
             time_list.append(calculated_time)
         return time_list
 
