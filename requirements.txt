@@ -6,3 +6,4 @@ xlsxwriter
 pyqtdarktheme
 qtawesome
 holidays
+dataclasses-json
