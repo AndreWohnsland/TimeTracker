@@ -1,7 +1,7 @@
 cd .\ui\
 
 $files = @(
-  "mainwindow", "config_window", "plot_window",
+  "mainwindow", "config_window", "data_window",
   "vacation_window"
 )
 

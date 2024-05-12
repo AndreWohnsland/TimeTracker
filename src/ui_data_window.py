@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 
 from PyQt5.QtCore import Qt, QDateTime, QDate
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QTableWidgetItem
 import pandas as pd
 
 from src.config_handler import CONFIG_HANDLER
@@ -60,6 +60,11 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.export_button.clicked.connect(self.export_data)
         self.switch_button.clicked.connect(self.switch_data_view)
         self.delete_event_button.clicked.connect(self.delete_selected_event)
+        self.button_month_prev.clicked.connect(lambda: self.change_month(-1))
+        self.button_month_next.clicked.connect(lambda: self.change_month(1))
+
+        # set the date to the selected date if click on table
+        self.tableWidget.itemClicked.connect(self.on_item_click)
 
         self.delete_button = None
         # workaround to prevent the date change to trigger the plot
@@ -232,14 +237,14 @@ class DataWindow(QWidget, Ui_DataWindow):
 
     def fill_monthly_data(self):
         UIC.clear_table(self.tableWidget)
-        UIC.set_header_names(self.tableWidget, "Date", "Worktime (h)")
+        UIC.set_header_names(self.tableWidget, "Date", "Time (h)")
         for index, entry in store.df.iterrows():
             needed_data = [index.strftime("%d/%m/%Y"), str(entry["work"])]  # type: ignore
             UIC.fill_table(self.tableWidget, needed_data)
 
     def fill_daily_data(self):
         UIC.clear_table(self.tableWidget)
-        UIC.set_header_names(self.tableWidget, "Datetime / Type", "Event / Pausetime (min)")
+        UIC.set_header_names(self.tableWidget, "Date / Type", "Event / Pause (min)")
         for entry in store.daily_data:
             UIC.fill_table(self.tableWidget, entry)
 
@@ -250,6 +255,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         if UIC.user_okay(f"Do you want to delete event {event_data.event} at: {event_data.event_time}?"):
             print(f"Delete event {event_data.event} at: {event_data.event_time}")
             DB_CONTROLLER.delete_event(event_data.event_time)
+            store.update_data(self.selected_date)
             self.update_table_data()
             self.plot()
 
@@ -263,3 +269,20 @@ class DataWindow(QWidget, Ui_DataWindow):
                 return None
             return EventData(event_datetime, event)
         return None
+
+    def change_month(self, delta: int):
+        """Change the month to the given month."""
+        current_date = self.date_edit.date()
+        new_date = current_date.addMonths(delta)
+        self.date_edit.setDate(new_date)
+
+    def on_item_click(self, item: QTableWidgetItem):
+        """Set the date to the selected date in the table."""
+        # only continue if this is not the day view
+        if self.view_day:
+            return
+        row = item.row()
+        date_item = self.tableWidget.item(row, 0)
+        date = date_item.text()
+        date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
+        self.date_edit.setDate(date)

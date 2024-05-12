@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\plot_window.ui'
+# Form implementation generated from reading ui file '.\data_window.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #
@@ -73,6 +73,14 @@ class Ui_DataWindow(object):
         self.container.setObjectName("container")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.button_month_prev = QtWidgets.QPushButton(DataWindow)
+        self.button_month_prev.setMaximumSize(QtCore.QSize(50, 50))
+        font = QtGui.QFont()
+        font.setPointSize(20)
+        self.button_month_prev.setFont(font)
+        self.button_month_prev.setCheckable(True)
+        self.button_month_prev.setObjectName("button_month_prev")
+        self.horizontalLayout.addWidget(self.button_month_prev)
         self.date_edit = QtWidgets.QDateEdit(DataWindow)
         self.date_edit.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
@@ -83,6 +91,14 @@ class Ui_DataWindow(object):
         self.date_edit.setDate(QtCore.QDate(2020, 7, 1))
         self.date_edit.setObjectName("date_edit")
         self.horizontalLayout.addWidget(self.date_edit)
+        self.button_month_next = QtWidgets.QPushButton(DataWindow)
+        self.button_month_next.setMaximumSize(QtCore.QSize(50, 50))
+        font = QtGui.QFont()
+        font.setPointSize(20)
+        self.button_month_next.setFont(font)
+        self.button_month_next.setCheckable(True)
+        self.button_month_next.setObjectName("button_month_next")
+        self.horizontalLayout.addWidget(self.button_month_next)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.radio_month = QtWidgets.QRadioButton(DataWindow)
@@ -133,7 +149,9 @@ class Ui_DataWindow(object):
         item = self.tableWidget.horizontalHeaderItem(1)
         item.setText(_translate("DataWindow", "Worktime (h)"))
         self.delete_event_button.setText(_translate("DataWindow", "Delete Event"))
+        self.button_month_prev.setText(_translate("DataWindow", "<"))
         self.date_edit.setDisplayFormat(_translate("DataWindow", "dd/MM/yyyy"))
+        self.button_month_next.setText(_translate("DataWindow", ">"))
         self.radio_month.setText(_translate("DataWindow", "Month"))
         self.radio_year.setText(_translate("DataWindow", "Year"))
         self.save_button.setText(_translate("DataWindow", "Save"))
