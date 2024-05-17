@@ -35,7 +35,7 @@ jobs:
 
     - name: Build
       run: |
-        pyinstaller --onefile --name ${{ matrix.artifact_name }} runme.py
+        pyinstaller --onefile -w --name ${{ matrix.artifact_name }} --icon="ui/clock.png" --hidden-import="holidays.countries" runme.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
