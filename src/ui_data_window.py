@@ -94,6 +94,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         # Despine the plot right and top
         plt.rcParams["axes.spines.right"] = False
         plt.rcParams["axes.spines.top"] = False
+        plt.rcParams["font.family"] = "Droid Sans Mono Slashed"
 
     def update_date(self):
         """Update the date and plot the new data."""
@@ -141,7 +142,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         ax.xaxis.get_label().set_visible(False)
 
         if self.radio_month.isChecked():
-            tick_labels = [day.strftime("%d") for day in df.index]
+            tick_labels = [day.strftime("%a %d") for day in df.index]
             rotation = "vertical"
             # shift the xticks to the middle of the bars
         else:
@@ -239,7 +240,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         UIC.clear_table(self.tableWidget)
         UIC.set_header_names(self.tableWidget, "Date", "Time (h)")
         for index, entry in store.df.iterrows():
-            needed_data = [index.strftime("%d/%m/%Y"), str(entry["work"])]  # type: ignore
+            needed_data = [index.strftime("%d/%m/%Y"), str(round(entry["work"], 1))]  # type: ignore
             UIC.fill_table(self.tableWidget, needed_data)
 
     def fill_daily_data(self):
