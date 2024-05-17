@@ -221,12 +221,12 @@
   </action>
   <action name="action_configuration">
    <property name="text">
-    <string>Configurate Settings</string>
+    <string>Configure Settings</string>
    </property>
   </action>
   <action name="action_save_folder">
    <property name="text">
-    <string>Set Savefolder</string>
+    <string>Set Save Folder</string>
    </property>
   </action>
   <action name="action_update">
