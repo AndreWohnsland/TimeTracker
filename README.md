@@ -72,6 +72,7 @@ pip install -r requirements.txt
 
 Since version v1.1 it is also possible to update over the UI with `Options > Search for Updates`.
 The app will need to be restarted to apply changes.
+You can also just download the latest executable from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).
 
 ## ToDo's
 
