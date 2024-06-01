@@ -5,6 +5,7 @@ description = "Track your time with Python and Qt"
 authors = ["Andre Wohnsland <50302161+AndreWohnsland@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
@@ -22,6 +23,7 @@ dataclasses-json = "^0.6.4"
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^6.6.0"
 pip-chill = "^1.0.3"
+jupyterlab = "^4.2.1"
 
 [build-system]
 requires = ["poetry-core"]
