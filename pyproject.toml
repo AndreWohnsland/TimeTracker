@@ -31,6 +31,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 120
+per-file-ignores = { "runme.py" = ["E402"] }
 
 [tool.mypy]
 disable_error_code = ["annotation-unchecked", "import-untyped"]
