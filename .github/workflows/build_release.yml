@@ -1,4 +1,5 @@
 name: Build and Release with PyInstaller
+run-name: Build and Release ${{ github.event.release.tag_name }}
 
 on:
   release:
@@ -12,11 +13,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: timetracker_${{ github.event.release.tag_name }}_ubuntu
+            artifact_name: timetracker_ubuntu
           - os: windows-latest
-            artifact_name: timetracker_${{ github.event.release.tag_name }}_win.exe
+            artifact_name: timetracker_win.exe
           - os: macos-latest
-            artifact_name: timetracker_${{ github.event.release.tag_name }}_mac
+            artifact_name: timetracker_mac
 
     steps:
     - name: Checkout code
