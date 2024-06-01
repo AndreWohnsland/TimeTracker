@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=TimeTracker
+NoDisplay=false
+Terminal=false
+Exec=/usr/bin/timetracker
+Icon=/usr/share/pixmaps/timetracker.png
