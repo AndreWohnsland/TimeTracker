@@ -11,7 +11,7 @@ from src.config_handler import CONFIG_HANDLER
 
 @dataclass
 class Store:
-    df: pd.DataFrame = pd.DataFrame()
+    df: pd.DataFrame = field(default_factory=pd.DataFrame)
     daily_data: list[tuple[str, str]] = field(default_factory=list)
     current_date: datetime.date = datetime.date.today()
     # dict with key: (year, month) and value: (hash(raw_data), pd.DataFrame)
