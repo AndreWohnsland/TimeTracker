@@ -7,7 +7,30 @@ A Qt-Application to start and stop time tracking, enter additional breaks, view 
 
 ## Installation
 
-### A: Manual Installation
+### A: Standalone Installation
+
+With a new release, there is also a standalone version available.
+You can download the latest release from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).
+Choose the right version for your operating system and download the file.
+Execute the file according to your usual system start option.
+The application will start and you can use it as described below.
+
+#### Windows
+
+Just use the installer, put it on the desktop, and start the application via the icon.
+
+#### Linux
+
+You probably know your ways how to get started with the binary file.
+But if you are lazy like me, you can install the application with the [following script](https://github.com/AndreWohnsland/TimeTracker/blob/master/scripts/installer.sh):
+
+```bash
+curl -s https://github.com/AndreWohnsland/TimeTracker/blob/master/scripts/installer.sh | bash
+```
+
+This will download the latest release, put it into your binary folder, and create an application entry.
+
+### B: Manual Installation
 
 This application needs at least Python 3.8 installed at the system as well as the required packages.
 First clone the repository and cd into it.
@@ -20,15 +43,6 @@ cd TimeTracker
 pip install -r requirements.txt
 python runme.py
 ```
-
-### B: Standalone Installation
-
-With a new release, there is also a standalone version available.
-You can download the latest release from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).
-Choose the right version for your operating system and download the file.
-Unzip the file and you will find the executable file in the folder.
-Execute the file according to your usual system start option.
-The application will start and you can use it as described below.
 
 ## Options
 
