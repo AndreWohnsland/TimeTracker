@@ -98,7 +98,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         # Despine the plot right and top
         plt.rcParams["axes.spines.right"] = False
         plt.rcParams["axes.spines.top"] = False
-        plt.rcParams["font.family"] = "Droid Sans Mono Slashed"
+        plt.rcParams["font.family"] = "DejaVu Sans Mono"
 
     def update_date(self):
         """Update the date and plot the new data."""
@@ -156,6 +156,16 @@ class DataWindow(QWidget, Ui_DataWindow):
 
         # hide the x ticks
         ax.tick_params(axis="x", which="both", bottom=False, top=False)
+
+        # Add numbers above the bars
+        for i, (_, row) in enumerate(plot_df.iterrows()):
+            total_time = row["work"] + row["overtime"]
+            if total_time <= 0:
+                continue
+            # put small offset for the numbers to not overlap with the bar
+            position = (i, total_time + 0.01 * needed_hours)
+            ax.annotate(f"{total_time:.1f}", position, ha="center", va="bottom", fontsize=8, weight="bold")
+
         if self.radio_month.isChecked():
             title = f"Working time for {store.current_date.strftime('%B %Y')}"
         else:
@@ -185,7 +195,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             days = pd.date_range(start=date.replace(day=1), periods=day_in_month, freq="D")
             data = {"work": [0] * day_in_month, "pause": [0] * day_in_month}
             return pd.DataFrame(data, index=days)
-        months = pd.date_range(start=date.replace(month=1, day=1), periods=12, freq="M")
+        months = pd.date_range(start=date.replace(month=1, day=1), periods=12, freq="ME")
         data = {"work": [0] * 12, "pause": [0] * 12}
         return pd.DataFrame(data, index=months)
 
