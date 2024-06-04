@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import xlsxwriter
 import pandas as pd
@@ -7,12 +8,14 @@ import xlsxwriter.format
 from src.config_handler import CONFIG_HANDLER
 from src.filepath import REPORTS_PATH
 
+logger = logging.getLogger(__name__)
+
 
 class DataExporter:
     def export_data(self, df: pd.DataFrame, report_date: datetime.date, overtime_report: bool = True) -> str:
         if df.empty:
             message = "No data to export, will no generate file..."
-            print(message)
+            logger.warning(message)
             return message
         file_suffix = "time"
         if overtime_report:
@@ -36,7 +39,7 @@ class DataExporter:
             return message
         except:
             message = f"Could not open Workbook: {file_name}, is it still opened?"
-            print(message)
+            logger.error(message)
             return message
 
     def _round_quarterly(self, number):

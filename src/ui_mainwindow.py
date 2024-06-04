@@ -1,4 +1,5 @@
 import datetime
+import logging
 from typing import Callable
 from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction
 from PyQt5.QtGui import QIcon
@@ -14,6 +15,9 @@ from ui import Ui_MainWindow
 from src.database_controller import DB_CONTROLLER
 from src.ui_controller import UI_CONTROLLER as UIC
 from src.icons import get_preset_icons
+
+
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -188,9 +192,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Ask the user if they want to update and then update."""
         message = "Want to search and get updates? This could take a short time."
         if UIC.user_okay(message):
-            print("Try to update ...")
+            logger.info("Try to update ...")
             UPDATER.update()
-            print("Done!")
+            logger.info("Done updating")
 
     def show_data_window(self):
         """Trigger to update and show the data window."""

@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
+import logging
 import calendar
 import datetime
 
@@ -25,6 +26,9 @@ from src.utils import get_font_color, get_background_color
 
 if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -254,7 +258,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         if event_data is None:
             return
         if UIC.user_okay(f"Do you want to delete event {event_data.event} at: {event_data.event_time}?"):
-            print(f"Delete event {event_data.event} at: {event_data.event_time}")
+            logger.info(f"Delete event {event_data.event} at: {event_data.event_time}")
             DB_CONTROLLER.delete_event(event_data.event_time)
             store.update_data(self.selected_date)
             self.update_table_data()
