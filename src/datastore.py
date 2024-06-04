@@ -52,9 +52,13 @@ class Store:
             _, df = self.generate_month_data(selected_date)
             year_data.append(df)
         # concat df, aggregate by month (index) and sum the values
-        year_data = pd.concat(year_data).resample("ME").sum()
-        year_data.index = year_data.index.to_period("M")  # type: ignore
-        return year_data
+        year_data_df = pd.concat(year_data)
+        # in case there is no data for the year, return empty df
+        if year_data_df.empty:
+            return year_data_df
+        year_data_df = year_data_df.resample("ME").sum()
+        year_data_df.index = year_data_df.index.to_period("M")  # type: ignore
+        return year_data_df
 
     def generate_daily_data(self, selected_date: datetime.date):
         day_work, day_pause = DB_CONTROLLER.get_day_data(selected_date)
