@@ -46,3 +46,7 @@ CONFIG_PATH = SAVE_FOLDER / "config.json"
 
 # saved reports (default one)
 REPORTS_PATH = SAVE_FOLDER / "reports"
+
+# Logs
+LOG_CONFIG_PATH = ROOT_PATH / "logging_config.yaml"
+LOG_FILE_PATH = SAVE_FOLDER / "app.log"

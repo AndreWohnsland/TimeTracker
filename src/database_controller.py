@@ -1,9 +1,12 @@
 import sqlite3
 import datetime
+import logging
 
 from dateutil.relativedelta import relativedelta
 
 from src.filepath import DATABASE_PATH
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseController:
@@ -14,7 +17,7 @@ class DatabaseController:
 
     def add_event(self, event: str, entry_datetime: datetime.datetime):
         datetime_string = entry_datetime.isoformat()
-        print(f"Add Event: {event}, timestamp: {datetime_string}")
+        logger.info(f"Add Event: {event}, timestamp: {datetime_string}")
         query = "INSERT INTO Events(Date, Action) VALUES(?, ?)"
         self.handler.query_database(
             query,
@@ -32,7 +35,7 @@ class DatabaseController:
             self.insert_pause(pause_time, date_string)
 
     def update_pause(self, pause_time: int, date_string: str):
-        print(f"Updating pause time by {pause_time} at {date_string}")
+        logger.info(f"Updating pause time by {pause_time} at {date_string}")
         query = "UPDATE OR IGNORE Pause SET Time = Time + ? WHERE Date = ?"
         self.handler.query_database(
             query,
@@ -43,7 +46,7 @@ class DatabaseController:
         )
 
     def insert_pause(self, pause_time: int, date_string: str):
-        print(f"Inserting pause time by {pause_time} at {date_string}")
+        logger.info(f"Inserting pause time by {pause_time} at {date_string}")
         query = "INSERT INTO Pause(Date, Time) VALUES(?, ?)"
         self.handler.query_database(
             query,
@@ -98,7 +101,7 @@ class DatabaseController:
 
     def add_vacation(self, vacation_date: datetime.date):
         date_string = vacation_date.isoformat()
-        print(f"Adding Vacation on {date_string}")
+        logger.info(f"Adding Vacation on {date_string}")
         # only enter (ignore) if the date does not exist
         query = "INSERT OR IGNORE INTO Vacation(Date) VALUES(?)"
         self.handler.query_database(query, (date_string,))
@@ -112,7 +115,7 @@ class DatabaseController:
 
     def remove_vacation(self, vacation_date: datetime.date):
         date_string = vacation_date.isoformat()
-        print(f"Removing Vacation on {date_string}")
+        logger.info(f"Removing Vacation on {date_string}")
         query = "DELETE FROM Vacation WHERE Date = ?"
         self.handler.query_database(query, (date_string,))
 
@@ -124,7 +127,7 @@ class DatabaseHandler:
         # check if the old database exists and move it to the new location
         self.database_path = DATABASE_PATH
         if not self.database_path.exists():
-            print(f"No database detected, creating Database at {self.database_path}")
+            logger.debug(f"No database detected, creating Database at {self.database_path}")
         self.create_tables()
 
     def connect_database(self):

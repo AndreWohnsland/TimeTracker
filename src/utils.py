@@ -1,4 +1,7 @@
 import os
+import logging
+import logging.config
+import yaml
 from pathlib import Path
 import platform
 from PyQt5.QtWidgets import QApplication
@@ -6,7 +9,18 @@ from PyQt5.QtWidgets import QApplication
 import qdarktheme
 import darkdetect
 
-from src.filepath import SAVE_FOLDER, CONFIG_PATH, DATABASE_PATH, OLD_CONFIG_PATH, OLD_DATABASE_PATH, REPORTS_PATH
+from src.filepath import (
+    SAVE_FOLDER,
+    CONFIG_PATH,
+    DATABASE_PATH,
+    OLD_CONFIG_PATH,
+    OLD_DATABASE_PATH,
+    REPORTS_PATH,
+    LOG_CONFIG_PATH,
+    LOG_FILE_PATH,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def is_light() -> bool:
@@ -53,11 +67,11 @@ def prepare_data_location_and_files():
         REPORTS_PATH.mkdir(parents=True)
     # move config file
     if OLD_CONFIG_PATH.exists():
-        print(f"Old Config found at {OLD_DATABASE_PATH}, moving to new location to {DATABASE_PATH}")
+        logger.debug(f"Old Config found at {OLD_DATABASE_PATH}, moving to new location to {DATABASE_PATH}")
         OLD_CONFIG_PATH.rename(CONFIG_PATH)
     # move database file
     if OLD_DATABASE_PATH.exists():
-        print(f"Old Database found at {OLD_DATABASE_PATH}, moving to new location to {DATABASE_PATH}")
+        logger.debug(f"Old Database found at {OLD_DATABASE_PATH}, moving to new location to {DATABASE_PATH}")
         OLD_DATABASE_PATH.rename(DATABASE_PATH)
 
 
@@ -70,3 +84,10 @@ def open_folder_in_explorer(p: Path = SAVE_FOLDER):
         os.system(f"open {resolved_path}")
     elif system == "Linux":
         os.system(f"xdg-open {resolved_path}")
+
+
+def setup_logging(config_path=LOG_CONFIG_PATH, log_file_path=LOG_FILE_PATH):
+    with open(config_path, "r") as log_config_file:
+        config = yaml.safe_load(log_config_file.read())
+        config["handlers"]["file"]["filename"] = log_file_path
+        logging.config.dictConfig(config)
