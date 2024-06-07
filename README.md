@@ -25,7 +25,7 @@ You probably know your ways how to get started with the binary file.
 But if you are lazy like me, you can install the application with the [following script](https://github.com/AndreWohnsland/TimeTracker/blob/master/scripts/installer.sh):
 
 ```bash
-curl -s https://github.com/AndreWohnsland/TimeTracker/blob/master/scripts/installer.sh | bash
+curl -s https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/scripts/installer.sh | bash
 ```
 
 This will download the latest release, put it into your binary folder, and create an application entry.
