@@ -16,15 +16,15 @@ get_latest_release_tag() {
 
 # download the latest release for the corresponding os
 download_latest_release() {
-  curl -o /usr/bin/timetracker https://github.com/AndreWohnsland/TimeTracker/releases/latest/download/timetracker_ubuntu
-  curl -o /usr/share/pixmaps/timetracker.png https://github.com/AndreWohnsland/TimeTracker/blob/master/ui/clock.png
-  curl -o /usr/share/applications/timetracker.desktop https://github.com/AndreWohnsland/TimeTracker/blob/master/scripts/timetracker.desktop
+  sudo curl -o /usr/bin/timetracker https://github.com/AndreWohnsland/TimeTracker/releases/latest/download/timetracker_ubuntu
+  sudo curl -o /usr/share/pixmaps/timetracker.png https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/ui/clock.png
+  sudo curl -o /usr/share/applications/timetracker.desktop https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/scripts/timetracker.desktop
 }
 
 # install the application
 install() {
   download_latest_release
-  chmod +x /usr/bin/timetracker
+  sudo chmod +x /usr/bin/timetracker
 }
 
 # execute the installer
