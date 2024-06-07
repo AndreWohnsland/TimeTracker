@@ -1,7 +1,6 @@
 import os
 import logging
 import logging.config
-import yaml
 from pathlib import Path
 import platform
 from PyQt5.QtWidgets import QApplication
@@ -16,7 +15,6 @@ from src.filepath import (
     OLD_CONFIG_PATH,
     OLD_DATABASE_PATH,
     REPORTS_PATH,
-    LOG_CONFIG_PATH,
     LOG_FILE_PATH,
 )
 
@@ -86,8 +84,39 @@ def open_folder_in_explorer(p: Path = SAVE_FOLDER):
         os.system(f"xdg-open {resolved_path}")
 
 
-def setup_logging(config_path=LOG_CONFIG_PATH, log_file_path=LOG_FILE_PATH):
-    with open(config_path, "r") as log_config_file:
-        config = yaml.safe_load(log_config_file.read())
-        config["handlers"]["file"]["filename"] = log_file_path
-        logging.config.dictConfig(config)
+def setup_logging(log_file_path=LOG_FILE_PATH):
+    logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "simple": {
+                "format": "%(asctime)s - %(levelname)s | %(name)s | %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+        "handlers": {
+            "stout": {
+                "class": "logging.StreamHandler",
+                "level": "INFO",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout",
+            },
+            "stderr": {
+                "class": "logging.StreamHandler",
+                "level": "ERROR",
+                "formatter": "simple",
+                "stream": "ext://sys.stderr",
+            },
+            "file": {
+                "class": "logging.FileHandler",
+                "level": "DEBUG",
+                "formatter": "simple",
+                "filename": log_file_path,
+            },
+        },
+        "root": {
+            "level": "INFO",
+            "handlers": ["stout", "stderr", "file"],
+        },
+    }
+    logging.config.dictConfig(logging_config)
