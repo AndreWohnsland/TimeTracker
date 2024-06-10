@@ -1,55 +1,60 @@
-from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QFileDialog, QDialog, QTableWidget, QLayout
+from PyQt5.QtWidgets import QDialog, QFileDialog, QInputDialog, QLayout, QMessageBox, QTableWidget, QTableWidgetItem
 
-from src.filepath import HOME_PATH
-from src.icons import get_app_icon
 from src import __version__
 from src.config_handler import CONFIG_HANDLER, CONFIG_NAMES
+from src.filepath import HOME_PATH
+from src.icons import get_app_icon
 
 
 class UiController:
     def __init__(self):
-        pass
+        """Class to abstract the UI from the main logic."""
 
     def show_message(self, message: str):
-        """The default messagebox. Uses a QMessageBox with OK-Button"""
-        msgBox = QMessageBox()
-        msgBox.setStandardButtons(QMessageBox.Ok)  # type: ignore
-        msgBox.setText(str(message))
-        msgBox.setWindowIcon(get_app_icon())
-        msgBox.setWindowTitle("Information")
-        msgBox.show()
-        msgBox.exec_()
+        """Prompt default messagebox, use a QMessageBox with OK-Button."""
+        message_box = QMessageBox()
+        message_box.setStandardButtons(QMessageBox.Ok)  # type: ignore
+        message_box.setText(str(message))
+        message_box.setWindowIcon(get_app_icon())
+        message_box.setWindowTitle("Information")
+        message_box.show()
+        message_box.exec_()
 
     def report_choice(self):
-        msgBox = QMessageBox()
-        msgBox.setText("Would you like the report of the overtime (0 if none or the amount) or of the regular hours?")
-        msgBox.setWindowTitle("Report Generation")
-        msgBox.setWindowIcon(get_app_icon())
-        overtime_button = msgBox.addButton("Overtime", QMessageBox.YesRole)  # type: ignore
-        time_button = msgBox.addButton("Time", QMessageBox.NoRole)  # type: ignore
-        msgBox.addButton("Cancel", QMessageBox.RejectRole)  # type: ignore
+        message_box = QMessageBox()
+        message_box.setText(
+            "Would you like the report of the overtime (0 if none or the amount) or of the regular hours?"
+        )
+        message_box.setWindowTitle("Report Generation")
+        message_box.setWindowIcon(get_app_icon())
+        overtime_button = message_box.addButton("Overtime", QMessageBox.YesRole)  # type: ignore
+        time_button = message_box.addButton("Time", QMessageBox.NoRole)  # type: ignore
+        message_box.addButton("Cancel", QMessageBox.RejectRole)  # type: ignore
 
-        msgBox.exec_()
-        if msgBox.clickedButton() == overtime_button:
+        message_box.exec_()
+        if message_box.clickedButton() == overtime_button:
             return True
-        elif msgBox.clickedButton() == time_button:
+        if message_box.clickedButton() == time_button:
             return False
         return None
 
     def user_okay(self, text: str):
-        msgBox = QMessageBox()
-        msgBox.setText(text)
-        msgBox.setWindowTitle("Confirmation required")
-        msgBox.setWindowIcon(get_app_icon())
-        yes_button = msgBox.addButton("Yes", QMessageBox.YesRole)  # type: ignore
-        msgBox.addButton("No", QMessageBox.NoRole)  # type: ignore
-        msgBox.exec_()
-        if msgBox.clickedButton() == yes_button:
+        message_box = QMessageBox()
+        message_box.setText(text)
+        message_box.setWindowTitle("Confirmation required")
+        message_box.setWindowIcon(get_app_icon())
+        yes_button = message_box.addButton("Yes", QMessageBox.YesRole)  # type: ignore
+        message_box.addButton("No", QMessageBox.NoRole)  # type: ignore
+        message_box.exec_()
+        if message_box.clickedButton() == yes_button:
             return True
         return False
 
     def display_about(self):
-        message = f"Version: {__version__}. This App was made with Python and Qt by Andre Wohnsland. Check https://github.com/AndreWohnsland/TimeTracker for more information."
+        message = (
+            f"Version: {__version__}. This App was made with Python and Qt by Andre Wohnsland. "
+            "Check https://github.com/AndreWohnsland/TimeTracker for more information."
+        )
         self.show_message(message)
 
     def get_text(self, attribute, parent):
@@ -65,24 +70,26 @@ class UiController:
         dialog.setDirectory(current_path)
 
         if dialog.exec_() == QDialog.Accepted:  # type: ignore
-            path = dialog.selectedFiles()[0]  # returns a list
-            return path
-        else:
-            return ""
+            return dialog.selectedFiles()[0]  # returns a list
+        return ""
 
     def fill_table(self, table: QTableWidget, entry):
-        rowPosition = table.rowCount()
-        table.insertRow(rowPosition)
+        row_position = table.rowCount()
+        table.insertRow(row_position)
         for i, data in enumerate(entry):
-            table.setItem(rowPosition, i, QTableWidgetItem(data))
+            table.setItem(row_position, i, QTableWidgetItem(data))
 
     def clear_table(self, table: QTableWidget):
         while table.rowCount() > 0:
             table.removeRow(0)
 
     def set_header_names(self, table: QTableWidget, name1: str, name2: str):
-        table.horizontalHeaderItem(0).setText(name1)
-        table.horizontalHeaderItem(1).setText(name2)
+        header_1 = table.horizontalHeaderItem(0)
+        if header_1 is not None:
+            header_1.setText(name1)
+        header_2 = table.horizontalHeaderItem(1)
+        if header_2 is not None:
+            header_2.setText(name2)
 
     def get_user_data(self, parent):
         needed_keys: list[CONFIG_NAMES] = ["name"]
@@ -103,10 +110,12 @@ class UiController:
         CONFIG_HANDLER.write_config_file()
 
     def delete_items_of_layout(self, layout: QLayout | None = None):
-        """Recursively delete all items of the given layout"""
+        """Recursively delete all items of the given layout."""
         if layout is not None:
             while layout.count():
                 item = layout.takeAt(0)
+                if item is None:
+                    continue
                 widget = item.widget()
                 if widget is not None:
                     widget.setParent(None)  # type: ignore

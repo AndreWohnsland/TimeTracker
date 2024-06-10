@@ -3,12 +3,13 @@ from src.utils import prepare_data_location_and_files, setup_logging
 setup_logging()
 prepare_data_location_and_files()
 
-import sys
 import logging
+import sys
+
 from PyQt5.QtWidgets import QApplication
 
-from src.utils import sync_theme, get_additional_run_args
 from src.ui_mainwindow import MainWindow
+from src.utils import get_additional_run_args, sync_theme
 
 logger = logging.getLogger(__name__)
 

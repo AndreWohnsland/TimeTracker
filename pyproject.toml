@@ -10,7 +10,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 GitPython = "^3.1.43"
-matplotlib = "^3.8.4"
+matplotlib = "^3.9.0"
 pandas = "^2.2.2"
 PyQt5 = "5.15.7"
 pyqt5-qt5 = "5.15.2"
@@ -21,17 +21,45 @@ holidays = "^0.47"
 dataclasses-json = "^0.6.4"
 
 [tool.poetry.group.dev.dependencies]
-pyinstaller = "^6.6.0"
+pyinstaller = "^6.8.0"
 pip-chill = "^1.0.3"
-jupyterlab = "^4.2.1"
+jupyterlab = "^4.2.2"
+mypy = "^1.10.0"
+ruff = "^0.4.8"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
+target-version = "py311"
 line-length = 120
+
+[tool.ruff.lint]
 per-file-ignores = { "runme.py" = ["E402"] }
+select = [
+  "C", # Convention
+  "D", # pydocstyle 
+  "E", # pycodestyle
+  "F", # Pyflakes
+  "I", # isort 
+  "ICN001", # {name} should be imported as {asname},
+  "R", # Refactor
+  "RUF", # Ruff
+  "SIM", # flake8-simplify
+  "UP", # pyupgrade
+  "W", # Pylint (Warning)
+]
+ignore = [
+  "D100", # Missing docstring in public module
+  "D101", # Missing docstring in public class
+  "D102", # Missing docstring in public method
+  "D103",  # Missing docstring in public function
+  "D104", # Missing docstring in public package
+  "D105", # Missing docstring in magic method
+  "D203", # 1 blank line required before class docstring
+  "D213", # Multi-line docstring summary should start at the second line
+]
 
 [tool.mypy]
 disable_error_code = ["annotation-unchecked", "import-untyped"]

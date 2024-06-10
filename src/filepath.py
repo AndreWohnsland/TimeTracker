@@ -6,7 +6,7 @@ APP_NAME = "time_tracker"
 
 
 def _sanitize_name(name: str) -> str:
-    """Converts spaces to underscores and converts to lowercase."""
+    """Convert spaces to underscores and converts to lowercase."""
     return name.replace(" ", "_").lower()
 
 

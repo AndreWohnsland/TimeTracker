@@ -1,28 +1,27 @@
 from __future__ import annotations
+
+import calendar
+import datetime
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
-import logging
-import calendar
-import datetime
 
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-
-from PyQt5.QtCore import Qt, QDateTime, QDate
-from PyQt5.QtWidgets import QWidget, QTableWidgetItem
 import pandas as pd
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtCore import QDate, QDateTime, Qt
+from PyQt5.QtWidgets import QTableWidgetItem, QWidget
 
 from src.config_handler import CONFIG_HANDLER
-from src.filepath import REPORTS_PATH
-from src.ui_controller import UI_CONTROLLER
-from src.database_controller import DB_CONTROLLER
-from src.ui_controller import UI_CONTROLLER as UIC
 from src.data_exporter import EXPORTER
-from ui import Ui_DataWindow
+from src.database_controller import DB_CONTROLLER
 from src.datastore import store
+from src.filepath import REPORTS_PATH
 from src.icons import get_app_icon
-from src.utils import get_font_color, get_background_color
+from src.ui_controller import UI_CONTROLLER as UIC
+from src.utils import get_background_color, get_font_color
+from ui import Ui_DataWindow
 
 if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
@@ -39,6 +38,7 @@ class EventData:
 
 class DataWindow(QWidget, Ui_DataWindow):
     def __init__(self, main_window: MainWindow):
+        """Init the Data Window. Connect all the signals and slots."""
         super().__init__()
         self.setupUi(self)
         self.main_window = main_window
@@ -114,7 +114,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             self.plot()
 
     def _only_change_date(self, set_date: QDate | datetime.date):
-        """Changes date while suppressing the on change event of the date edit."""
+        """Change date while suppressing the on change event of the date edit."""
         self.programmatic_change = True
         self.date_edit.setDate(set_date)
         self.programmatic_change = False
@@ -222,7 +222,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             suffix += 1
 
         self.figure.savefig(save_file_name, transparent=False)
-        UI_CONTROLLER.show_message(f"Plot saved to {save_file_name}")
+        UIC.show_message(f"Plot saved to {save_file_name}")
 
     # Data Things
     def update_table_data(self):
@@ -268,7 +268,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         if event_data is None:
             return
         if UIC.user_okay(f"Do you want to delete event {event_data.event} at: {event_data.event_time}?"):
-            logger.info(f"Delete event {event_data.event} at: {event_data.event_time}")
+            logger.info("Delete event %s at: %s", event_data.event, event_data.event_time)
             DB_CONTROLLER.delete_event(event_data.event_time)
             store.update_data(self.selected_date)
             self.update_table_data()

@@ -1,9 +1,11 @@
 import datetime
 import logging
 import os
-import xlsxwriter
+
 import pandas as pd
+import xlsxwriter
 import xlsxwriter.format
+from xlsxwriter.exceptions import XlsxWriterException
 
 from src.config_handler import CONFIG_HANDLER
 from src.filepath import REPORTS_PATH
@@ -35,9 +37,8 @@ class DataExporter:
             self._write_information(worksheet, df, bold, color, overtime_report)
             self._write_times(worksheet, df, color, overtime_report)
             workbook.close()
-            message = f"File saved at: {file_path}"
-            return message
-        except:
+            return f"File saved at: {file_path}"
+        except XlsxWriterException:
             message = f"Could not open Workbook: {file_name}, is it still opened?"
             logger.error(message)
             return message

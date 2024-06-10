@@ -24,7 +24,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
@@ -33,8 +33,14 @@ jobs:
         pip install pyinstaller
 
     - name: Build
-      run: |
-        pyinstaller --onefile -w --name ${{ matrix.artifact_name }} --icon="ui/clock.png" --hidden-import="holidays.countries" runme.py
+      run: >
+        pyinstaller
+        --onefile
+        -w
+        --name ${{ matrix.artifact_name }}
+        --icon="ui/clock.png"
+        --hidden-import="holidays.countries"
+        runme.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4

@@ -1,9 +1,11 @@
 from git import Repo
+
 from src.filepath import ROOT_PATH
 
 
 class Updater:
     def __init__(self):
+        """Class to handle the update process of the application."""
         self.git_path = ROOT_PATH
 
     # TODO: Build more complex Structure to test for new release first and only update to release

@@ -16,7 +16,7 @@ get_latest_release_tag() {
 
 # download the latest release for the corresponding os
 download_latest_release() {
-  sudo curl -o /usr/bin/timetracker https://github.com/AndreWohnsland/TimeTracker/releases/latest/download/timetracker_ubuntu
+  sudo curl -L -o /usr/bin/timetracker https://github.com/AndreWohnsland/TimeTracker/releases/latest/download/timetracker_ubuntu
   sudo curl -o /usr/share/pixmaps/timetracker.png https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/ui/clock.png
   sudo curl -o /usr/share/applications/timetracker.desktop https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/scripts/timetracker.desktop
 }
