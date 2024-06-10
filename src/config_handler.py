@@ -1,10 +1,11 @@
-from dataclasses import dataclass
-from typing import Any, Literal
-from dataclasses_json import dataclass_json
-from inspect import signature
 import json
-from src.filepath import CONFIG_PATH
+from dataclasses import dataclass
+from inspect import signature
+from typing import Any, Literal
 
+from dataclasses_json import dataclass_json
+
+from src.filepath import CONFIG_PATH
 
 # Fill data currently not in the config file,
 # need at least all that config has
@@ -33,7 +34,7 @@ class Config:
 
     @classmethod
     def from_kwargs(cls, **kwargs):
-        cls_fields = {field for field in signature(cls).parameters}
+        cls_fields = set(signature(cls).parameters)
 
         class_args, other_args = {}, {}
         for name, val in kwargs.items():
@@ -53,6 +54,7 @@ class Config:
 
 class ConfigHandler:
     def __init__(self):
+        """Class for managing configuration file and settings ."""
         self.config = self._get_config()
 
     def _get_config(self):
@@ -62,7 +64,7 @@ class ConfigHandler:
     def read_config_file(self) -> dict:
         if not CONFIG_PATH.exists():
             return NEEDED_DATA
-        with open(CONFIG_PATH, "r") as f:
+        with open(CONFIG_PATH, encoding="utf-8") as f:
             config = json.load(f)
         for d in NEEDED_DATA.items():
             if d[0] not in config:
@@ -70,7 +72,8 @@ class ConfigHandler:
         return config
 
     def write_config_file(self):
-        with open(CONFIG_PATH, "w") as write_file:
+        with open(CONFIG_PATH, "w", encoding="utf-8") as write_file:
+            # pylint: disable=no-member
             json.dump(self.config.to_dict(), write_file)  # type: ignore
 
     def set_config_value(self, key: CONFIG_NAMES, value: Any, write: bool = True):

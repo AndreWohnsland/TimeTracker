@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import Qt
 import holidays
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget
 
-from ui import Ui_ConfigWindow
-from src.icons import get_app_icon
 from src.config_handler import CONFIG_HANDLER
+from src.icons import get_app_icon
+from ui import Ui_ConfigWindow
 
 if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
@@ -56,7 +57,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.filter_subdiv.clear()
 
     def _adjust_subdiv(self):
-        """Triggered when the country selection changes"""
+        """Triggered when the country selection changes."""
         country = self.input_country.currentText()
         subdiv_list = self.country_list.get(country, [])
         self.input_subdiv.clear()

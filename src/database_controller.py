@@ -1,6 +1,6 @@
-import sqlite3
 import datetime
 import logging
+import sqlite3
 
 from dateutil.relativedelta import relativedelta
 
@@ -10,14 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseController:
-    """Controller Class to execute all DB queries and return results as Values / Lists / Dictionaries"""
+    """Controller Class to execute all DB queries and return results as Values / Lists / Dictionaries."""
 
     def __init__(self):
+        """Abstract Access to the database."""
         self.handler = DatabaseHandler()
 
     def add_event(self, event: str, entry_datetime: datetime.datetime):
         datetime_string = entry_datetime.isoformat()
-        logger.info(f"Add Event: {event}, timestamp: {datetime_string}")
+        logger.info("Add Event: %s, timestamp: %s", event, datetime_string)
         query = "INSERT INTO Events(Date, Action) VALUES(?, ?)"
         self.handler.query_database(
             query,
@@ -35,7 +36,7 @@ class DatabaseController:
             self.insert_pause(pause_time, date_string)
 
     def update_pause(self, pause_time: int, date_string: str):
-        logger.info(f"Updating pause time by {pause_time} at {date_string}")
+        logger.info("Updating pause time by %s at %s", pause_time, date_string)
         query = "UPDATE OR IGNORE Pause SET Time = Time + ? WHERE Date = ?"
         self.handler.query_database(
             query,
@@ -46,7 +47,7 @@ class DatabaseController:
         )
 
     def insert_pause(self, pause_time: int, date_string: str):
-        logger.info(f"Inserting pause time by {pause_time} at {date_string}")
+        logger.info("Inserting pause time by %s at %s", pause_time, date_string)
         query = "INSERT INTO Pause(Date, Time) VALUES(?, ?)"
         self.handler.query_database(
             query,
@@ -58,8 +59,7 @@ class DatabaseController:
 
     def day_exists(self, date_str: str) -> int:
         query = "SELECT COUNT(*) FROM Pause WHERE Date = ?"
-        amount = self.handler.query_database(query, (date_str,))[0][0]
-        return amount
+        return self.handler.query_database(query, (date_str,))[0][0]
 
     def get_month_data(self, search_date: datetime.date):
         start = datetime.date(search_date.year, search_date.month, 1)
@@ -101,7 +101,7 @@ class DatabaseController:
 
     def add_vacation(self, vacation_date: datetime.date):
         date_string = vacation_date.isoformat()
-        logger.info(f"Adding Vacation on {date_string}")
+        logger.info("Adding Vacation on %s", date_string)
         # only enter (ignore) if the date does not exist
         query = "INSERT OR IGNORE INTO Vacation(Date) VALUES(?)"
         self.handler.query_database(query, (date_string,))
@@ -115,63 +115,65 @@ class DatabaseController:
 
     def remove_vacation(self, vacation_date: datetime.date):
         date_string = vacation_date.isoformat()
-        logger.info(f"Removing Vacation on {date_string}")
+        logger.info("Removing Vacation on %s", date_string)
         query = "DELETE FROM Vacation WHERE Date = ?"
         self.handler.query_database(query, (date_string,))
 
 
 class DatabaseHandler:
-    """Handler Class for Connecting and querying Databases"""
+    """Handler Class for Connecting and querying Databases."""
 
     def __init__(self):
+        """Class to connect and query the database."""
         # check if the old database exists and move it to the new location
         self.database_path = DATABASE_PATH
         if not self.database_path.exists():
-            logger.debug(f"No database detected, creating Database at {self.database_path}")
+            logger.debug("No database detected, creating Database at %s", self.database_path)
         self.create_tables()
 
-    def connect_database(self):
-        self.database = sqlite3.connect(self.database_path)
-        self.cursor = self.database.cursor()
+    def connect_database(self) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
+        database = sqlite3.connect(self.database_path)
+        cursor = database.cursor()
+        return database, cursor
 
     def query_database(self, sql, search_tuple=()):
-        self.connect_database()
-        self.cursor.execute(sql, search_tuple)
+        database, cursor = self.connect_database()
+        cursor.execute(sql, search_tuple)
 
         if sql[0:6].lower() == "select":
-            result = self.cursor.fetchall()
+            result = cursor.fetchall()
         else:
-            self.database.commit()
+            database.commit()
             result = []
-        self.database.close()
+        database.close()
         return result
 
     def create_tables(self):
-        self.connect_database()
+        database, cursor = self.connect_database()
         # get all table names from the database
-        self.cursor.execute(
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS Events(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 Date DATETIME NOT NULL,
                 Action TEXT NOT NULL);"""
         )
-        self.cursor.execute(
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS Pause(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 Date DATE NOT NULL,
                 Time INTEGER NOT NULL);"""
         )
         # create vacation table (id and date)
-        self.cursor.execute(
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS Vacation(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 Date DATE NOT NULL);"""
         )
         # Creating the Unique Indexes
-        self.cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date ON Pause(Date)")
-        self.cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date_vacation ON Vacation(Date)")
-        self.database.commit()
-        self.database.close()
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date ON Pause(Date)")
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date_vacation ON Vacation(Date)")
+        database.commit()
+        database.close()
 
 
 DB_CONTROLLER = DatabaseController()

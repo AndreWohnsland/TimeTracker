@@ -1,21 +1,20 @@
 import datetime
 import logging
-from typing import Callable
-from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from collections.abc import Callable
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction, QApplication, QMainWindow, QMenu, QSystemTrayIcon
+
+from src.database_controller import DB_CONTROLLER
+from src.icons import get_preset_icons
 from src.ui_config_window import ConfigWindow
+from src.ui_controller import UI_CONTROLLER as UIC
 from src.ui_data_window import DataWindow
 from src.ui_vacation_window import VacationWindow
 from src.updater import UPDATER
 from src.utils import open_folder_in_explorer
 from ui import Ui_MainWindow
-from src.database_controller import DB_CONTROLLER
-from src.ui_controller import UI_CONTROLLER as UIC
-from src.icons import get_preset_icons
-
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +77,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]):
         start_action = QAction(icon, text, self)
-        start_action.triggered.connect(action)
+        start_action.triggered.connect(action)  # type: ignore
         tray_menu.addAction(start_action)
 
     def close_app(self):
@@ -203,21 +202,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.data_window.show()
 
     def update_other_windows(self):
-        """Updates the view of the other windows dependent on data."""
+        """Update the view of the other windows dependent on data."""
         self.update_data_window()
 
     def update_data_window(self):
-        """Updates the data window if it is visible."""
+        """Update the data window if it is visible."""
         if self.data_window.isVisible():
             self.data_window.plot()
             self.data_window.update_table_data()
 
     def show_config_window(self):
-        """Shows the configuration window."""
+        """Show the configuration window."""
         self.config_window = ConfigWindow(self)
         self.config_window.show()
 
     def show_vacation_window(self):
-        """Shows the vacation window."""
+        """Show the vacation window."""
         self.vacation_window = VacationWindow(self)
         self.vacation_window.show()

@@ -1,19 +1,19 @@
 import datetime
 from dataclasses import dataclass, field
-from dateutil.relativedelta import relativedelta
 
 import holidays
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 
-from src.database_controller import DB_CONTROLLER
 from src.config_handler import CONFIG_HANDLER
+from src.database_controller import DB_CONTROLLER
 
 
 @dataclass
 class Store:
     df: pd.DataFrame = field(default_factory=pd.DataFrame)
     daily_data: list[tuple[str, str]] = field(default_factory=list)
-    current_date: datetime.date = datetime.date.today()
+    current_date: datetime.date = field(default_factory=datetime.date.today)
     # dict with key: (year, month) and value: (hash(raw_data), pd.DataFrame)
     all_data: dict[(tuple[int, int]), tuple[int, pd.DataFrame]] = field(default_factory=dict)
 
@@ -100,11 +100,11 @@ class Store:
     def _generate_monthly_time(
         self, df: pd.DataFrame, full_month: pd.DatetimeIndex, free_days: list[datetime.date]
     ) -> list[float]:
-        time_list = []
+        time_list: list[float] = []
         daily_minutes = CONFIG_HANDLER.config.daily_hours * 60
         for _day in full_month:
             days_data = df[df["date"] == _day.date()]
-            calculated_time = 0
+            calculated_time = 1.0
             # when we got a free day, we get the working time for this day
             if _day.date() in free_days:
                 calculated_time += daily_minutes

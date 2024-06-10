@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 import datetime
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QListWidgetItem, QLabel, QSizePolicy
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QListWidgetItem, QPushButton, QSizePolicy, QWidget
 
-from ui import Ui_VacationWindow
-from src.icons import get_app_icon, get_preset_icons
 from src.database_controller import DB_CONTROLLER
+from src.icons import get_app_icon, get_preset_icons
 from src.ui_controller import UI_CONTROLLER
+from ui import Ui_VacationWindow
 
 if TYPE_CHECKING:
     from src.ui_mainwindow import MainWindow
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 
 class VacationWindow(QWidget, Ui_VacationWindow):
     def __init__(self, main_window: MainWindow):
+        """Window to manage vacation days."""
         super().__init__()
         self.main_window = main_window
         self.setupUi(self)
@@ -34,7 +36,7 @@ class VacationWindow(QWidget, Ui_VacationWindow):
         self.year_select.valueChanged.connect(self._generate_vacation_list)
 
     def _generate_vacation_list(self):
-        """Read all the database entries and generate the list of vacation days"""
+        """Read all the database entries and generate the list of vacation days."""
         self.list_widget_dates.clear()
         dates = DB_CONTROLLER.get_vacation_days(self.year)
         self.label_list_view.setText(f"Vacation Days in {self.year}:")
@@ -45,16 +47,14 @@ class VacationWindow(QWidget, Ui_VacationWindow):
 
     def add_date_item(self, date: datetime.date):
         # choose the correct suffix for the day
-        if 4 <= date.day <= 20 or 24 <= date.day <= 30:
-            suffix = "th"
-        else:
-            suffix = ["st", "nd", "rd"][date.day % 10 - 1]
+        no_special_suffix = 4 <= date.day <= 20 or 24 <= date.day <= 30
+        suffix = "th" if no_special_suffix else ["st", "nd", "rd"][date.day % 10 - 1]
         item = QListWidgetItem()
         item_widget = QWidget()
         line_text = QLabel(f"{date.strftime('%m-%d | %B')} {date.day}{suffix}")
         line_text.setStyleSheet("font-size: 16px;")
         delete_button = QPushButton("")
-        delete_button.clicked.connect(lambda: self.delete_date_item(item, date))
+        delete_button.clicked.connect(lambda: self.delete_date_item(item, date))  # type: ignore
         delete_button.setIcon(get_preset_icons().delete_inverted)
         # set red border and add a padding top bottom of 5px
         delete_button.setStyleSheet("border: 1px solid red; border-radius: 5px; padding: 5px; background-color: red;")
@@ -78,13 +78,13 @@ class VacationWindow(QWidget, Ui_VacationWindow):
         self.list_widget_dates.takeItem(row)
 
     def _remove_vacation_entry(self, date: datetime.date, container: QHBoxLayout):
-        """Remove the vacation entry from the list and the database"""
+        """Remove the vacation entry from the list and the database."""
         DB_CONTROLLER.remove_vacation(date)
         UI_CONTROLLER.delete_items_of_layout(container)
         container.deleteLater()
 
     def _add_vacation(self):
-        """Adds the current date as vacation day"""
+        """Add the current date as vacation day."""
         selected_date = self.date_edit.date().toPyDate()
         DB_CONTROLLER.add_vacation(selected_date)
         self._generate_vacation_list()
