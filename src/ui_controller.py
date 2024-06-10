@@ -84,8 +84,12 @@ class UiController:
             table.removeRow(0)
 
     def set_header_names(self, table: QTableWidget, name1: str, name2: str):
-        table.horizontalHeaderItem(0).setText(name1)
-        table.horizontalHeaderItem(1).setText(name2)
+        header_1 = table.horizontalHeaderItem(0)
+        if header_1 is not None:
+            header_1.setText(name1)
+        header_2 = table.horizontalHeaderItem(1)
+        if header_2 is not None:
+            header_2.setText(name2)
 
     def get_user_data(self, parent):
         needed_keys: list[CONFIG_NAMES] = ["name"]
@@ -110,6 +114,8 @@ class UiController:
         if layout is not None:
             while layout.count():
                 item = layout.takeAt(0)
+                if item is None:
+                    continue
                 widget = item.widget()
                 if widget is not None:
                     widget.setParent(None)  # type: ignore
