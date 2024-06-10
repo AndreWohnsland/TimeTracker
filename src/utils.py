@@ -79,7 +79,7 @@ def open_folder_in_explorer(p: Path = SAVE_FOLDER):
     system = platform.system()
     resolved_path = str(p.resolve())
     if system == "Windows":
-        os.startfile(resolved_path)
+        os.startfile(resolved_path)  # type: ignore
     elif system == "Darwin":  # Mac
         os.system(f"open {resolved_path}")
     elif system == "Linux":
