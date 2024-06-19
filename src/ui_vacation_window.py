@@ -3,8 +3,8 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QListWidgetItem, QPushButton, QSizePolicy, QWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QListWidgetItem, QPushButton, QSizePolicy, QWidget
 
 from src.database_controller import DB_CONTROLLER
 from src.icons import get_app_icon, get_preset_icons
@@ -22,8 +22,13 @@ class VacationWindow(QWidget, Ui_VacationWindow):
         self.main_window = main_window
         self.setupUi(self)
         self.setWindowIcon(get_app_icon())
-        self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)  # type: ignore
-        self.setAttribute(Qt.WA_DeleteOnClose)  # type: ignore
+        self.setWindowFlags(
+            Qt.WindowType.Window
+            | Qt.WindowType.CustomizeWindowHint
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowCloseButtonHint
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         # setting dates to today
         today = datetime.date.today()
@@ -54,13 +59,13 @@ class VacationWindow(QWidget, Ui_VacationWindow):
         line_text = QLabel(f"{date.strftime('%m-%d | %B')} {date.day}{suffix}")
         line_text.setStyleSheet("font-size: 16px;")
         delete_button = QPushButton("")
-        delete_button.clicked.connect(lambda: self.delete_date_item(item, date))  # type: ignore
+        delete_button.clicked.connect(lambda: self.delete_date_item(item, date))
         delete_button.setIcon(get_preset_icons().delete_inverted)
         # set red border and add a padding top bottom of 5px
         delete_button.setStyleSheet("border: 1px solid red; border-radius: 5px; padding: 5px; background-color: red;")
         # always shrink the button to the minimum size
         delete_button.setMaximumWidth(30)
-        delete_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)  # type: ignore
+        delete_button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         item_layout = QHBoxLayout()
         item_layout.setContentsMargins(0, 0, 0, 0)  # Set margins to 0
         item_layout.addWidget(line_text)

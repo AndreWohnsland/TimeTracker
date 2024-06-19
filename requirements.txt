@@ -1,7 +1,7 @@
 gitpython
 matplotlib
 pandas
-pyqt5
+pyqt6
 xlsxwriter
 pyqtdarktheme
 qtawesome

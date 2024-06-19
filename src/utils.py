@@ -6,7 +6,7 @@ from pathlib import Path
 
 import darkdetect
 import qdarktheme
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 
 from src.filepath import (
     CONFIG_PATH,
@@ -51,7 +51,7 @@ def get_additional_run_args() -> list[str]:
     system = platform.system()
     # windows need some extra love for the window header to be dark
     if system == "Windows" and not is_light():
-        return ["-platform", "windows:darkmode=1"]
+        return ["-platform", "windows:darkmode=2"]
     return []
 
 

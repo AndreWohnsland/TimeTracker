@@ -1,7 +1,7 @@
-from PyQt5.QtWidgets import QDialog, QFileDialog, QInputDialog, QLayout, QMessageBox, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QDialog, QFileDialog, QInputDialog, QLayout, QMessageBox, QTableWidget, QTableWidgetItem
 
 from src import __version__
-from src.config_handler import CONFIG_HANDLER, CONFIG_NAMES
+from src.config_handler import CONFIG_HANDLER
 from src.filepath import HOME_PATH
 from src.icons import get_app_icon
 
@@ -13,12 +13,12 @@ class UiController:
     def show_message(self, message: str):
         """Prompt default messagebox, use a QMessageBox with OK-Button."""
         message_box = QMessageBox()
-        message_box.setStandardButtons(QMessageBox.Ok)  # type: ignore
+        message_box.setStandardButtons(QMessageBox.StandardButton.Ok)
         message_box.setText(str(message))
         message_box.setWindowIcon(get_app_icon())
         message_box.setWindowTitle("Information")
         message_box.show()
-        message_box.exec_()
+        message_box.exec()
 
     def report_choice(self):
         message_box = QMessageBox()
@@ -27,11 +27,11 @@ class UiController:
         )
         message_box.setWindowTitle("Report Generation")
         message_box.setWindowIcon(get_app_icon())
-        overtime_button = message_box.addButton("Overtime", QMessageBox.YesRole)  # type: ignore
-        time_button = message_box.addButton("Time", QMessageBox.NoRole)  # type: ignore
-        message_box.addButton("Cancel", QMessageBox.RejectRole)  # type: ignore
+        overtime_button = message_box.addButton("Overtime", QMessageBox.ButtonRole.YesRole)
+        time_button = message_box.addButton("Time", QMessageBox.ButtonRole.NoRole)
+        message_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
 
-        message_box.exec_()
+        message_box.exec()
         if message_box.clickedButton() == overtime_button:
             return True
         if message_box.clickedButton() == time_button:
@@ -43,9 +43,9 @@ class UiController:
         message_box.setText(text)
         message_box.setWindowTitle("Confirmation required")
         message_box.setWindowIcon(get_app_icon())
-        yes_button = message_box.addButton("Yes", QMessageBox.YesRole)  # type: ignore
-        message_box.addButton("No", QMessageBox.NoRole)  # type: ignore
-        message_box.exec_()
+        yes_button = message_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
+        message_box.addButton("No", QMessageBox.ButtonRole.NoRole)
+        message_box.exec()
         if message_box.clickedButton() == yes_button:
             return True
         return False
@@ -66,11 +66,11 @@ class UiController:
             current_path = str(HOME_PATH)
 
         dialog = QFileDialog(parent)
-        dialog.setFileMode(QFileDialog.DirectoryOnly)  # type: ignore
+        dialog.setFileMode(QFileDialog.FileMode.Directory)
         dialog.setDirectory(current_path)
 
-        if dialog.exec_() == QDialog.Accepted:  # type: ignore
-            return dialog.selectedFiles()[0]  # returns a list
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            return dialog.selectedFiles()[0]
         return ""
 
     def fill_table(self, table: QTableWidget, entry):
@@ -90,17 +90,6 @@ class UiController:
         header_2 = table.horizontalHeaderItem(1)
         if header_2 is not None:
             header_2.setText(name2)
-
-    def get_user_data(self, parent):
-        needed_keys: list[CONFIG_NAMES] = ["name"]
-        # todo adjust to new class logic
-        for data in needed_keys:
-            text, ok = self.get_text(data, parent)
-            if not ok:
-                return
-            if text != "":
-                CONFIG_HANDLER.set_config_value(data, text, write=False)
-        CONFIG_HANDLER.write_config_file()
 
     def get_save_folder(self):
         user_path = CONFIG_HANDLER.config.save_path
