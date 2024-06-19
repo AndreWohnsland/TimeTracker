@@ -17,8 +17,11 @@ NEEDED_DATA = {
     "country": "US",
     "subdiv": None,
     "workdays": [0, 1, 2, 3, 4],  # 0-6, 0=Monday, 6=Sunday
+    "plot_pause": True,
 }
-CONFIG_NAMES = Literal["name", "save_path", "country", "subdiv", "daily_hours", "weekly_hours", "workdays"]
+CONFIG_NAMES = Literal[
+    "name", "save_path", "country", "subdiv", "daily_hours", "weekly_hours", "workdays", "plot_pause"
+]
 
 
 @dataclass
@@ -31,6 +34,7 @@ class Config:
     country: str
     subdiv: str | None
     workdays: list[int]
+    plot_pause: bool
 
     @classmethod
     def from_kwargs(cls, **kwargs):
