@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtCore import QDate, QDateTime, Qt
-from PyQt5.QtWidgets import QTableWidgetItem, QWidget
+from PyQt6.QtCore import QDate, QDateTime, Qt
+from PyQt6.QtWidgets import QTableWidgetItem, QWidget
 
 from src.config_handler import CONFIG_HANDLER
 from src.data_exporter import EXPORTER
@@ -44,7 +44,10 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.main_window = main_window
         self.setWindowIcon(get_app_icon())
         self.setWindowFlags(
-            Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint  # type: ignore
+            Qt.WindowType.Window
+            | Qt.WindowType.CustomizeWindowHint
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
         # setting all the params
         self.date_edit.setDateTime(QDateTime.currentDateTime())
@@ -159,11 +162,15 @@ class DataWindow(QWidget, Ui_DataWindow):
 
         # Add numbers above the bars
         for i, (_, row) in enumerate(plot_df.iterrows()):
-            total_time = row["work"] + row["overtime"]
-            if total_time <= 0:
+            total_time = sum(row)
+            if total_time <= 0.0:
                 continue
             # put small offset for the numbers to not overlap with the bar
             position = (i, total_time + 0.01 * needed_hours)
+            # last 3% will collide with the line, in this case just put it above the line already
+            line_collide = 0.97 * needed_hours <= total_time <= needed_hours
+            if line_collide:
+                position = (i, 1.01 * needed_hours)
             ax.annotate(f"{total_time:.1f}", position, ha="center", va="bottom", fontsize=8, weight="bold")
 
         if self.radio_month.isChecked():
@@ -184,7 +191,10 @@ class DataWindow(QWidget, Ui_DataWindow):
         df["overtime"] = df["work"] - needed_hours
         df["overtime"] = df["overtime"].clip(lower=0)
         df["work"] = df["work"].clip(upper=needed_hours, lower=0)
-        return df[["work", "overtime", "pause"]]
+        to_keep = ["work", "overtime"]
+        if CONFIG_HANDLER.config.plot_pause:
+            to_keep.append("pause")
+        return df[to_keep]
 
     def _create_dummy_df(self) -> pd.DataFrame:
         """Create a dummy dataframe if no data is available."""

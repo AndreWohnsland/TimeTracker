@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 import qtawesome as qta
-from PyQt5.QtGui import QIcon
+from PyQt6.QtGui import QIcon
 
 from src.utils import get_background_color, get_font_color
 

@@ -104,7 +104,7 @@ class Store:
         daily_minutes = CONFIG_HANDLER.config.daily_hours * 60
         for _day in full_month:
             days_data = df[df["date"] == _day.date()]
-            calculated_time = 1.0
+            calculated_time = 0.0
             # when we got a free day, we get the working time for this day
             if _day.date() in free_days:
                 calculated_time += daily_minutes

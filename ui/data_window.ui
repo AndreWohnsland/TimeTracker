@@ -82,11 +82,11 @@
        <property name="columnCount">
         <number>2</number>
        </property>
-       <attribute name="horizontalHeaderDefaultSectionSize">
-        <number>200</number>
-       </attribute>
        <attribute name="horizontalHeaderMinimumSectionSize">
         <number>100</number>
+       </attribute>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>200</number>
        </attribute>
        <attribute name="horizontalHeaderStretchLastSection">
         <bool>true</bool>
@@ -246,7 +246,6 @@
          <property name="font">
           <font>
            <pointsize>12</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -272,7 +271,6 @@
          <property name="font">
           <font>
            <pointsize>12</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>

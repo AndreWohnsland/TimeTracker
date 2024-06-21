@@ -2,9 +2,9 @@ import datetime
 import logging
 from collections.abc import Callable
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QApplication, QMainWindow, QMenu, QSystemTrayIcon
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon
 
 from src.database_controller import DB_CONTROLLER
 from src.icons import get_preset_icons
@@ -24,7 +24,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Init. Many of the button and List connects are in pass_setup."""
         super().__init__()
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowMaximizeButtonHint)  # type: ignore
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowMaximizeButtonHint)
         self.icons = get_preset_icons()
         self.clock_icon = self.icons.clock
         self.connect_buttons()
@@ -77,7 +77,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]):
         start_action = QAction(icon, text, self)
-        start_action.triggered.connect(action)  # type: ignore
+        start_action.triggered.connect(action)
         tray_menu.addAction(start_action)
 
     def close_app(self):
@@ -155,13 +155,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def get_past_date(self):
         """Return the date from the past datetime edit."""
-        qt_object = self.past_datetime_edit.dateTime()  # type: ignore
+        qt_object = self.past_datetime_edit.dateTime()
         qt_date = qt_object.date()
         return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
 
     def get_past_datetime(self):
         """Return the datetime from the past datetime edit."""
-        qt_object = self.past_datetime_edit.dateTime()  # type: ignore
+        qt_object = self.past_datetime_edit.dateTime()
         qt_date = qt_object.date()
         qt_time = qt_object.time()
         return datetime.datetime(

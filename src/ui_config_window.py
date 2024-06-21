@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import holidays
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QWidget
 
 from src.config_handler import CONFIG_HANDLER
 from src.icons import get_app_icon
@@ -21,8 +21,13 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.main_window = main_window
         self.setupUi(self)
         self.setWindowIcon(get_app_icon())
-        self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)  # type: ignore
-        self.setAttribute(Qt.WA_DeleteOnClose)  # type: ignore
+        self.setWindowFlags(
+            Qt.WindowType.Window
+            | Qt.WindowType.CustomizeWindowHint
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowCloseButtonHint
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.country_list = holidays.list_supported_countries()
         self._update_country_list()
         self.set_config_values()
@@ -71,6 +76,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.input_name.setText(CONFIG_HANDLER.config.name)
         self.input_daily_hours.setValue(CONFIG_HANDLER.config.daily_hours)
         self.input_weekly_hours.setValue(CONFIG_HANDLER.config.weekly_hours)
+        self.input_plot_pause.setChecked(CONFIG_HANDLER.config.plot_pause)
         for day in CONFIG_HANDLER.config.workdays:
             getattr(self, f"radio_weekday_{day}").setChecked(True)
 
@@ -81,6 +87,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.name = self.input_name.text()
         CONFIG_HANDLER.config.daily_hours = self.input_daily_hours.value()
         CONFIG_HANDLER.config.weekly_hours = self.input_daily_hours.value()
+        CONFIG_HANDLER.config.plot_pause = self.input_plot_pause.isChecked()
         selected_days: list[int] = []
         for day in range(7):
             if getattr(self, f"radio_weekday_{day}").isChecked():
