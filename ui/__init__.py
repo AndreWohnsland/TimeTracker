@@ -1,6 +1,6 @@
 from .config_window import Ui_ConfigWindow
-from .mainwindow import Ui_MainWindow
 from .data_window import Ui_DataWindow
+from .mainwindow import Ui_MainWindow
 from .vacation_window import Ui_VacationWindow
 
 __all__ = [
