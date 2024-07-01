@@ -79,9 +79,7 @@ class DataWindow(QWidget, Ui_DataWindow):
 
     @property
     def view_day(self):
-        if self.switch_button.isChecked():
-            return True
-        return False
+        return self.switch_button.isChecked()
 
     @property
     def selected_date(self):
