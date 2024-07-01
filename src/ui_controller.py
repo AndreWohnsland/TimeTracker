@@ -46,9 +46,7 @@ class UiController:
         yes_button = message_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
         message_box.addButton("No", QMessageBox.ButtonRole.NoRole)
         message_box.exec()
-        if message_box.clickedButton() == yes_button:
-            return True
-        return False
+        return message_box.clickedButton() == yes_button
 
     def display_about(self):
         message = (
