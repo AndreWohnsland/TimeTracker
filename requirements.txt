@@ -7,3 +7,5 @@ pyqtdarktheme
 qtawesome
 holidays
 dataclasses-json
+plyer
+win10toast ; sys_platform == 'win32'
