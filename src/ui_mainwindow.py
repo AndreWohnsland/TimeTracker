@@ -150,7 +150,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             entry_date = self.get_past_date()
         DB_CONTROLLER.add_pause(pause, entry_date)
         self.set_pause(0)
-        UIC.show_message(f"Added pause of {pause} minutes on date {entry_date.strftime('%d-%m-%Y')}")
+        UIC.show_notification(
+            self.tray_icon, f"Added pause of {pause} minutes on date {entry_date.strftime('%d-%m-%Y')}", "Pause Added"
+        )
         self.update_other_windows()
 
     def get_past_date(self):
@@ -175,7 +177,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.is_past_time and check_past_entry:
             entry_datetime = self.get_past_datetime()
         DB_CONTROLLER.add_event(event, entry_datetime)
-        UIC.show_message(f"Added event {event} at {entry_datetime.strftime('%d-%m-%Y - %H:%M:%S')}")
+        UIC.show_notification(
+            self.tray_icon, f"Added event {event} at {entry_datetime.strftime('%d-%m-%Y - %H:%M:%S')}", "Event Added"
+        )
 
     def add_start(self, check_past_entry: bool = True):
         """Add a start event."""

@@ -1,4 +1,16 @@
-from PyQt6.QtWidgets import QDialog, QFileDialog, QInputDialog, QLayout, QMessageBox, QTableWidget, QTableWidgetItem
+import sys
+
+from plyer import notification
+from PyQt6.QtWidgets import (
+    QDialog,
+    QFileDialog,
+    QInputDialog,
+    QLayout,
+    QMessageBox,
+    QSystemTrayIcon,
+    QTableWidget,
+    QTableWidgetItem,
+)
 
 from src import __version__
 from src.config_handler import CONFIG_HANDLER
@@ -19,6 +31,13 @@ class UiController:
         message_box.setWindowTitle("Information")
         message_box.show()
         message_box.exec()
+
+    def show_notification(self, tray_icon: QSystemTrayIcon, message: str, title: str, timeout: int = 3):
+        # QT notification are prettier, but does not work properly on other than windows
+        if sys.platform.startswith("win"):
+            tray_icon.showMessage(title, message, QSystemTrayIcon.MessageIcon.Information, timeout * 1000)
+            return
+        notification.notify(title=title, message=message, app_name="Time Tracker", timeout=timeout)  # type: ignore
 
     def report_choice(self):
         message_box = QMessageBox()
