@@ -1,25 +1,36 @@
-[tool.poetry]
+[project]
 name = "time-tracker"
 version = "1.3.0"
 description = "Track your time with Python and Qt"
-authors = ["Andre Wohnsland <50302161+AndreWohnsland@users.noreply.github.com>"]
-license = "MIT"
+authors = [{ name= "Andre Wohnsland" , email =  "50302161+AndreWohnsland@users.noreply.github.com"}]
 readme = "README.md"
-package-mode = false
+requires-python = ">= 3.11"
+dependencies = [
+    "gitpython>=3.1.43",
+    "matplotlib>=3.9.0",
+    "pandas>=2.2.2",
+    "xlsxwriter>=3.2.0",
+    "pyqtdarktheme>=2.1.0",
+    "qtawesome>=1.3.1",
+    "holidays>=0.52",
+    "dataclasses-json>=0.6.7",
+    "pyqt6>=6.4.2",
+    "plyer>=2.1.0",
+    "win10toast>=0.9; sys_platform == 'win32'",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-GitPython = "^3.1.43"
-matplotlib = "^3.9.0"
-pandas = "^2.2.2"
-xlsxwriter = "^3.2.0"
-pyqtdarktheme = "^2.1.0"
-qtawesome = "^1.3.1"
-holidays = "^0.47"
-dataclasses-json = "^0.6.4"
-pyqt6 = "^6.4.2"
-plyer = "^2.1.0"
-win10toast = {version = "^0.9", platform = "win32"}
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pyinstaller>=6.8.0",
+    "jupyterlab>=4.2.3",
+    "mypy>=1.10.1",
+    "ruff>=0.5.0",
+    "pyqt6-tools>=6.4.2.3.3",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^6.8.0"
@@ -28,10 +39,6 @@ jupyterlab = "^4.2.2"
 mypy = "^1.10.0"
 ruff = "^0.4.8"
 pyqt6-tools = "^6.4.2.3.3"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 target-version = "py311"
