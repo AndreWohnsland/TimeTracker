@@ -38,15 +38,31 @@ target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]
+extend-safe-fixes = [
+  "UP", # pyupgrade
+  "D107", # Missing docstring in __init__
+  "D205", # 1 blank line required between summary line and description
+  "W291", # Trailing whitespace
+]
 per-file-ignores = { "runme.py" = ["E402"] }
 select = [
+  "A", # flake8-builtins
+  "ANN", # Type annotations
   "C", # Convention
+  "C4", # flake-comprehensions
   "D", # pydocstyle 
   "E", # pycodestyle
   "F", # Pyflakes
+  "FAST", # FastAPI
   "I", # isort 
   "ICN001", # {name} should be imported as {asname},
+  "PIE", # flake8-pie
+  "PL", # pylint
+  "PTH", # flake8-use-pathlib
+  "PYI", # flake8-pyi
+  "Q", # flake8-quotes
   "R", # Refactor
+  "RET", # flake8-return
   "RUF", # Ruff
   "SIM", # flake8-simplify
   "UP", # pyupgrade
@@ -61,6 +77,7 @@ ignore = [
   "D105", # Missing docstring in magic method
   "D203", # 1 blank line required before class docstring
   "D213", # Multi-line docstring summary should start at the second line
+  "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
 ]
 
 [tool.mypy]

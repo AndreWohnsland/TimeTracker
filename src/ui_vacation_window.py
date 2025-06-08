@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class VacationWindow(QWidget, Ui_VacationWindow):
-    def __init__(self, main_window: MainWindow):
+    def __init__(self, main_window: MainWindow) -> None:
         """Window to manage vacation days."""
         super().__init__()
         self.main_window = main_window
@@ -40,7 +40,7 @@ class VacationWindow(QWidget, Ui_VacationWindow):
         self.save_button.clicked.connect(self._add_vacation)
         self.year_select.valueChanged.connect(self._generate_vacation_list)
 
-    def _generate_vacation_list(self):
+    def _generate_vacation_list(self) -> None:
         """Read all the database entries and generate the list of vacation days."""
         self.list_widget_dates.clear()
         dates = DB_CONTROLLER.get_vacation_days(self.year)
@@ -50,9 +50,9 @@ class VacationWindow(QWidget, Ui_VacationWindow):
         for date in dates:
             self.add_date_item(date)
 
-    def add_date_item(self, date: datetime.date):
+    def add_date_item(self, date: datetime.date) -> None:
         # choose the correct suffix for the day
-        no_special_suffix = 4 <= date.day <= 20 or 24 <= date.day <= 30
+        no_special_suffix = 4 <= date.day <= 20 or 24 <= date.day <= 30  # noqa: PLR2004
         suffix = "th" if no_special_suffix else ["st", "nd", "rd"][date.day % 10 - 1]
         item = QListWidgetItem()
         item_widget = QWidget()
@@ -75,20 +75,20 @@ class VacationWindow(QWidget, Ui_VacationWindow):
         self.list_widget_dates.addItem(item)
         self.list_widget_dates.setItemWidget(item, item_widget)
 
-    def delete_date_item(self, item: QListWidgetItem, date: datetime.date):
+    def delete_date_item(self, item: QListWidgetItem, date: datetime.date) -> None:
         if not UI_CONTROLLER.user_okay(f"Do you want to remove the vacation on {date}?"):
             return
         DB_CONTROLLER.remove_vacation(date)
         row = self.list_widget_dates.row(item)
         self.list_widget_dates.takeItem(row)
 
-    def _remove_vacation_entry(self, date: datetime.date, container: QHBoxLayout):
+    def _remove_vacation_entry(self, date: datetime.date, container: QHBoxLayout) -> None:
         """Remove the vacation entry from the list and the database."""
         DB_CONTROLLER.remove_vacation(date)
         UI_CONTROLLER.delete_items_of_layout(container)
         container.deleteLater()
 
-    def _add_vacation(self):
+    def _add_vacation(self) -> None:
         """Add the current date as vacation day."""
         selected_date = self.date_edit.date().toPyDate()
         DB_CONTROLLER.add_vacation(selected_date)

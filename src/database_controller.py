@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 class DatabaseController:
     """Controller Class to execute all DB queries and return results as Values / Lists / Dictionaries."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Abstract Access to the database."""
         self.handler = DatabaseHandler()
 
-    def add_event(self, event: str, entry_datetime: datetime.datetime):
+    def add_event(self, event: str, entry_datetime: datetime.datetime) -> None:
         datetime_string = entry_datetime.isoformat()
         logger.info("Add Event: %s, timestamp: %s", event, datetime_string)
         query = "INSERT INTO Events(Date, Action) VALUES(?, ?)"
@@ -28,14 +28,14 @@ class DatabaseController:
             ),
         )
 
-    def add_pause(self, pause_time: int, entry_date: datetime.date):
+    def add_pause(self, pause_time: int, entry_date: datetime.date) -> None:
         date_string = entry_date.isoformat()
         if self.day_exists(date_string):
             self.update_pause(pause_time, date_string)
         else:
             self.insert_pause(pause_time, date_string)
 
-    def update_pause(self, pause_time: int, date_string: str):
+    def update_pause(self, pause_time: int, date_string: str) -> None:
         logger.info("Updating pause time by %s at %s", pause_time, date_string)
         query = "UPDATE OR IGNORE Pause SET Time = Time + ? WHERE Date = ?"
         self.handler.query_database(
@@ -46,7 +46,7 @@ class DatabaseController:
             ),
         )
 
-    def insert_pause(self, pause_time: int, date_string: str):
+    def insert_pause(self, pause_time: int, date_string: str) -> None:
         logger.info("Inserting pause time by %s at %s", pause_time, date_string)
         query = "INSERT INTO Pause(Date, Time) VALUES(?, ?)"
         self.handler.query_database(
@@ -61,14 +61,14 @@ class DatabaseController:
         query = "SELECT COUNT(*) FROM Pause WHERE Date = ?"
         return self.handler.query_database(query, (date_str,))[0][0]
 
-    def get_month_data(self, search_date: datetime.date):
+    def get_month_data(self, search_date: datetime.date) -> tuple[list[tuple[str, str]], list[tuple[str, int]]]:
         start = datetime.date(search_date.year, search_date.month, 1)
         end = start + relativedelta(months=+1)
         work = self.get_period_work(start, end)
         pause = self.get_period_pause(start, end)
         return work, pause
 
-    def get_day_data(self, day: datetime.date):
+    def get_day_data(self, day: datetime.date) -> tuple[list[tuple[str, str]], list[tuple[str, int]]]:
         start = day
         end = start + relativedelta(days=+1)
         work = self.get_period_work(start, end)
@@ -95,11 +95,11 @@ class DatabaseController:
             ),
         )
 
-    def delete_event(self, delete_datetime: str):
+    def delete_event(self, delete_datetime: str) -> None:
         query = "DELETE FROM Events WHERE Date = ?"
         self.handler.query_database(query, (delete_datetime,))
 
-    def add_vacation(self, vacation_date: datetime.date):
+    def add_vacation(self, vacation_date: datetime.date) -> None:
         date_string = vacation_date.isoformat()
         logger.info("Adding Vacation on %s", date_string)
         # only enter (ignore) if the date does not exist
@@ -113,7 +113,7 @@ class DatabaseController:
         # convert to a list of dates
         return [datetime.date.fromisoformat(day[0]) for day in days]
 
-    def remove_vacation(self, vacation_date: datetime.date):
+    def remove_vacation(self, vacation_date: datetime.date) -> None:
         date_string = vacation_date.isoformat()
         logger.info("Removing Vacation on %s", date_string)
         query = "DELETE FROM Vacation WHERE Date = ?"
@@ -123,7 +123,7 @@ class DatabaseController:
 class DatabaseHandler:
     """Handler Class for Connecting and querying Databases."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Class to connect and query the database."""
         # check if the old database exists and move it to the new location
         self.database_path = DATABASE_PATH
@@ -136,7 +136,7 @@ class DatabaseHandler:
         cursor = database.cursor()
         return database, cursor
 
-    def query_database(self, sql, search_tuple=()):
+    def query_database(self, sql: str, search_tuple: tuple = ()) -> list:
         database, cursor = self.connect_database()
         cursor.execute(sql, search_tuple)
 
@@ -148,7 +148,7 @@ class DatabaseHandler:
         database.close()
         return result
 
-    def create_tables(self):
+    def create_tables(self) -> None:
         database, cursor = self.connect_database()
         # get all table names from the database
         cursor.execute(

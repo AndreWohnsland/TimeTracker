@@ -1,6 +1,7 @@
 import datetime
 import logging
 from collections.abc import Callable
+from typing import Any
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         """Init. Many of the button and List connects are in pass_setup."""
         super().__init__()
         self.setupUi(self)
@@ -41,13 +42,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config_window: ConfigWindow | None = None
         self.vacation_window: VacationWindow | None = None
 
-    def connect_buttons(self):
+    def connect_buttons(self) -> None:
         self.start_button.clicked.connect(lambda: self.add_start())
         self.stop_button.clicked.connect(lambda: self.add_stop())
         self.pause_button.clicked.connect(lambda: self.add_pause())
         self.back_button.clicked.connect(self.hide_ui_elements)
 
-    def set_tray(self):
+    def set_tray(self) -> None:
         """Populate the tray icon and menu."""
         # Need to check if tray icon already exists
         existing_tray_icons = QApplication.instance().topLevelWidgets()  # type: ignore
@@ -75,27 +76,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Start
         self.add_tray_menu_option(tray_menu, self.icons.start, "Start", lambda: self.add_start(False))
 
-    def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]):
+    def add_tray_menu_option(self, tray_menu: QMenu, icon: QIcon, text: str, action: Callable[[], None]) -> None:
         start_action = QAction(icon, text, self)
         start_action.triggered.connect(action)
         tray_menu.addAction(start_action)
 
-    def close_app(self):
+    def close_app(self) -> None:
         """Close the app after asking the user."""
         if UIC.user_okay("Do you want to quit the application?"):
             QApplication.quit()
 
-    def restore_window(self):
+    def restore_window(self) -> None:
         # Show window when tray icon is clicked
         self.showNormal()
         self.activateWindow()
 
-    def handle_tray_click(self, reason):
+    def handle_tray_click(self, reason: Any) -> None:
         """Restore the window when the tray icon is clicked."""
-        if reason == QSystemTrayIcon.DoubleClick or reason == QSystemTrayIcon.Trigger:  # type: ignore
+        if reason in (QSystemTrayIcon.DoubleClick, QSystemTrayIcon.Trigger):  # type: ignore
             self.restore_window()
 
-    def connect_actions(self):
+    def connect_actions(self) -> None:
         self.action_configuration.triggered.connect(self.show_config_window)
         self.action_report.triggered.connect(self.show_data_window)
         self.action_save_folder.triggered.connect(UIC.get_save_folder)
@@ -105,7 +106,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_open_folder.triggered.connect(lambda _: open_folder_in_explorer())
         self.action_set_vacation.triggered.connect(self.show_vacation_window)
 
-    def show_ui_elements(self):
+    def show_ui_elements(self) -> None:
         """Show the past time elements."""
         if self.is_past_time:
             return
@@ -114,7 +115,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.back_button.show()
         self.resize_mainwindow(0, 80)
 
-    def hide_ui_elements(self):
+    def hide_ui_elements(self) -> None:
         """Hide the past time elements."""
         if not self.is_past_time:
             return
@@ -123,26 +124,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.resize_mainwindow(0, -80)
 
     @property
-    def is_past_time(self):
+    def is_past_time(self) -> bool:
         """Check if the past time elements are visible."""
         return self.past_datetime_edit.isVisible() and self.back_button.isVisible()
 
-    def resize_mainwindow(self, width: int, height: int):
+    def resize_mainwindow(self, width: int, height: int) -> None:
         """Resize the main window with a given width and height."""
         h = self.geometry().height()
         w = self.geometry().width()
         self.resize(w + width, h + height)
 
     @property
-    def pause(self):
+    def pause(self) -> int:
         """Value of the pause box."""
         return int(self.pause_box.text())
 
-    def set_pause(self, value: int):
+    def set_pause(self, value: int) -> None:
         """Update the pause box with a new value."""
         self.pause_box.setValue(value)
 
-    def add_pause(self, check_past_entry: bool = True):
+    def add_pause(self, check_past_entry: bool = True) -> None:
         """Add a pause to the database."""
         pause = self.pause
         entry_date = datetime.date.today()
@@ -155,13 +156,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.update_other_windows()
 
-    def get_past_date(self):
+    def get_past_date(self) -> datetime.date:
         """Return the date from the past datetime edit."""
         qt_object = self.past_datetime_edit.dateTime()
         qt_date = qt_object.date()
         return datetime.date(qt_date.year(), qt_date.month(), qt_date.day())
 
-    def get_past_datetime(self):
+    def get_past_datetime(self) -> datetime.datetime:
         """Return the datetime from the past datetime edit."""
         qt_object = self.past_datetime_edit.dateTime()
         qt_date = qt_object.date()
@@ -170,7 +171,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             qt_date.year(), qt_date.month(), qt_date.day(), qt_time.hour(), qt_time.minute(), qt_time.second()
         )
 
-    def add_event(self, event: str, check_past_entry: bool = True):
+    def add_event(self, event: str, check_past_entry: bool = True) -> None:
         """Add an event to the database."""
         entry_datetime = datetime.datetime.now()
         entry_datetime = entry_datetime.replace(microsecond=0)
@@ -181,17 +182,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tray_icon, f"Added event {event} at {entry_datetime.strftime('%d-%m-%Y - %H:%M:%S')}", "Event Added"
         )
 
-    def add_start(self, check_past_entry: bool = True):
+    def add_start(self, check_past_entry: bool = True) -> None:
         """Add a start event."""
         self.add_event("start", check_past_entry)
         self.update_other_windows()
 
-    def add_stop(self, check_past_entry: bool = True):
+    def add_stop(self, check_past_entry: bool = True) -> None:
         """Add a stop event."""
         self.add_event("stop", check_past_entry)
         self.update_other_windows()
 
-    def get_updates(self):
+    def get_updates(self) -> None:
         """Ask the user if they want to update and then update."""
         message = "Want to search and get updates? This could take a short time."
         if UIC.user_okay(message):
@@ -199,28 +200,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             UPDATER.update()
             logger.info("Done updating")
 
-    def show_data_window(self):
+    def show_data_window(self) -> None:
         """Trigger to update and show the data window."""
         self.data_window.plot()
         self.data_window.update_table_data()
         self.data_window.show()
 
-    def update_other_windows(self):
+    def update_other_windows(self) -> None:
         """Update the view of the other windows dependent on data."""
         self.update_data_window()
 
-    def update_data_window(self):
+    def update_data_window(self) -> None:
         """Update the data window if it is visible."""
         if self.data_window.isVisible():
             self.data_window.plot()
             self.data_window.update_table_data()
 
-    def show_config_window(self):
+    def show_config_window(self) -> None:
         """Show the configuration window."""
         self.config_window = ConfigWindow(self)
         self.config_window.show()
 
-    def show_vacation_window(self):
+    def show_vacation_window(self) -> None:
         """Show the vacation window."""
         self.vacation_window = VacationWindow(self)
         self.vacation_window.show()

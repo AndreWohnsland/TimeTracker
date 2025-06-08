@@ -37,7 +37,7 @@ class Config:
     plot_pause: bool
 
     @classmethod
-    def from_kwargs(cls, **kwargs):
+    def from_kwargs(cls, **kwargs: Any) -> "Config":
         cls_fields = set(signature(cls).parameters)
 
         class_args, other_args = {}, {}
@@ -52,35 +52,35 @@ class Config:
             setattr(c, new_name, new_val)
         return c
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
         return getattr(self, item)
 
 
 class ConfigHandler:
-    def __init__(self):
+    def __init__(self) -> None:
         """Class for managing configuration file and settings ."""
         self.config = self._get_config()
 
-    def _get_config(self):
+    def _get_config(self) -> Config:
         config_file = self.read_config_file()
         return Config.from_kwargs(**config_file)
 
     def read_config_file(self) -> dict:
         if not CONFIG_PATH.exists():
             return NEEDED_DATA
-        with open(CONFIG_PATH, encoding="utf-8") as f:
+        with CONFIG_PATH.open(encoding="utf-8") as f:
             config = json.load(f)
         for d in NEEDED_DATA.items():
             if d[0] not in config:
                 config[d[0]] = d[1]
         return config
 
-    def write_config_file(self):
-        with open(CONFIG_PATH, "w", encoding="utf-8") as write_file:
+    def write_config_file(self) -> None:
+        with CONFIG_PATH.open("w", encoding="utf-8") as write_file:
             # pylint: disable=no-member
             json.dump(self.config.to_dict(), write_file)  # type: ignore
 
-    def set_config_value(self, key: CONFIG_NAMES, value: Any, write: bool = True):
+    def set_config_value(self, key: CONFIG_NAMES, value: Any, write: bool = True) -> None:
         setattr(self.config, key, value)
         if not write:
             return

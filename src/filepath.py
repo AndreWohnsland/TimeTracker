@@ -17,13 +17,13 @@ def get_app_dir(app_name: str = APP_NAME) -> Path:
     if sys.platform.startswith("win"):
         app_folder = os.environ.get("APPDATA")
         if app_folder is None:
-            app_folder = os.path.expanduser("~")
+            app_folder = os.path.expanduser("~")  # noqa: PTH111
         return Path(app_folder) / app_name
     # MacOS
     if sys.platform == "darwin":
-        return Path(os.path.expanduser("~/Library/Application Support")) / app_name
+        return Path("~/Library/Application Support").expanduser() / app_name
     # Linux
-    return Path(os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))) / app_name
+    return Path(os.environ.get("XDG_CONFIG_HOME", str(Path("~/.config").expanduser()))) / app_name
 
 
 # Root path

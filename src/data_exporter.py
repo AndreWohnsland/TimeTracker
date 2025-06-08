@@ -1,6 +1,6 @@
 import datetime
 import logging
-import os
+from pathlib import Path
 
 import pandas as pd
 import xlsxwriter
@@ -23,10 +23,9 @@ class DataExporter:
         if overtime_report:
             file_suffix = "overtime"
         file_name = f"{CONFIG_HANDLER.config.name.replace(' ', '_')}_{df.index[0].strftime('%m_%Y')}_{file_suffix}.xlsx"
-        save_path = CONFIG_HANDLER.config.save_path
-        if not save_path:
-            save_path = REPORTS_PATH
-        file_path = os.path.join(save_path, file_name)
+        config_save_path = CONFIG_HANDLER.config.save_path
+        save_path = REPORTS_PATH if not config_save_path else Path(config_save_path)
+        file_path = save_path / file_name
         try:
             workbook = xlsxwriter.Workbook(file_path)
             bold = workbook.add_format({"bold": True})
@@ -43,7 +42,7 @@ class DataExporter:
             logger.error(message)
             return message
 
-    def _round_quarterly(self, number):
+    def _round_quarterly(self, number: float) -> float:
         return round(number * 4) / 4
 
     def _write_information(
@@ -53,7 +52,7 @@ class DataExporter:
         bold: xlsxwriter.format.Format,
         color: xlsxwriter.format.Format,
         overtime_report: bool,
-    ):
+    ) -> None:
         worksheet.write("A1", "Name:", bold)
         worksheet.write("B1", CONFIG_HANDLER.config.name, color)
         worksheet.write("A3", "Month:", bold)
@@ -72,14 +71,14 @@ class DataExporter:
         df: pd.DataFrame,
         color: xlsxwriter.format.Format,
         overtime_report: bool,
-    ):
-        time_to_subtract = 0
+    ) -> None:
+        time_to_subtract = 0.0
         if overtime_report:
             time_to_subtract = CONFIG_HANDLER.config.daily_hours
         for i, (index, row) in enumerate(df.iterrows()):
-            worksheet.write(f"A{7+i}", index.strftime("%d.%m.%Y"))  # type: ignore
+            worksheet.write(f"A{7 + i}", index.strftime("%d.%m.%Y"))  # type: ignore
             _time = self._round_quarterly(max(row["work"] - time_to_subtract, 0))
-            worksheet.write(f"B{7+i}", _time, color)
+            worksheet.write(f"B{7 + i}", _time, color)
 
 
 EXPORTER = DataExporter()
