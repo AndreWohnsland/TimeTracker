@@ -10,10 +10,10 @@ from src.utils import get_background_color, get_font_color
 class PresetIconNames:
     start = "fa5s.play"
     stop = "fa5.pause-circle"
-    exit = "fa.close"
+    exit = "mdi.close-box-outline"
     stats = "fa5s.chart-line"
     table = "fa5s.table"
-    setting = "fa.gears"
+    setting = "fa6s.gear"
     clock = "fa5.clock"
     delete = "fa5.trash-alt"
 
@@ -51,6 +51,6 @@ def get_preset_icons() -> PresetIcon:
     )
 
 
-def get_app_icon():
+def get_app_icon() -> QIcon:
     default_color = get_font_color()
     return generate_icon(PresetIconNames.clock, default_color)

@@ -55,7 +55,7 @@ def get_additional_run_args() -> list[str]:
     return []
 
 
-def prepare_data_location_and_files():
+def prepare_data_location_and_files() -> None:
     """Create the app folder if not exists.
 
     Move the old config and database files to the new location.
@@ -75,7 +75,7 @@ def prepare_data_location_and_files():
         OLD_DATABASE_PATH.rename(DATABASE_PATH)
 
 
-def open_folder_in_explorer(p: Path = SAVE_FOLDER):
+def open_folder_in_explorer(p: Path = SAVE_FOLDER) -> None:
     system = platform.system()
     resolved_path = str(p.resolve())
     if system == "Windows":
@@ -86,7 +86,7 @@ def open_folder_in_explorer(p: Path = SAVE_FOLDER):
         os.system(f"xdg-open {resolved_path}")
 
 
-def setup_logging(log_file_path=LOG_FILE_PATH):
+def setup_logging(log_file_path: Path = LOG_FILE_PATH) -> None:
     logging_config = {
         "version": 1,
         "disable_existing_loggers": False,

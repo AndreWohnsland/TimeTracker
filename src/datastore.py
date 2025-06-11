@@ -17,10 +17,10 @@ class Store:
     # dict with key: (year, month) and value: (hash(raw_data), pd.DataFrame)
     all_data: dict[(tuple[int, int]), tuple[int, pd.DataFrame]] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.generate_all_data()
 
-    def update_data(self, selected_date: datetime.date | None):
+    def update_data(self, selected_date: datetime.date | None) -> None:
         if selected_date is None:
             selected_date = self.current_date
         self.current_date = selected_date
@@ -40,12 +40,12 @@ class Store:
         unique_days = list(set(vacation_days + holiday_list))
         return [day for day in unique_days if day.weekday() in CONFIG_HANDLER.config.workdays]
 
-    def generate_all_data(self):
+    def generate_all_data(self) -> None:
         for year in range(2023, datetime.date.today().year + 1):
             for month in range(1, 13):
                 self.all_data[(year, month)] = self.generate_month_data(datetime.date(year, month, 1))
 
-    def get_year_data(self, year: int):
+    def get_year_data(self, year: int) -> pd.DataFrame:
         year_data = []
         for month in range(1, 13):
             selected_date = datetime.datetime(year, month, 1).date()
@@ -60,13 +60,13 @@ class Store:
         year_data_df.index = year_data_df.index.to_period("M")  # type: ignore
         return year_data_df
 
-    def generate_daily_data(self, selected_date: datetime.date):
+    def generate_daily_data(self, selected_date: datetime.date) -> None:
         day_work, day_pause = DB_CONTROLLER.get_day_data(selected_date)
         if day_pause:
             day_work.append(("Pause", str(day_pause[0][1])))
         self.daily_data = day_work
 
-    def generate_month_data(self, selected_date: datetime.date):
+    def generate_month_data(self, selected_date: datetime.date) -> tuple[int, pd.DataFrame]:
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
         free_days = self._get_free_days(selected_date.year)
         data_hash = hash((tuple(work_data), tuple(pause_data), tuple(free_days)))
@@ -85,7 +85,7 @@ class Store:
         daily_time_list = self._generate_monthly_time(work_df, day_list, free_days)
         return (data_hash, self._generate_report_df(day_list, daily_time_list, pause_data))
 
-    def _create_work_df(self, data: list[tuple[str, str]]):
+    def _create_work_df(self, data: list[tuple[str, str]]) -> pd.DataFrame:
         df_data = pd.DataFrame(data, columns=["datetime", "event"])
         df_data["datetime"] = df_data["datetime"].apply(pd.to_datetime)
         df_data["time"] = df_data["datetime"].dt.time
@@ -141,7 +141,7 @@ class Store:
 
     def _generate_report_df(
         self, month_list: pd.DatetimeIndex, monthly_time: list[float], pause_time: list[tuple[str, int]]
-    ):
+    ) -> pd.DataFrame:
         work_df = pd.DataFrame({"day": month_list, "work_time": monthly_time})
         work_df.set_index("day", inplace=True)
 

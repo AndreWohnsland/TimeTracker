@@ -37,7 +37,7 @@ class EventData:
 
 
 class DataWindow(QWidget, Ui_DataWindow):
-    def __init__(self, main_window: MainWindow):
+    def __init__(self, main_window: MainWindow) -> None:
         """Init the Data Window. Connect all the signals and slots."""
         super().__init__()
         self.setupUi(self)
@@ -78,14 +78,14 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.programmatic_change = False
 
     @property
-    def view_day(self):
+    def view_day(self) -> bool:
         return self.switch_button.isChecked()
 
     @property
-    def selected_date(self):
+    def selected_date(self) -> datetime.date:
         return self.date_edit.date().toPyDate()
 
-    def set_plot_parameters(self):
+    def set_plot_parameters(self) -> None:
         plt.rcParams["date.autoformatter.day"] = "%d"
         plt.rcParams["date.autoformatter.month"] = "%b"
         plt.rcParams["figure.facecolor"] = self.background_color
@@ -101,7 +101,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         plt.rcParams["axes.spines.top"] = False
         plt.rcParams["font.family"] = "DejaVu Sans Mono"
 
-    def update_date(self):
+    def update_date(self) -> None:
         """Update the date and plot the new data."""
         prev_date = self.prev_date
         self.prev_date = self.date_edit.date()
@@ -114,13 +114,13 @@ class DataWindow(QWidget, Ui_DataWindow):
         if month_changed:
             self.plot()
 
-    def _only_change_date(self, set_date: QDate | datetime.date):
+    def _only_change_date(self, set_date: QDate | datetime.date) -> None:
         """Change date while suppressing the on change event of the date edit."""
         self.programmatic_change = True
         self.date_edit.setDate(set_date)
         self.programmatic_change = False
 
-    def plot(self):
+    def plot(self) -> None:
         # clears the old values and then adds a subplot to insert all the data
         self.figure.clear()
         ax = self.figure.add_subplot(111)
@@ -207,7 +207,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         data = {"work": [0] * 12, "pause": [0] * 12}
         return pd.DataFrame(data, index=months)
 
-    def save_plot(self):
+    def save_plot(self) -> None:
         """Save the plot as png."""
         folder = Path(REPORTS_PATH)
         # only use the save path if it is set
@@ -233,7 +233,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         UIC.show_message(f"Plot saved to {save_file_name}")
 
     # Data Things
-    def update_table_data(self):
+    def update_table_data(self) -> None:
         UIC.clear_table(self.tableWidget)
         store.update_data(self.selected_date)
         if self.view_day:
@@ -241,14 +241,14 @@ class DataWindow(QWidget, Ui_DataWindow):
         else:
             self.fill_monthly_data()
 
-    def export_data(self):
+    def export_data(self) -> None:
         overtime_report = UIC.report_choice()
         if overtime_report is None:
             return
         message = EXPORTER.export_data(store.df, self.selected_date, overtime_report)
         UIC.show_message(message)
 
-    def switch_data_view(self):
+    def switch_data_view(self) -> None:
         if self.view_day:
             self.fill_daily_data()
             self.switch_button.setText("Day")
@@ -258,20 +258,20 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.switch_button.setText("Month")
         self.delete_event_button.hide()
 
-    def fill_monthly_data(self):
+    def fill_monthly_data(self) -> None:
         UIC.clear_table(self.tableWidget)
         UIC.set_header_names(self.tableWidget, "Date", "Time (h)")
         for index, entry in store.df.iterrows():
             needed_data = [index.strftime("%d/%m/%Y"), str(round(entry["work"], 1))]  # type: ignore
             UIC.fill_table(self.tableWidget, needed_data)
 
-    def fill_daily_data(self):
+    def fill_daily_data(self) -> None:
         UIC.clear_table(self.tableWidget)
         UIC.set_header_names(self.tableWidget, "Date / Type", "Event / Pause (min)")
         for entry in store.daily_data:
             UIC.fill_table(self.tableWidget, entry)
 
-    def delete_selected_event(self):
+    def delete_selected_event(self) -> None:
         event_data = self.get_selected_event()
         if event_data is None:
             return
@@ -293,13 +293,13 @@ class DataWindow(QWidget, Ui_DataWindow):
             return EventData(event_datetime, event)
         return None
 
-    def change_month(self, delta: int):
+    def change_month(self, delta: int) -> None:
         """Change the month to the given month."""
         current_date = self.date_edit.date()
         new_date = current_date.addMonths(delta)
         self.date_edit.setDate(new_date)
 
-    def on_item_click(self, item: QTableWidgetItem):
+    def on_item_click(self, item: QTableWidgetItem) -> None:
         """Set the date to the selected date in the table."""
         # only continue if this is not the day view
         if self.view_day:
