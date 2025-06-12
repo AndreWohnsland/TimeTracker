@@ -77,6 +77,7 @@ To go back to the default option, click the shown back button.
 
 ## Updating to latest Version
 
+INFO: Latest version should just be downloaded and installed over the previous version.
 If updating from version v1.0 you need to go into the directory and run:
 
 ```bash
