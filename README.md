@@ -7,6 +7,9 @@ A Qt-Application to start and stop time tracking, enter additional breaks, view 
 
 ## Installation
 
+Usually, the standalone version is the easiest way to get started.
+If you know your way around Python and pip, you can also install the application manually.
+
 ### A: Standalone Installation
 
 With a new release, there is also a standalone version available.
