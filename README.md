@@ -35,14 +35,17 @@ This will download the latest release, put it into your binary folder, and creat
 
 ### B: Manual Installation
 
-This application needs at least Python 3.8 installed at the system as well as the required packages.
+This application needs at least Python 3.11 installed at the system as well as the required packages.
 First clone the repository and cd into it.
-The required package can be installed with pip.
+The required package can be installed with pip or uv.
 To start the app, you run the `runme.py` file with python, you can create a shortcut on your desktop:
 
 ```bash
 git clone https://github.com/AndreWohnsland/TimeTracker.git
 cd TimeTracker
+uv sync
+uv run runme.py
+# or with pip
 pip install -r requirements.txt
 python runme.py
 ```
