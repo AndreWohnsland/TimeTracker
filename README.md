@@ -83,17 +83,13 @@ To go back to the default option, click the shown back button.
 
 ## Updating to latest Version
 
-INFO: Latest version should just be downloaded and installed over the previous version.
-If updating from version v1.0 you need to go into the directory and run:
+Just download the latest executable from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).
+If you have installed the application manually, you can update it with git:
 
 ```bash
 git pull
-pip install -r requirements.txt
+uv sync
 ```
-
-Since version v1.1 it is also possible to update over the UI with `Options > Search for Updates`.
-The app will need to be restarted to apply changes.
-You can also just download the latest executable from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).
 
 ## ToDo's
 
