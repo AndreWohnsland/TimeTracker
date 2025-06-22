@@ -7,6 +7,9 @@ A Qt-Application to start and stop time tracking, enter additional breaks, view 
 
 ## Installation
 
+Usually, the standalone version is the easiest way to get started.
+If you know your way around Python and pip, you can also install the application manually.
+
 ### A: Standalone Installation
 
 With a new release, there is also a standalone version available.
@@ -32,14 +35,17 @@ This will download the latest release, put it into your binary folder, and creat
 
 ### B: Manual Installation
 
-This application needs at least Python 3.8 installed at the system as well as the required packages.
+This application needs at least Python 3.11 installed at the system as well as the required packages.
 First clone the repository and cd into it.
-The required package can be installed with pip.
+The required package can be installed with pip or uv.
 To start the app, you run the `runme.py` file with python, you can create a shortcut on your desktop:
 
 ```bash
 git clone https://github.com/AndreWohnsland/TimeTracker.git
 cd TimeTracker
+uv sync
+uv run runme.py
+# or with pip
 pip install -r requirements.txt
 python runme.py
 ```
@@ -77,17 +83,10 @@ To go back to the default option, click the shown back button.
 
 ## Updating to latest Version
 
-If updating from version v1.0 you need to go into the directory and run:
+Just download the latest executable from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).
+If you have installed the application manually, you can update it with git:
 
 ```bash
 git pull
-pip install -r requirements.txt
+uv sync
 ```
-
-Since version v1.1 it is also possible to update over the UI with `Options > Search for Updates`.
-The app will need to be restarted to apply changes.
-You can also just download the latest executable from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).
-
-## ToDo's
-
-- Implement a proper update logic to only use latest releases
