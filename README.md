@@ -90,7 +90,3 @@ If you have installed the application manually, you can update it with git:
 git pull
 uv sync
 ```
-
-## ToDo's
-
-- Implement a proper update logic to only use latest releases
