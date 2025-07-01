@@ -121,4 +121,6 @@ def setup_logging(log_file_path: Path = LOG_FILE_PATH) -> None:
             "handlers": ["stout", "stderr", "file"],
         },
     }
+    if not log_file_path.parent.exists():
+        log_file_path.parent.mkdir(parents=True, exist_ok=True)
     logging.config.dictConfig(logging_config)
