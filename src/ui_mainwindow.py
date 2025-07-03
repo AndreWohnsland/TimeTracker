@@ -31,6 +31,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.connect_buttons()
         self.connect_actions()
         self.set_tray()
+        self.menubar.setNativeMenuBar(False)  # for macOS to show the menu bar in the app window
         self.setWindowIcon(self.clock_icon)
         # set manual here, since it does not recognize the hidden state at init somehow.
         # The default app shows the elements and got the additional height.
