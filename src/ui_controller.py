@@ -1,7 +1,6 @@
 import sys
 from collections.abc import Sequence
 
-from plyer import notification
 from PyQt6.QtWidgets import (
     QDialog,
     QFileDialog,
@@ -41,10 +40,7 @@ class UiController:
             return
         # use normal window notification on linux, note this is a fix, since this seem to crash the app on
         # C level, so we cannot even catch this error.
-        if sys.platform.startswith("linux"):
-            self.show_message(message)
-            return
-        notification.notify(title=title, message=message, app_name="Time Tracker", timeout=timeout)  # type: ignore
+        self.show_message(message)
 
     def report_choice(self) -> bool | None:
         message_box = QMessageBox()
