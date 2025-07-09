@@ -33,6 +33,10 @@ curl -s https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/scri
 
 This will download the latest release, put it into your binary folder, and create an application entry.
 
+#### macOS
+
+This is currently still experimental, but you can try either the manual installation or the standalone version.
+
 ### B: Manual Installation
 
 This application needs at least Python 3.11 installed at the system as well as the required packages.
