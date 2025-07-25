@@ -32,7 +32,7 @@ class DataExporter:
             color = workbook.add_format({"bg_color": "#00CC00", "align": "center"})
             worksheet = workbook.add_worksheet()
             cell_width = 20
-            worksheet.set_column("A:B", cell_width)
+            worksheet.set_column("A:F", cell_width)  # Extended to column F for new columns
             self._write_information(worksheet, df, bold, color, overtime_report)
             self._write_times(worksheet, df, color, overtime_report)
             workbook.close()
@@ -64,6 +64,10 @@ class DataExporter:
             worksheet.write("B6", "Over 8 h")
         else:
             worksheet.write("B6", "Work Time")
+        worksheet.write("C6", "Start Time")
+        worksheet.write("D6", "End Time")
+        worksheet.write("E6", "Break Time")
+        worksheet.write("F6", "Total Time")
 
     def _write_times(
         self,
@@ -79,6 +83,34 @@ class DataExporter:
             worksheet.write(f"A{7 + i}", index.strftime("%d.%m.%Y"))  # type: ignore
             _time = self._round_quarterly(max(row["work"] - time_to_subtract, 0))
             worksheet.write(f"B{7 + i}", _time, color)
+
+            # Add start time
+            start_time = row.get("start_time")
+            if start_time and not pd.isna(start_time):
+                worksheet.write(f"C{7 + i}", start_time.strftime("%H:%M"), color)
+            else:
+                worksheet.write(f"C{7 + i}", "-", color)
+
+            # Add end time
+            end_time = row.get("end_time")
+            if end_time and not pd.isna(end_time):
+                worksheet.write(f"D{7 + i}", end_time.strftime("%H:%M"), color)
+            else:
+                worksheet.write(f"D{7 + i}", "-", color)
+
+            # Add break time
+            break_time = row.get("break_time", 0)
+            if break_time and not pd.isna(break_time):
+                worksheet.write(f"E{7 + i}", self._round_quarterly(break_time), color)
+            else:
+                worksheet.write(f"E{7 + i}", 0, color)
+
+            # Add total time (work + break)
+            total_time = row.get("work_time", 0)
+            if total_time and not pd.isna(total_time):
+                worksheet.write(f"F{7 + i}", self._round_quarterly(total_time), color)
+            else:
+                worksheet.write(f"F{7 + i}", 0, color)
 
 
 EXPORTER = DataExporter()
