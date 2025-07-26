@@ -85,6 +85,10 @@ class DataWindow(QWidget, Ui_DataWindow):
     def selected_date(self) -> datetime.date:
         return self.date_edit.date().toPyDate()
 
+    @property
+    def plot_month(self) -> bool:
+        return self.radio_month.isChecked()
+
     def set_plot_parameters(self) -> None:
         plt.rcParams["date.autoformatter.day"] = "%d"
         plt.rcParams["date.autoformatter.month"] = "%b"
@@ -105,13 +109,14 @@ class DataWindow(QWidget, Ui_DataWindow):
         """Update the date and plot the new data."""
         prev_date = self.prev_date
         self.prev_date = self.date_edit.date()
-        month_changed = prev_date.month() != self.date_edit.date().month()
         if self.programmatic_change:
             return
         store.current_date = self.selected_date
         self.update_table_data()
-        # only plot on month change (otherwise no plot will change)
-        if month_changed:
+        # do not change plot on day change
+        month_changed = prev_date.month() != self.date_edit.date().month()
+        year_changed = prev_date.year() != self.date_edit.date().year()
+        if (month_changed and self.plot_month) or year_changed:
             self.plot()
 
     def _only_change_date(self, set_date: QDate | datetime.date) -> None:
@@ -131,7 +136,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         # if the user did not change it there before
         self._only_change_date(store.current_date)
 
-        if self.radio_month.isChecked():
+        if self.plot_month:
             df = store.df.copy()
             needed_hours = CONFIG_HANDLER.config.daily_hours
         else:
@@ -146,7 +151,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         ax.yaxis.grid(True, lw=1, ls=":", color=self.text_color, alpha=0.2, zorder=1)
         ax.xaxis.get_label().set_visible(False)
 
-        if self.radio_month.isChecked():
+        if self.plot_month:
             tick_labels = [day.strftime("%a %d") for day in df.index]
             rotation = "vertical"
             # shift the xticks to the middle of the bars
@@ -171,7 +176,7 @@ class DataWindow(QWidget, Ui_DataWindow):
                 position = (i, 1.01 * needed_hours)
             ax.annotate(f"{total_time:.1f}", position, ha="center", va="bottom", fontsize=8, weight="bold")
 
-        if self.radio_month.isChecked():
+        if self.plot_month:
             title = f"Working time for {store.current_date.strftime('%B %Y')}"
         else:
             title = f"Working time for {store.current_date.year}"
@@ -197,7 +202,7 @@ class DataWindow(QWidget, Ui_DataWindow):
     def _create_dummy_df(self) -> pd.DataFrame:
         """Create a dummy dataframe if no data is available."""
         date = store.current_date
-        if self.radio_month.isChecked():
+        if self.plot_month:
             day_in_month = calendar.monthrange(date.year, date.month)[1]
             # build data for each day of the month, containing only zeros
             days = pd.date_range(start=date.replace(day=1), periods=day_in_month, freq="D")
@@ -214,7 +219,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         if CONFIG_HANDLER.config.save_path:
             folder = Path(CONFIG_HANDLER.config.save_path)
         # Generate Month or Year name for the file
-        if self.radio_month.isChecked():
+        if self.plot_month:
             name = f"{store.current_date.strftime('%Y_%m')}_plot.png"
         else:
             name = f"{store.current_date.strftime('%Y')}_plot.png"
