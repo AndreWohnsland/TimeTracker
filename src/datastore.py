@@ -16,6 +16,9 @@ class Store:
     current_date: datetime.date = field(default_factory=datetime.date.today)
     # dict with key: (year, month) and value: (hash(raw_data), pd.DataFrame)
     all_data: dict[(tuple[int, int]), tuple[int, pd.DataFrame]] = field(default_factory=dict)
+    # Overtime tracking
+    total_overtime: float = field(default=0.0)
+    overtime_by_year: dict[int, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.generate_all_data()
@@ -27,7 +30,7 @@ class Store:
         self.generate_daily_data(selected_date)
         _, df = self.generate_month_data(selected_date)
         self.df = df
-        print(df)
+        self.calculate_overtime_totals()
 
     def _get_holidays(self, year: int) -> list[datetime.date]:
         available_holidays = holidays.CountryHoliday(
@@ -40,6 +43,14 @@ class Store:
         holiday_list = self._get_holidays(year)
         unique_days = list(set(vacation_days + holiday_list))
         return [day for day in unique_days if day.weekday() in CONFIG_HANDLER.config.workdays]
+
+    def all_non_working_days(self, year: int) -> list[datetime.date]:
+        """Return a set of all non-working days: holidays, vacation, and days not in config.workdays."""
+        vacation_days = set(DB_CONTROLLER.get_vacation_days(year))
+        holiday_days = set(self._get_holidays(year))
+        all_days = set(pd.date_range(datetime.date(year, 1, 1), datetime.date(year, 12, 31), freq="d").date)
+        non_workdays = {day for day in all_days if day.weekday() not in CONFIG_HANDLER.config.workdays}
+        return list(vacation_days | holiday_days | non_workdays)
 
     def generate_all_data(self) -> None:
         for year in range(2023, datetime.date.today().year + 1):
@@ -131,44 +142,16 @@ class Store:
         else:
             combined_df["pause"] = 0.0
 
-        # Only fill pause column with 0, leave start_time and end_time as None when no data
         combined_df["pause"] = combined_df["pause"].fillna(0).astype(float)
         combined_df["work_time"] = combined_df["work_time"].apply(lambda x: round(x / 60, 2))
         combined_df["pause"] = combined_df["pause"].apply(lambda x: round(x / 60, 2))
         combined_df["work"] = combined_df["work_time"] - combined_df["pause"]
         combined_df["work"] = combined_df["work"].apply(lambda x: max(x, 0)).apply(lambda x: round(x, 2))
+        combined_df["break_time"] = combined_df.apply(_calculate_break_time, axis=1)
+        non_working_days = self.all_non_working_days(selected_date.year)
+        combined_df["overtime"] = combined_df.apply(lambda row: _calculate_overtime(row, non_working_days), axis=1)
+        combined_df["overtime"] = combined_df["overtime"].round(2)
 
-        def calculate_break_time(row: pd.Series) -> float:
-            # Check if we have valid start and end times
-            start_time = row["start_time"]
-            end_time = row["end_time"]
-
-            # Return 0 if either time is missing or None
-            if pd.isna(start_time) or pd.isna(end_time) or start_time is None or end_time is None:
-                return 0.0
-
-            # Ensure we have datetime.time objects, not numbers or other types
-            if not isinstance(start_time, datetime.time) or not isinstance(end_time, datetime.time):
-                return 0.0
-
-            try:
-                start_dt = datetime.datetime.combine(datetime.date.today(), start_time)
-                end_dt = datetime.datetime.combine(datetime.date.today(), end_time)
-
-                # Handle case where end time is on the next day (overnight work)
-                if end_dt < start_dt:
-                    end_dt += datetime.timedelta(days=1)
-
-                total_minutes = (end_dt - start_dt).total_seconds() / 60
-                work_time_minutes = row["work_time"] * 60  # work_time is already in hours
-                break_minutes = total_minutes - work_time_minutes
-                return round(max(break_minutes / 60, 0), 2)  # Convert back to hours, ensure non-negative
-
-            except (TypeError, ValueError, AttributeError):
-                # Handle any unexpected type or value errors gracefully
-                return 0.0
-
-        combined_df["break_time"] = combined_df.apply(calculate_break_time, axis=1)
         return combined_df
 
     def _calculate_day_time_with_times(
@@ -228,6 +211,60 @@ class Store:
     def is_current_month(self, date: datetime.date) -> bool:
         now = datetime.date.today()
         return (date.year, date.month) == (now.year, now.month)
+
+    def calculate_overtime_totals(self) -> None:
+        """Calculate total overtime and overtime by year."""
+        self.total_overtime = 0.0
+        self.overtime_by_year = {}
+
+        # Collect all non-empty DataFrames with 'overtime' column
+        dfs = [df for _, df in self.all_data.values() if not df.empty]
+        if not dfs:
+            return
+        merged_df = pd.concat(dfs)
+        overtime_by_year = merged_df.groupby(merged_df.index.year)["overtime"].sum()  # type: ignore
+        for year, value in overtime_by_year.items():
+            self.overtime_by_year[year] = round(value, 2)
+        self.total_overtime = round(merged_df["overtime"].sum(), 2)
+
+
+def _calculate_break_time(row: pd.Series) -> float:
+    start_time = row["start_time"]
+    end_time = row["end_time"]
+
+    if pd.isna(start_time) or pd.isna(end_time) or start_time is None or end_time is None:
+        return 0.0
+    if not isinstance(start_time, datetime.time) or not isinstance(end_time, datetime.time):
+        return 0.0
+
+    try:
+        start_dt = datetime.datetime.combine(datetime.date.today(), start_time)
+        end_dt = datetime.datetime.combine(datetime.date.today(), end_time)
+        if end_dt < start_dt:
+            end_dt += datetime.timedelta(days=1)
+
+        total_minutes = (end_dt - start_dt).total_seconds() / 60
+        break_minutes = total_minutes - row["work_time"] * 60
+        return round(max(break_minutes / 60, 0), 2)
+
+    except (TypeError, ValueError, AttributeError):
+        return 0.0
+
+
+def _calculate_overtime(row: pd.Series, free_days: list[datetime.date]) -> float:
+    today = datetime.date.today()
+    daily_target = CONFIG_HANDLER.config.daily_hours
+    day_date = row.name.date() if hasattr(row.name, "date") else row.name  # type: ignore
+    work_hours = row["work"]
+
+    if isinstance(day_date, datetime.date) and day_date > today:
+        return 0.0
+
+    # If the day is a free day (holiday/vacation), add daily target to work_hours
+    if isinstance(day_date, datetime.date) and day_date in free_days:
+        work_hours += daily_target
+
+    return work_hours - daily_target
 
 
 store = Store()

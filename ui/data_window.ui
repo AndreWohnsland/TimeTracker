@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1800</width>
+    <width>1761</width>
     <height>800</height>
    </rect>
   </property>
@@ -58,6 +58,27 @@
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_overtime">
+       <property name="maximumSize">
+        <size>
+         <width>600</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>18</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Overtime: +/- X hours</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QTableWidget" name="tableWidget">
@@ -246,6 +267,7 @@
          <property name="font">
           <font>
            <pointsize>12</pointsize>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -271,6 +293,7 @@
          <property name="font">
           <font>
            <pointsize>12</pointsize>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>

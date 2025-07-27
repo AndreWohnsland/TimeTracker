@@ -245,6 +245,13 @@ class DataWindow(QWidget, Ui_DataWindow):
             self.fill_daily_data()
         else:
             self.fill_monthly_data()
+        prefix = "+" if store.total_overtime >= 0 else ""
+        current_year = self.selected_date.year
+        overtime_year = store.overtime_by_year.get(current_year, 0)
+        prefix_year = "+" if overtime_year >= 0 else ""
+        self.label_overtime.setText(
+            f"Overtime: {prefix}{store.total_overtime:.0f} h ({current_year}: {prefix_year}{overtime_year:.0f} h) "
+        )
 
     def export_data(self) -> None:
         overtime_report = UIC.report_choice()
