@@ -1,8 +1,10 @@
+import datetime
 import json
 from dataclasses import dataclass
 from inspect import signature
 from typing import Any, Literal
 
+import holidays
 from dataclasses_json import dataclass_json
 
 from src.filepath import CONFIG_PATH
@@ -17,10 +19,21 @@ NEEDED_DATA = {
     "country": "US",
     "subdiv": None,
     "workdays": [0, 1, 2, 3, 4],  # 0-6, 0=Monday, 6=Sunday
+    "different_workdays": False,
+    "time_per_day": (8.0, 8.0, 8.0, 8.0, 8.0, 0, 0),
     "plot_pause": True,
 }
 CONFIG_NAMES = Literal[
-    "name", "save_path", "country", "subdiv", "daily_hours", "weekly_hours", "workdays", "plot_pause"
+    "name",
+    "save_path",
+    "daily_hours",
+    "weekly_hours",
+    "country",
+    "subdiv",
+    "workdays",
+    "different_workdays",
+    "time_per_day",
+    "plot_pause",
 ]
 
 
@@ -34,6 +47,8 @@ class Config:
     country: str
     subdiv: str | None
     workdays: list[int]
+    different_workdays: bool
+    time_per_day: tuple[float, float, float, float, float, float, float]
     plot_pause: bool
 
     @classmethod
@@ -54,6 +69,30 @@ class Config:
 
     def __getitem__(self, item: str) -> Any:
         return getattr(self, item)
+
+    def get_weekly_hours(self) -> float:
+        """Get the total work time for the week."""
+        if not self.different_workdays:
+            return self.weekly_hours
+        return sum(self.time_per_day[day] for day in self.workdays)
+
+    def get_daily_hours_at(self, day: int) -> float:
+        """Get the work time for a specific day, 0-6, 0=Monday, 6=Sunday."""
+        if day not in self.workdays:
+            return 0.0
+        if not self.different_workdays:
+            return self.daily_hours
+        return self.time_per_day[day]
+
+    def get_all_daily_hours(self) -> list[float]:
+        """Get the work time for each day, 0-6, 0=Monday, 6=Sunday."""
+        return [self.get_daily_hours_at(day) for day in range(7)]
+
+    def get_holidays(self, year: int) -> list[datetime.date]:
+        available_holidays = holidays.CountryHoliday(
+            CONFIG_HANDLER.config.country, prov=CONFIG_HANDLER.config.subdiv or None, years=year
+        )
+        return list(available_holidays.keys())
 
 
 class ConfigHandler:
