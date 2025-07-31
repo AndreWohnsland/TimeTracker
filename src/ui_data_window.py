@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.gridspec import GridSpec
+from matplotlib.ticker import FuncFormatter
 from PyQt6.QtCore import QDate, QDateTime, Qt
 from PyQt6.QtWidgets import QTableWidgetItem, QWidget
 
@@ -34,6 +38,13 @@ logger = logging.getLogger(__name__)
 class EventData:
     event_time: str
     event: str
+
+
+@dataclass
+class PlotColors:
+    red: str
+    green: str
+    blue: str
 
 
 class DataWindow(QWidget, Ui_DataWindow):
@@ -76,6 +87,11 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.delete_button = None
         # workaround to prevent the date change to trigger the plot
         self.programmatic_change = False
+        self.plot_colors = PlotColors(
+            red="#ff4e26",
+            green="#25cf5e",
+            blue="#2693ff",
+        )
 
     @property
     def view_day(self) -> bool:
@@ -104,6 +120,7 @@ class DataWindow(QWidget, Ui_DataWindow):
         plt.rcParams["axes.spines.right"] = False
         plt.rcParams["axes.spines.top"] = False
         plt.rcParams["font.family"] = "DejaVu Sans Mono"
+        plt.set_loglevel("WARNING")
 
     def update_date(self) -> None:
         """Update the date and plot the new data."""
@@ -128,7 +145,11 @@ class DataWindow(QWidget, Ui_DataWindow):
     def plot(self) -> None:
         # clears the old values and then adds a subplot to insert all the data
         self.figure.clear()
-        ax = self.figure.add_subplot(111)
+        # Top: small plot with only the overtime
+        # Bottom: main plot with the data
+        gs = GridSpec(2, 1, height_ratios=[1, 4])
+        ax1 = self.figure.add_subplot(gs[1])
+        ax2 = self.figure.add_subplot(gs[0], sharex=ax1)
 
         # update the store before plotting
         store.update_data(self.selected_date)
@@ -136,81 +157,125 @@ class DataWindow(QWidget, Ui_DataWindow):
         # if the user did not change it there before
         self._only_change_date(store.current_date)
 
-        if self.plot_month:
-            df = store.df.copy()
-            needed_hours = CONFIG_HANDLER.config.daily_hours
-        else:
-            df = store.get_year_data(store.current_date.year)
-            # lets use "easy" constant monthly working hours for now
-            needed_hours = CONFIG_HANDLER.config.weekly_hours * 52 / 12
-        plot_df = self.adjust_df_for_plot(df, needed_hours)
-        plot_df.plot.bar(stacked=True, ax=ax, width=0.8, color=["#2693ff", "#ff4e26", "#25cf5e"], zorder=2)
-        ax.legend(fancybox=True, framealpha=0.9)
+        df = store.df.copy() if self.plot_month else store.get_year_data(store.current_date.year)
+        plot_df = self.adjust_df_for_plot(df)
+        self._plot_work_time(ax1, plot_df)
+        self._plot_overtime(ax2, plot_df)
 
-        ax.axhline(needed_hours, color=self.text_color, ls="--", lw=1, zorder=3)
+        if self.plot_month:
+            title = f"Working time for {store.current_date.strftime('%B %Y')}"
+        else:
+            title = f"Working time for {store.current_date.year}"
+        sum_overtime = df.overtime.sum()
+        sum_work = df.work.sum()
+        title += f" | Work: {sum_work:.0f} h | Overtime: {sum_overtime:.0f} h"
+        self.figure.suptitle(title, weight="bold", fontsize=15)
+        # self.figure.autofmt_xdate(rotation=90)
+        self.canvas.draw()
+
+    def _plot_work_time(self, ax: Axes, df: pd.DataFrame) -> None:
+        sns.barplot(
+            data=df,
+            x=df.index,
+            y="work",
+            color=self.plot_colors.blue,
+            ax=ax,
+            zorder=2,
+            width=0.8,
+        )
+
         ax.yaxis.grid(True, lw=1, ls=":", color=self.text_color, alpha=0.2, zorder=1)
         ax.xaxis.get_label().set_visible(False)
 
         if self.plot_month:
             tick_labels = [day.strftime("%a %d") for day in df.index]
             rotation = "vertical"
-            # shift the xticks to the middle of the bars
         else:
             tick_labels = [month.strftime("%b") for month in df.index]
             rotation = "horizontal"
+        ax.set_xticks(range(len(tick_labels)))
         ax.set_xticklabels(tick_labels, rotation=rotation)
-
-        # hide the x ticks
         ax.tick_params(axis="x", which="both", bottom=False, top=False)
+        ax.set_ylabel("Work Time (h)")
 
         # Add numbers above the bars
-        for i, (_, row) in enumerate(plot_df.iterrows()):
-            total_time = sum(row)
+        max_value = df.work.max()
+        for i, (_, row) in enumerate(df.iterrows()):
+            total_time = row["work"]
             if total_time <= 0.0:
                 continue
-            # put small offset for the numbers to not overlap with the bar
-            position = (i, total_time + 0.01 * needed_hours)
-            # last 3% will collide with the line, in this case just put it above the line already
-            line_collide = 0.97 * needed_hours <= total_time <= needed_hours
-            if line_collide:
-                position = (i, 1.01 * needed_hours)
-            ax.annotate(f"{total_time:.1f}", position, ha="center", va="bottom", fontsize=8, weight="bold")
+            position = (i, total_time + max_value * 0.012)
+            ax.annotate(
+                f"{total_time:.1f}",
+                position,
+                ha="center",
+                va="bottom",
+                fontsize=8,
+                weight="bold",
+                bbox={
+                    "boxstyle": "round,pad=0.0",
+                    "fc": self.background_color,
+                    "ec": self.background_color,
+                    "alpha": 0.8,
+                },
+                zorder=5,
+            )
+            target = row["target_time"]
+            bar_width = 0.9
+            x_start = i - bar_width / 2
+            x_end = i + bar_width / 2
+            ax.hlines(target, x_start, x_end, color=self.text_color, lw=1, ls="--", zorder=3)
 
-        if self.plot_month:
-            title = f"Working time for {store.current_date.strftime('%B %Y')}"
-        else:
-            title = f"Working time for {store.current_date.year}"
-        ax.set_title(title, weight="bold", fontsize=15)
-        # self.figure.autofmt_xdate(rotation=90)
-        self.canvas.draw()
+    def _plot_overtime(self, ax: Axes, df: pd.DataFrame) -> None:
+        sns.barplot(
+            data=df,
+            x=df.index,
+            y="overtime",
+            hue="color",
+            palette={"positive": self.plot_colors.green, "negative": self.plot_colors.red},
+            ax=ax,
+            zorder=2,
+            legend=False,
+        )
 
-    def adjust_df_for_plot(self, df: pd.DataFrame, needed_hours: float) -> pd.DataFrame:
+        add_max = df.overtime.max() * 0.01
+        add_min = df.overtime.min() * 0.1
+        for i, (_, row) in enumerate(df.iterrows()):
+            overtime = row["overtime"]
+            if overtime == 0.0:
+                continue
+            # Min value needs more shift because of other va behavior
+            add_value = add_max if overtime > 0 else add_min
+            va = "bottom" if overtime >= 0 else "top"
+            position = (i, overtime + add_value)
+            ax.annotate(f"{abs(overtime):.1f}", position, ha="center", va=va, fontsize=6, weight="bold", zorder=5)
+
+        ax.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+        ax.xaxis.get_label().set_visible(False)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{int(x)}"))
+        ax.spines["bottom"].set_position(("data", 0))
+        ax.set_ylabel("Overtime (h)")
+
+    def adjust_df_for_plot(self, df: pd.DataFrame) -> pd.DataFrame:
         """Adjust the dataframe for plotting."""
-        # check if df got pause column, else add it with 0
         if df.empty:
             df = self._create_dummy_df()
-        if "pause" not in df.columns:
-            df["pause"] = 0
-        df["overtime"] = df["work"] - needed_hours
-        df["overtime"] = df["overtime"].clip(lower=0)
-        df["work"] = df["work"].clip(upper=needed_hours, lower=0)
-        to_keep = ["work", "overtime"]
-        if CONFIG_HANDLER.config.plot_pause:
-            to_keep.append("pause")
+        df["color"] = df["overtime"].apply(lambda x: "positive" if x >= 0 else "negative")
+        to_keep = ["work", "overtime", "color", "target_time"]
         return df[to_keep]
 
     def _create_dummy_df(self) -> pd.DataFrame:
         """Create a dummy dataframe if no data is available."""
         date = store.current_date
         if self.plot_month:
-            day_in_month = calendar.monthrange(date.year, date.month)[1]
-            # build data for each day of the month, containing only zeros
-            days = pd.date_range(start=date.replace(day=1), periods=day_in_month, freq="D")
-            data = {"work": [0] * day_in_month, "pause": [0] * day_in_month}
-            return pd.DataFrame(data, index=days)
-        months = pd.date_range(start=date.replace(month=1, day=1), periods=12, freq="ME")
-        data = {"work": [0] * 12, "pause": [0] * 12}
-        return pd.DataFrame(data, index=months)
+            data_points = calendar.monthrange(date.year, date.month)[1]
+            index = pd.date_range(start=date.replace(day=1), periods=data_points, freq="D")
+        else:
+            data_points = 12
+            index = pd.date_range(start=date.replace(month=1, day=1), periods=data_points, freq="ME")
+        zeros = [0] * data_points
+        data = {"work": zeros, "pause": zeros, "overtime": zeros, "target_time": zeros}
+        return pd.DataFrame(data, index=index)
 
     def save_plot(self) -> None:
         """Save the plot as png."""
@@ -234,7 +299,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             save_file_name = folder / f"{file_name.stem}_{suffix}{file_name.suffix}"
             suffix += 1
 
-        self.figure.savefig(save_file_name, transparent=False)
+        self.figure.savefig(save_file_name, transparent=False, dpi=300)
         UIC.show_message(f"Plot saved to {save_file_name}")
 
     # Data Things

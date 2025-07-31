@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import holidays
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWidgets import QDoubleSpinBox, QRadioButton, QWidget
 
 from src.config_handler import CONFIG_HANDLER
 from src.icons import get_app_icon
@@ -30,11 +30,29 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.country_list = holidays.list_supported_countries()
         self._update_country_list()
-        self.set_config_values()
         self.apply_button.clicked.connect(self.apply_config)
         self.filter_subdiv.textEdited.connect(self._apply_subdiv_filter)
         self.filter_country.textEdited.connect(self._apply_country_filter)
         self.input_country.currentTextChanged.connect(self._adjust_subdiv)
+        for i in range(7):
+            radio: QRadioButton = getattr(self, f"radio_weekday_{i}")
+            radio.toggled.connect(lambda checked, day=i: self._handle_enable_state_of_specific_day(day, checked))
+        self.input_different_times.toggled.connect(self._handle_enable_state_of_times_per_day)
+        self.set_config_values()
+
+    def _handle_enable_state_of_times_per_day(self, isChecked: bool) -> None:
+        """Enable or disable the input fields for each day based on the state of the 'different times' checkbox."""
+        for i in range(7):
+            input_box: QDoubleSpinBox = getattr(self, f"input_hours_day_{i}")
+            radio: QRadioButton = getattr(self, f"radio_weekday_{i}")
+            input_box.setEnabled(isChecked and radio.isChecked())
+
+    def _handle_enable_state_of_specific_day(self, day: int, isChecked: bool) -> None:
+        """Enable or disable the input field for a specific day based on the state of the corresponding radio button."""
+        if not self.input_different_times.isChecked():
+            return
+        input_box: QDoubleSpinBox = getattr(self, f"input_hours_day_{day}")
+        input_box.setEnabled(isChecked)
 
     def _update_country_list(self, country: str | None = None) -> None:
         """Update the country and subdiv list. If country is given, use this as the selected country."""
@@ -78,7 +96,14 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.input_weekly_hours.setValue(CONFIG_HANDLER.config.weekly_hours)
         self.input_plot_pause.setChecked(CONFIG_HANDLER.config.plot_pause)
         for day in CONFIG_HANDLER.config.workdays:
-            getattr(self, f"radio_weekday_{day}").setChecked(True)
+            radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
+            radio.setChecked(True)
+        self.input_different_times.setChecked(CONFIG_HANDLER.config.different_workdays)
+        for i, time in enumerate(CONFIG_HANDLER.config.time_per_day):
+            input_box: QDoubleSpinBox = getattr(self, f"input_hours_day_{i}")
+            input_box.setValue(time)
+            if i not in CONFIG_HANDLER.config.workdays or not CONFIG_HANDLER.config.different_workdays:
+                input_box.setEnabled(False)
 
     def apply_config(self) -> None:
         """Apply the config values to the config file and close the window."""
@@ -90,9 +115,13 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.plot_pause = self.input_plot_pause.isChecked()
         selected_days: list[int] = []
         for day in range(7):
-            if getattr(self, f"radio_weekday_{day}").isChecked():
+            radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
+            if radio.isChecked():
                 selected_days.append(day)
         CONFIG_HANDLER.config.workdays = selected_days
+        CONFIG_HANDLER.config.different_workdays = self.input_different_times.isChecked()
+        if self.input_different_times.isChecked():
+            CONFIG_HANDLER.config.time_per_day = tuple(getattr(self, f"input_hours_day_{i}").value() for i in range(7))
 
         CONFIG_HANDLER.write_config_file()
         self.close()

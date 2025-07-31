@@ -106,7 +106,7 @@ class DataExporter:
                 worksheet.write(f"E{7 + i}", 0, color)
 
             # Add total time (work + break)
-            total_time = row.get("work_time", 0)
+            total_time = row.get("total_time", 0)
             if total_time and not pd.isna(total_time):
                 worksheet.write(f"F{7 + i}", self._round_quarterly(total_time), color)
             else:
