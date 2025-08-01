@@ -10,7 +10,7 @@ dependencies = [
     "gitpython>=3.1.44",
     "matplotlib>=3.10.3",
     "pandas>=2.3.0",
-    "xlsxwriter>=3.2.3",
+    "xlsxwriter==3.2.5",
     "pyqtdarktheme>=2.1.0",
     "qtawesome>=1.4.0",
     "holidays>=0.74",
@@ -19,6 +19,7 @@ dependencies = [
     "plyer>=2.1.0",
     "numpy==2.2.6",
     "win11toast>=0.35; sys_platform == 'win32'",
+    "seaborn>=0.13.2",
 ]
 
 [tool.uv]
