@@ -166,3 +166,4 @@ cython_debug/
 *.json
 *.xlsx
 *.db
+tmp.py
