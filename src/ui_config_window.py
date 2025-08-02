@@ -94,7 +94,6 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         self.input_name.setText(CONFIG_HANDLER.config.name)
         self.input_daily_hours.setValue(CONFIG_HANDLER.config.daily_hours)
         self.input_weekly_hours.setValue(CONFIG_HANDLER.config.weekly_hours)
-        self.input_plot_pause.setChecked(CONFIG_HANDLER.config.plot_pause)
         for day in CONFIG_HANDLER.config.workdays:
             radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
             radio.setChecked(True)
@@ -112,7 +111,6 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.name = self.input_name.text()
         CONFIG_HANDLER.config.daily_hours = self.input_daily_hours.value()
         CONFIG_HANDLER.config.weekly_hours = self.input_weekly_hours.value()
-        CONFIG_HANDLER.config.plot_pause = self.input_plot_pause.isChecked()
         selected_days: list[int] = []
         for day in range(7):
             radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
