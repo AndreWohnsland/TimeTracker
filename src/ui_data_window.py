@@ -166,8 +166,8 @@ class DataWindow(QWidget, Ui_DataWindow):
             title = f"Working time for {store.current_date.strftime('%B %Y')}"
         else:
             title = f"Working time for {store.current_date.year}"
-        sum_overtime = df.overtime.sum()
-        sum_work = df.work.sum()
+        sum_overtime = plot_df.overtime.sum()
+        sum_work = plot_df.work.sum()
         title += f" | Work: {sum_work:.0f} h | Overtime: {sum_overtime:.0f} h"
         self.figure.suptitle(title, weight="bold", fontsize=15)
         # self.figure.autofmt_xdate(rotation=90)

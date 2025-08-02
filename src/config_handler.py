@@ -21,7 +21,6 @@ NEEDED_DATA = {
     "workdays": [0, 1, 2, 3, 4],  # 0-6, 0=Monday, 6=Sunday
     "different_workdays": False,
     "time_per_day": (8.0, 8.0, 8.0, 8.0, 8.0, 0, 0),
-    "plot_pause": True,
 }
 CONFIG_NAMES = Literal[
     "name",
@@ -33,7 +32,6 @@ CONFIG_NAMES = Literal[
     "workdays",
     "different_workdays",
     "time_per_day",
-    "plot_pause",
 ]
 
 
@@ -49,7 +47,6 @@ class Config:
     workdays: list[int]
     different_workdays: bool
     time_per_day: tuple[float, float, float, float, float, float, float]
-    plot_pause: bool
 
     @classmethod
     def from_kwargs(cls, **kwargs: Any) -> "Config":
