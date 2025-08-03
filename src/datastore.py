@@ -9,6 +9,17 @@ from src.database_controller import DB_CONTROLLER
 
 
 @dataclass
+class MonthData:
+    df: pd.DataFrame
+    data_hash: int
+    config_hash: int = field(default_factory=CONFIG_HANDLER.config_hash)
+
+    def is_same_data(self, data_hash: int) -> bool:
+        """Compare the data hash of the current month with the stored hash."""
+        return self.data_hash == data_hash and self.config_hash == CONFIG_HANDLER.config_hash()
+
+
+@dataclass
 class Store:
     """Data store for time tracking.
 
@@ -18,9 +29,8 @@ class Store:
     df: pd.DataFrame = field(default_factory=pd.DataFrame)
     daily_data: list[tuple[str, str]] = field(default_factory=list)
     current_date: datetime.date = field(default_factory=datetime.date.today)
-    # dict with key: (year, month) and value: (hash(raw_data), pd.DataFrame)
-    all_data: dict[(tuple[int, int]), tuple[int, pd.DataFrame]] = field(default_factory=dict)
-    # Overtime tracking
+    # dict with key: (year, month) and value: MonthData, which contains the needed hashes for data and config)
+    all_data: dict[(tuple[int, int]), MonthData] = field(default_factory=dict)
     total_overtime: float = field(default=0.0)
     overtime_by_year: dict[int, float] = field(default_factory=dict)
 
@@ -32,8 +42,8 @@ class Store:
             selected_date = self.current_date
         self.current_date = selected_date
         self.generate_daily_data(selected_date)
-        _, df = self.generate_month_data(selected_date)
-        self.df = df
+        month_data = self.generate_month_data(selected_date)
+        self.df = month_data.df
         self.calculate_overtime_totals()
 
     def _get_free_days(self, year: int) -> list[datetime.date]:
@@ -51,11 +61,10 @@ class Store:
         year_data = []
         for month in range(1, 13):
             selected_date = datetime.datetime(year, month, 1).date()
-            _, df = self.generate_month_data(selected_date)
-            year_data.append(df)
-        # concat df, aggregate by month (index) and sum the values
+            month_data = self.generate_month_data(selected_date)
+            year_data.append(month_data.df)
         year_data_df = pd.concat(year_data)
-        # in case there is no data for the year, return empty df
+
         if year_data_df.empty:
             return year_data_df
 
@@ -73,21 +82,21 @@ class Store:
             day_work.append(("Pause", str(day_pause[0][1])))
         self.daily_data = day_work
 
-    def generate_month_data(self, selected_date: datetime.date) -> tuple[int, pd.DataFrame]:
+    def generate_month_data(self, selected_date: datetime.date) -> MonthData:
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
         free_days = self._get_free_days(selected_date.year)
         data_hash = hash((tuple(work_data), tuple(pause_data), tuple(free_days)))
-        # check if data is already in store, compare hash, also only use cache if not current month
-        # This is due to the recomputation of open days (no stop event) and ongoing days (today)
-        # increasing over the time of the day, even the data did not change.
-        cache_available = (selected_date.year, selected_date.month) in self.all_data
-        if cache_available and not self.is_current_month(selected_date):
-            last_hash, df = self.all_data[(selected_date.year, selected_date.month)]
-            if last_hash == data_hash:
-                return (data_hash, df)
+        # check if we already have the same data computes (no config or DB data changes)
+        # skip for current month, since it constantly changes
+        last_data = self.all_data.get((selected_date.year, selected_date.month))
+        if last_data and last_data.is_same_data(data_hash) and not self.is_current_month(selected_date):
+            return last_data
         if not work_data:
-            return (data_hash, pd.DataFrame([]))
-        return (data_hash, self._generate_month_report(work_data, selected_date, free_days, pause_data))
+            return MonthData(df=pd.DataFrame([]), data_hash=data_hash)
+        return MonthData(
+            df=self._generate_month_report(work_data, selected_date, free_days, pause_data),
+            data_hash=data_hash,
+        )
 
     def _generate_month_report(
         self,
@@ -207,8 +216,9 @@ class Store:
         self.total_overtime = 0.0
         self.overtime_by_year = {}
 
-        # Collect all non-empty DataFrames with 'overtime' column
-        dfs = [df for _, df in self.all_data.values() if not df.empty]
+        # re-calculate all data (caches might be invalid)
+        self.generate_all_data()
+        dfs = [month_data.df for month_data in self.all_data.values() if not month_data.df.empty]
         if not dfs:
             return
         merged_df = pd.concat(dfs)
