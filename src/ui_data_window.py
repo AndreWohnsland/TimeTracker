@@ -239,12 +239,12 @@ class DataWindow(QWidget, Ui_DataWindow):
         )
 
         add_max = df.overtime.max() * 0.01
-        add_min = df.overtime.min() * 0.1
+        # Min value needs more shift because of other va behavior
+        add_min = df.overtime.min() * 0.05
         for i, (_, row) in enumerate(df.iterrows()):
             overtime = row["overtime"]
             if overtime == 0.0:
                 continue
-            # Min value needs more shift because of other va behavior
             add_value = add_max if overtime > 0 else add_min
             va = "bottom" if overtime >= 0 else "top"
             position = (i, overtime + add_value)

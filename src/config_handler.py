@@ -122,5 +122,9 @@ class ConfigHandler:
             return
         self.write_config_file()
 
+    def config_hash(self) -> int:
+        """Get a hash of the current config."""
+        return hash(json.dumps(self.config.to_dict()))  # type: ignore
+
 
 CONFIG_HANDLER = ConfigHandler()
