@@ -46,7 +46,7 @@ class Store:
         self.df = month_data.df
         self.calculate_overtime_totals()
 
-    def _get_free_days(self, year: int) -> list[datetime.date]:
+    def get_free_days(self, year: int) -> list[datetime.date]:
         vacation_days = DB_CONTROLLER.get_vacation_days(year)
         holiday_list = CONFIG_HANDLER.config.get_holidays(year)
         unique_days = list(set(vacation_days + holiday_list))
@@ -84,7 +84,7 @@ class Store:
 
     def generate_month_data(self, selected_date: datetime.date) -> MonthData:
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
-        free_days = self._get_free_days(selected_date.year)
+        free_days = self.get_free_days(selected_date.year)
         data_hash = hash((tuple(work_data), tuple(pause_data), tuple(free_days)))
         # check if we already have the same data computes (no config or DB data changes)
         # skip for current month, since it constantly changes
@@ -106,8 +106,6 @@ class Store:
         pause_data: list[tuple[str, int]],
     ) -> pd.DataFrame:
         """Generate the complete monthly report DataFrame with all columns."""
-        daily_minutes = CONFIG_HANDLER.config.daily_hours * 60
-
         work_df = pd.DataFrame(work_data, columns=["datetime", "event"])
         work_df["datetime"] = work_df["datetime"].apply(pd.to_datetime)
         work_df["time"] = work_df["datetime"].dt.time
@@ -121,13 +119,19 @@ class Store:
         for day in pd.date_range(start, end - datetime.timedelta(days=1), freq="d"):
             days_data = work_df[work_df["date"] == day.date()]
             calculated_time = 0.0
+            # Free days adds the daily target time to the total time (in case the user still worked to get overtime)
             if day.date() in free_days:
-                calculated_time += daily_minutes
+                calculated_time += CONFIG_HANDLER.config.get_daily_hours_at(day.weekday()) * 60
 
             day_work_time, start_time, end_time = self._calculate_day_time_with_times(days_data)
             calculated_time += day_work_time
             report_data.append(
-                {"day": day, "total_time": calculated_time, "start_time": start_time, "end_time": end_time}
+                {
+                    "day": day,
+                    "total_time": calculated_time,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                }
             )
 
         combined_df = pd.DataFrame(report_data)
@@ -273,7 +277,7 @@ def _calculate_overtime(row: pd.Series) -> float:
     # Make typing happy, should not happen here
     if not isinstance(day_date, datetime.date):
         return 0.0
-    if day_date > today:
+    if day_date >= today:
         return 0.0
 
     return work_hours - daily_target
