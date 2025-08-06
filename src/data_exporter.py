@@ -8,33 +8,33 @@ import xlsxwriter.format
 from xlsxwriter.exceptions import XlsxWriterException
 
 from src.config_handler import CONFIG_HANDLER
+from src.database_controller import DB_CONTROLLER
 from src.filepath import REPORTS_PATH
 
 logger = logging.getLogger(__name__)
 
 
 class DataExporter:
-    def export_data(self, df: pd.DataFrame, report_date: datetime.date, overtime_report: bool = True) -> str:
+    def export_data(self, df: pd.DataFrame, report_date: datetime.date) -> str:
         if df.empty:
             message = "No data to export, will no generate file..."
             logger.warning(message)
             return message
         file_suffix = "time"
-        if overtime_report:
-            file_suffix = "overtime"
-        file_name = f"{CONFIG_HANDLER.config.name.replace(' ', '_')}_{df.index[0].strftime('%m_%Y')}_{file_suffix}.xlsx"
+        file_name = f"{CONFIG_HANDLER.config.name.replace(' ', '_')}_{report_date.strftime('%m_%Y')}_{file_suffix}.xlsx"
         config_save_path = CONFIG_HANDLER.config.save_path
         save_path = REPORTS_PATH if not config_save_path else Path(config_save_path)
         file_path = save_path / file_name
         try:
             workbook = xlsxwriter.Workbook(file_path)
             bold = workbook.add_format({"bold": True})
-            color = workbook.add_format({"bg_color": "#00CC00", "align": "center"})
+            normal_color = workbook.add_format({"bg_color": "#4099FF", "align": "center"})
+            vacation_color = workbook.add_format({"bg_color": "#00CC00", "align": "center"})
             worksheet = workbook.add_worksheet()
             cell_width = 20
-            worksheet.set_column("A:F", cell_width)  # Extended to column F for new columns
-            self._write_information(worksheet, df, bold, color, overtime_report)
-            self._write_times(worksheet, df, color, overtime_report)
+            worksheet.set_column("A:G", cell_width)
+            self._write_information(worksheet, bold, normal_color, vacation_color, report_date)
+            self._write_times(worksheet, df, normal_color, vacation_color, report_date)
             workbook.close()
             return f"File saved at: {file_path}"
         except XlsxWriterException:
@@ -48,69 +48,75 @@ class DataExporter:
     def _write_information(
         self,
         worksheet: xlsxwriter.Workbook.worksheet_class,
-        df: pd.DataFrame,
         bold: xlsxwriter.format.Format,
-        color: xlsxwriter.format.Format,
-        overtime_report: bool,
+        normal_color: xlsxwriter.format.Format,
+        vacation_color: xlsxwriter.format.Format,
+        report_date: datetime.date,
     ) -> None:
         worksheet.write("A1", "Name:", bold)
-        worksheet.write("B1", CONFIG_HANDLER.config.name, color)
+        worksheet.write("B1", CONFIG_HANDLER.config.name, normal_color)
         worksheet.write("A3", "Month:", bold)
-        worksheet.write("B3", df.index[0].strftime("%B"), color)
+        worksheet.write("B3", report_date.strftime("%B"), normal_color)
         worksheet.write("A4", "Year", bold)
-        worksheet.write("B4", df.index[0].year, color)
+        worksheet.write("B4", report_date.year, normal_color)
         worksheet.write("A6", "Day:")
-        if overtime_report:
-            worksheet.write("B6", "Over 8 h")
-        else:
-            worksheet.write("B6", "Work Time")
+        worksheet.write("B6", "Work Time")
         worksheet.write("C6", "Start Time")
         worksheet.write("D6", "End Time")
         worksheet.write("E6", "Break Time")
         worksheet.write("F6", "Total Time")
+        worksheet.write("G6", "Overtime")
+
+        worksheet.write("D1", "Normal Day", normal_color)
+        worksheet.write("E1", "Free Day", vacation_color)
 
     def _write_times(
         self,
         worksheet: xlsxwriter.Workbook.worksheet_class,
         df: pd.DataFrame,
-        color: xlsxwriter.format.Format,
-        overtime_report: bool,
+        normal_color: xlsxwriter.format.Format,
+        vacation_color: xlsxwriter.format.Format,
+        report_date: datetime.date,
     ) -> None:
-        time_to_subtract = 0.0
-        if overtime_report:
-            time_to_subtract = CONFIG_HANDLER.config.daily_hours
+        free_days = set(
+            CONFIG_HANDLER.config.get_holidays(report_date.year) + DB_CONTROLLER.get_vacation_days(report_date.year)
+        )
         for i, (index, row) in enumerate(df.iterrows()):
+            color = vacation_color if index.date() in free_days else normal_color  # type: ignore
             worksheet.write(f"A{7 + i}", index.strftime("%d.%m.%Y"))  # type: ignore
-            _time = self._round_quarterly(max(row["work"] - time_to_subtract, 0))
+            _time = self._round_quarterly(max(row["work"], 0))
             worksheet.write(f"B{7 + i}", _time, color)
 
-            # Add start time
-            start_time = row.get("start_time")
-            if start_time and not pd.isna(start_time):
-                worksheet.write(f"C{7 + i}", start_time.strftime("%H:%M"), color)
-            else:
-                worksheet.write(f"C{7 + i}", "-", color)
+            self._write_time(worksheet, f"C{7 + i}", color, row.get("start_time"))
+            self._write_time(worksheet, f"D{7 + i}", color, row.get("end_time"))
 
-            # Add end time
-            end_time = row.get("end_time")
-            if end_time and not pd.isna(end_time):
-                worksheet.write(f"D{7 + i}", end_time.strftime("%H:%M"), color)
-            else:
-                worksheet.write(f"D{7 + i}", "-", color)
+            self._write_value(worksheet, f"E{7 + i}", color, row.get("break_time", 0))
+            self._write_value(worksheet, f"F{7 + i}", color, row.get("total_time", 0))
+            self._write_value(worksheet, f"G{7 + i}", color, row.get("overtime", 0))
 
-            # Add break time
-            break_time = row.get("break_time", 0)
-            if break_time and not pd.isna(break_time):
-                worksheet.write(f"E{7 + i}", self._round_quarterly(break_time), color)
-            else:
-                worksheet.write(f"E{7 + i}", 0, color)
+    def _write_value(
+        self,
+        worksheet: xlsxwriter.Workbook.worksheet_class,
+        cell: str,
+        color: xlsxwriter.format.Format,
+        value: float | None = None,
+    ) -> None:
+        if value and not pd.isna(value):
+            worksheet.write(cell, self._round_quarterly(value), color)
+        else:
+            worksheet.write(cell, 0, color)
 
-            # Add total time (work + break)
-            total_time = row.get("total_time", 0)
-            if total_time and not pd.isna(total_time):
-                worksheet.write(f"F{7 + i}", self._round_quarterly(total_time), color)
-            else:
-                worksheet.write(f"F{7 + i}", 0, color)
+    def _write_time(
+        self,
+        worksheet: xlsxwriter.Workbook.worksheet_class,
+        cell: str,
+        color: xlsxwriter.format.Format,
+        value: datetime.time | None = None,
+    ) -> None:
+        if value:
+            worksheet.write(cell, value.strftime("%H:%M"), color)
+        else:
+            worksheet.write(cell, "-", color)
 
 
 EXPORTER = DataExporter()

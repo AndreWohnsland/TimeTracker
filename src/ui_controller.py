@@ -42,23 +42,16 @@ class UiController:
         # C level, so we cannot even catch this error.
         self.show_message(message)
 
-    def report_choice(self) -> bool | None:
+    def ask_for_report_generation(self) -> bool | None:
         message_box = QMessageBox()
-        message_box.setText(
-            "Would you like the report of the overtime (0 if none or the amount) or of the regular hours?"
-        )
+        message_box.setText("Would you like to generate an Excel report?")
         message_box.setWindowTitle("Report Generation")
         message_box.setWindowIcon(get_app_icon())
-        overtime_button = message_box.addButton("Overtime", QMessageBox.ButtonRole.YesRole)
-        time_button = message_box.addButton("Time", QMessageBox.ButtonRole.NoRole)
-        message_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        yes_button = message_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
+        message_box.addButton("Cancel", QMessageBox.ButtonRole.NoRole)
 
         message_box.exec()
-        if message_box.clickedButton() == overtime_button:
-            return True
-        if message_box.clickedButton() == time_button:
-            return False
-        return None
+        return message_box.clickedButton() == yes_button
 
     def user_okay(self, text: str) -> bool:
         message_box = QMessageBox()

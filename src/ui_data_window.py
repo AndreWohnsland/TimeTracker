@@ -319,10 +319,9 @@ class DataWindow(QWidget, Ui_DataWindow):
         )
 
     def export_data(self) -> None:
-        overtime_report = UIC.report_choice()
-        if overtime_report is None:
+        if not UIC.ask_for_report_generation():
             return
-        message = EXPORTER.export_data(store.df, self.selected_date, overtime_report)
+        message = EXPORTER.export_data(store.df, self.selected_date)
         UIC.show_message(message)
 
     def switch_data_view(self) -> None:
