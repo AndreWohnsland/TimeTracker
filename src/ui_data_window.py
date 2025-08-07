@@ -3,7 +3,7 @@ from __future__ import annotations
 import calendar
 import datetime
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -42,9 +42,13 @@ class EventData:
 
 @dataclass
 class PlotColors:
-    red: str
-    green: str
-    blue: str
+    red: str = "#ff4e26"
+    green: str = "#25cf5e"
+    blue: str = "#2693ff"
+    light_blue: str = "#7db8ff"
+    purple: str = "#a26eff"
+    background: str = field(default_factory=get_background_color)
+    text: str = field(default_factory=get_font_color)
 
 
 class DataWindow(QWidget, Ui_DataWindow):
@@ -62,9 +66,8 @@ class DataWindow(QWidget, Ui_DataWindow):
         )
         # setting all the params
         self.date_edit.setDateTime(QDateTime.currentDateTime())
-        self.text_color = get_font_color()
-        self.background_color = get_background_color()
-        self.set_plot_parameters()
+        self.colors = PlotColors()
+        _set_plot_parameters(self.colors)
         self.figure = plt.figure(figsize=(13, 8), dpi=128, tight_layout=True)
         self.canvas = FigureCanvas(self.figure)
         self.container.addWidget(self.canvas)
@@ -87,11 +90,6 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.delete_button = None
         # workaround to prevent the date change to trigger the plot
         self.programmatic_change = False
-        self.plot_colors = PlotColors(
-            red="#ff4e26",
-            green="#25cf5e",
-            blue="#2693ff",
-        )
 
     @property
     def view_day(self) -> bool:
@@ -104,23 +102,6 @@ class DataWindow(QWidget, Ui_DataWindow):
     @property
     def plot_month(self) -> bool:
         return self.radio_month.isChecked()
-
-    def set_plot_parameters(self) -> None:
-        plt.rcParams["date.autoformatter.day"] = "%d"
-        plt.rcParams["date.autoformatter.month"] = "%b"
-        plt.rcParams["figure.facecolor"] = self.background_color
-        plt.rcParams["axes.facecolor"] = self.background_color
-        plt.rcParams["text.color"] = self.text_color
-        plt.rcParams["axes.edgecolor"] = self.text_color
-        plt.rcParams["xtick.color"] = self.text_color
-        plt.rcParams["ytick.color"] = self.text_color
-        plt.rcParams["axes.labelcolor"] = self.text_color
-        plt.rcParams["axes.titlecolor"] = self.text_color
-        # Despine the plot right and top
-        plt.rcParams["axes.spines.right"] = False
-        plt.rcParams["axes.spines.top"] = False
-        plt.rcParams["font.family"] = "DejaVu Sans Mono"
-        plt.set_loglevel("WARNING")
 
     def update_date(self) -> None:
         """Update the date and plot the new data."""
@@ -178,13 +159,16 @@ class DataWindow(QWidget, Ui_DataWindow):
             data=df,
             x=df.index,
             y="work",
-            color=self.plot_colors.blue,
+            # color=self.colors.blue,
             ax=ax,
             zorder=2,
             width=0.8,
+            hue=df["is_free_day"],
+            palette={True: self.colors.purple, False: self.colors.blue},
+            legend=False,
         )
 
-        ax.yaxis.grid(True, lw=1, ls=":", color=self.text_color, alpha=0.2, zorder=1)
+        ax.yaxis.grid(True, lw=1, ls=":", color=self.colors.text, alpha=0.2, zorder=1)
         ax.xaxis.get_label().set_visible(False)
 
         if self.plot_month:
@@ -214,8 +198,8 @@ class DataWindow(QWidget, Ui_DataWindow):
                 weight="bold",
                 bbox={
                     "boxstyle": "round,pad=0.0",
-                    "fc": self.background_color,
-                    "ec": self.background_color,
+                    "fc": self.colors.background,
+                    "ec": self.colors.background,
                     "alpha": 0.8,
                 },
                 zorder=5,
@@ -224,7 +208,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             bar_width = 0.9
             x_start = i - bar_width / 2
             x_end = i + bar_width / 2
-            ax.hlines(target, x_start, x_end, color=self.text_color, lw=1, ls="--", zorder=3)
+            ax.hlines(target, x_start, x_end, color=self.colors.text, lw=1, ls="--", zorder=3)
 
     def _plot_overtime(self, ax: Axes, df: pd.DataFrame) -> None:
         sns.barplot(
@@ -232,7 +216,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             x=df.index,
             y="overtime",
             hue="color",
-            palette={"positive": self.plot_colors.green, "negative": self.plot_colors.red},
+            palette={"positive": self.colors.green, "negative": self.colors.red},
             ax=ax,
             zorder=2,
             legend=False,
@@ -261,7 +245,12 @@ class DataWindow(QWidget, Ui_DataWindow):
         if df.empty:
             df = self._create_dummy_df()
         df["color"] = df["overtime"].apply(lambda x: "positive" if x >= 0 else "negative")
-        to_keep = ["work", "overtime", "color", "target_time"]
+        if self.plot_month:
+            free_days = store.get_free_days(self.selected_date.year)
+            df["is_free_day"] = df.index.to_series().apply(lambda x: x.date() in free_days)
+        else:
+            df["is_free_day"] = False
+        to_keep = ["work", "overtime", "color", "target_time", "is_free_day"]
         return df[to_keep]
 
     def _create_dummy_df(self) -> pd.DataFrame:
@@ -385,3 +374,21 @@ class DataWindow(QWidget, Ui_DataWindow):
         date = date_item.text()
         date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
         self.date_edit.setDate(date)
+
+
+def _set_plot_parameters(colors: PlotColors) -> None:
+    plt.rcParams["date.autoformatter.day"] = "%d"
+    plt.rcParams["date.autoformatter.month"] = "%b"
+    plt.rcParams["figure.facecolor"] = colors.background
+    plt.rcParams["axes.facecolor"] = colors.background
+    plt.rcParams["text.color"] = colors.text
+    plt.rcParams["axes.edgecolor"] = colors.text
+    plt.rcParams["xtick.color"] = colors.text
+    plt.rcParams["ytick.color"] = colors.text
+    plt.rcParams["axes.labelcolor"] = colors.text
+    plt.rcParams["axes.titlecolor"] = colors.text
+    # Despine the plot right and top
+    plt.rcParams["axes.spines.right"] = False
+    plt.rcParams["axes.spines.top"] = False
+    plt.rcParams["font.family"] = "DejaVu Sans Mono"
+    plt.set_loglevel("WARNING")
