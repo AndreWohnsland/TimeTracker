@@ -81,8 +81,8 @@ class Config:
         """Get the work time for a specific day, 0-6, 0=Monday, 6=Sunday."""
         if day not in self.workdays:
             return 0.0
-        if not self.different_workdays:
-            return self.daily_hours
+        if self.different_workdays:
+            return self.time_per_day[day]
         number_work_days = len(self.workdays)
         if number_work_days == 0:
             return 0.0
