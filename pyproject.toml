@@ -29,6 +29,8 @@ dev-dependencies = [
     "mypy>=1.10.1",
     "ruff>=0.5.0",
     "pyqt6-tools>=6.4.2.3.3",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
 ]
 
 [tool.hatch.metadata]

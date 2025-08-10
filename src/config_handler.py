@@ -14,8 +14,8 @@ from src.filepath import CONFIG_PATH
 NEEDED_DATA = {
     "name": "",
     "save_path": "",
-    "daily_hours": 8.0,
-    "weekly_hours": 40.0,
+    "work_hours": 40.0,
+    "use_hours_per_week": True,
     "country": "US",
     "subdiv": None,
     "workdays": [0, 1, 2, 3, 4],  # 0-6, 0=Monday, 6=Sunday
@@ -25,8 +25,8 @@ NEEDED_DATA = {
 CONFIG_NAMES = Literal[
     "name",
     "save_path",
-    "daily_hours",
-    "weekly_hours",
+    "work_hours",
+    "use_hours_per_week",
     "country",
     "subdiv",
     "workdays",
@@ -42,6 +42,8 @@ class Config:
     save_path: str
     daily_hours: float
     weekly_hours: float
+    work_hours: float
+    use_hours_per_week: bool
     country: str
     subdiv: str | None
     workdays: list[int]
@@ -69,9 +71,11 @@ class Config:
 
     def get_weekly_hours(self) -> float:
         """Get the total work time for the week."""
-        if not self.different_workdays:
-            return self.weekly_hours
-        return sum(self.time_per_day[day] for day in self.workdays)
+        if self.different_workdays:
+            return sum(self.time_per_day[day] for day in self.workdays)
+        if self.use_hours_per_week:
+            return self.work_hours
+        return self.work_hours * len(self.workdays)
 
     def get_daily_hours_at(self, day: int) -> float:
         """Get the work time for a specific day, 0-6, 0=Monday, 6=Sunday."""
@@ -79,7 +83,12 @@ class Config:
             return 0.0
         if not self.different_workdays:
             return self.daily_hours
-        return self.time_per_day[day]
+        number_work_days = len(self.workdays)
+        if number_work_days == 0:
+            return 0.0
+        if not self.use_hours_per_week:
+            return self.work_hours / number_work_days
+        return self.work_hours
 
     def get_all_daily_hours(self) -> list[float]:
         """Get the work time for each day, 0-6, 0=Monday, 6=Sunday."""
