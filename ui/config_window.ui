@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>748</width>
-    <height>461</height>
+    <height>425</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,7 +49,7 @@
         <x>0</x>
         <y>0</y>
         <width>730</width>
-        <height>331</height>
+        <height>295</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -67,6 +67,24 @@
        </property>
        <item>
         <layout class="QGridLayout" name="gridLayout_2">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Work Hours:</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_2">
            <property name="maximumSize">
@@ -85,12 +103,18 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="1" colspan="3">
-          <widget class="QLineEdit" name="input_name">
+         <item row="3" column="3">
+          <widget class="QLineEdit" name="filter_subdiv">
            <property name="minimumSize">
             <size>
              <width>0</width>
              <height>35</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -103,7 +127,22 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="2">
+         <item row="3" column="1">
+          <widget class="QComboBox" name="input_subdiv">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
           <widget class="QLabel" name="label_8">
            <property name="font">
             <font>
@@ -118,8 +157,44 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1" colspan="3">
-          <widget class="QDoubleSpinBox" name="input_weekly_hours">
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Workdays:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Time Per Day:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="input_country">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -131,48 +206,24 @@
              <pointsize>12</pointsize>
             </font>
            </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_7">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Filter:</string>
+           </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Subdiv:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_10">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Different Times:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1" colspan="3">
+         <item row="6" column="1" colspan="3">
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
             <widget class="QDoubleSpinBox" name="input_hours_day_0">
@@ -302,7 +353,25 @@
            </item>
           </layout>
          </item>
-         <item row="5" column="1" colspan="3">
+         <item row="0" column="1" colspan="3">
+          <widget class="QLineEdit" name="input_name">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1" colspan="3">
           <widget class="QCheckBox" name="input_different_times">
            <property name="minimumSize">
             <size>
@@ -338,8 +407,8 @@
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="label_13">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_10">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -352,22 +421,16 @@
             </font>
            </property>
            <property name="text">
-            <string>Time Per Day:</string>
+            <string>Different Times:</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="3">
-          <widget class="QLineEdit" name="filter_subdiv">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>35</height>
-            </size>
-           </property>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_6">
            <property name="maximumSize">
             <size>
-             <width>100</width>
-             <height>16777215</height>
+             <width>16777215</width>
+             <height>50</height>
             </size>
            </property>
            <property name="font">
@@ -375,23 +438,17 @@
              <pointsize>12</pointsize>
             </font>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           <property name="text">
+            <string>Subdiv:</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="3">
-          <widget class="QLineEdit" name="filter_country">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>35</height>
-            </size>
-           </property>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_4">
            <property name="maximumSize">
             <size>
-             <width>100</width>
-             <height>16777215</height>
+             <width>16777215</width>
+             <height>50</height>
             </size>
            </property>
            <property name="font">
@@ -399,27 +456,12 @@
              <pointsize>12</pointsize>
             </font>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           <property name="text">
+            <string>Country:</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <widget class="QComboBox" name="input_country">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>35</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1" colspan="3">
+         <item row="5" column="1" colspan="3">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
             <widget class="QRadioButton" name="radio_weekday_0">
@@ -619,27 +661,36 @@
            </item>
           </layout>
          </item>
-         <item row="3" column="2">
-          <widget class="QLabel" name="label_7">
+         <item row="2" column="3">
+          <widget class="QLineEdit" name="filter_country">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>12</pointsize>
             </font>
-           </property>
-           <property name="text">
-            <string>Filter:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_9">
-           <property name="maximumSize">
+         <item row="1" column="3">
+          <widget class="QPushButton" name="work_hours_button">
+           <property name="minimumSize">
             <size>
-             <width>16777215</width>
-             <height>50</height>
+             <width>0</width>
+             <height>35</height>
             </size>
            </property>
            <property name="font">
@@ -648,12 +699,18 @@
             </font>
            </property>
            <property name="text">
-            <string>Weekly Hours:</string>
+            <string>/ Week</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="1" column="1" colspan="3">
-          <widget class="QDoubleSpinBox" name="input_daily_hours">
+         <item row="1" column="1" colspan="2">
+          <widget class="QDoubleSpinBox" name="input_working_hours">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -667,75 +724,6 @@
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Country:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QComboBox" name="input_subdiv">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>35</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Daily Hours:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Workdays:</string>
            </property>
           </widget>
          </item>

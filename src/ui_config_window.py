@@ -38,6 +38,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
             radio: QRadioButton = getattr(self, f"radio_weekday_{i}")
             radio.toggled.connect(lambda checked, day=i: self._handle_enable_state_of_specific_day(day, checked))
         self.input_different_times.toggled.connect(self._handle_enable_state_of_times_per_day)
+        self.work_hours_button.toggled.connect(self._change_work_hours_button_text)
         self.set_config_values()
 
     def _handle_enable_state_of_times_per_day(self, isChecked: bool) -> None:
@@ -46,6 +47,13 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
             input_box: QDoubleSpinBox = getattr(self, f"input_hours_day_{i}")
             radio: QRadioButton = getattr(self, f"radio_weekday_{i}")
             input_box.setEnabled(isChecked and radio.isChecked())
+        self.work_hours_button.setEnabled(not isChecked)
+        self.input_working_hours.setEnabled(not isChecked)
+
+    def _change_work_hours_button_text(self, isChecked: bool) -> None:
+        """Change the text of the work hours button based on whether it is checked or not."""
+        text = "/ Week" if isChecked else "/ Day"
+        self.work_hours_button.setText(text)
 
     def _handle_enable_state_of_specific_day(self, day: int, isChecked: bool) -> None:
         """Enable or disable the input field for a specific day based on the state of the corresponding radio button."""
@@ -92,8 +100,9 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
     def set_config_values(self) -> None:
         """Set config values to the input fields, other than country and subdiv."""
         self.input_name.setText(CONFIG_HANDLER.config.name)
-        self.input_daily_hours.setValue(CONFIG_HANDLER.config.daily_hours)
-        self.input_weekly_hours.setValue(CONFIG_HANDLER.config.weekly_hours)
+        self.input_working_hours.setValue(CONFIG_HANDLER.config.work_hours)
+        self.work_hours_button.setChecked(CONFIG_HANDLER.config.use_hours_per_week)
+        self.work_hours_button.setText("/ Week" if CONFIG_HANDLER.config.use_hours_per_week else "/ Day")
         for day in CONFIG_HANDLER.config.workdays:
             radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
             radio.setChecked(True)
@@ -109,8 +118,8 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.country = self.input_country.currentText()
         CONFIG_HANDLER.config.subdiv = self.input_subdiv.currentText() or None
         CONFIG_HANDLER.config.name = self.input_name.text()
-        CONFIG_HANDLER.config.daily_hours = self.input_daily_hours.value()
-        CONFIG_HANDLER.config.weekly_hours = self.input_weekly_hours.value()
+        CONFIG_HANDLER.config.work_hours = self.input_working_hours.value()
+        CONFIG_HANDLER.config.use_hours_per_week = self.work_hours_button.isChecked()
         selected_days: list[int] = []
         for day in range(7):
             radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
