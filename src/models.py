@@ -34,38 +34,45 @@ class Event(Base):
 
 
 class Pause(Base):
-    """Pause model representing daily pause times."""
+    """Pause model representing daily pause times.
+
+    Date is stored as ISO format string (YYYY-MM-DD) to maintain
+    compatibility with the existing SQLite database schema.
+    """
 
     __tablename__ = "Pause"
 
     ID: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    Date: Mapped[datetime.date] = mapped_column(String, nullable=False, unique=True)
+    Date: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     Time: Mapped[int] = mapped_column(Integer, nullable=False)
 
     __table_args__ = (Index("idx_date", "Date", unique=True),)
 
 
 class Vacation(Base):
-    """Vacation model representing vacation days."""
+    """Vacation model representing vacation days.
+
+    Date is stored as ISO format string (YYYY-MM-DD) to maintain
+    compatibility with the existing SQLite database schema.
+    """
 
     __tablename__ = "Vacation"
 
     ID: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    Date: Mapped[datetime.date] = mapped_column(String, nullable=False, unique=True)
+    Date: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     __table_args__ = (Index("idx_date_vacation", "Date", unique=True),)
 
 
-def create_session(db_url: str) -> Session:
-    """Create a database session for the given database URL.
+def create_session_factory(db_url: str) -> sessionmaker:
+    """Create a session factory for the given database URL.
 
     Args:
         db_url: SQLAlchemy database URL (e.g., 'sqlite:///path/to/db.db')
 
     Returns:
-        A SQLAlchemy Session object
+        A SQLAlchemy sessionmaker that can create new sessions
     """
     engine = create_engine(db_url, echo=False)
     Base.metadata.create_all(engine)
-    session_factory = sessionmaker(bind=engine)
-    return session_factory()
+    return sessionmaker(bind=engine)
