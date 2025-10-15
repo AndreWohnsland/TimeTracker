@@ -13,7 +13,7 @@ The ORM provides:
 
 import datetime
 
-from sqlalchemy import DateTime, Index, Integer, String, create_engine
+from sqlalchemy import Index, Integer, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 
@@ -24,12 +24,20 @@ class Base(DeclarativeBase):
 
 
 class Event(Base):
-    """Event model representing start/stop events."""
+    """Event model representing start/stop events.
+    
+    Date is stored as ISO format string (YYYY-MM-DDTHH:MM:SS) to maintain
+    compatibility with the existing SQLite database schema and ensure proper
+    string-based ordering in SQLite.
+    
+    Note: Date strings are always generated via datetime.datetime.isoformat()
+    in the application code, ensuring consistent ISO format with 'T' separator.
+    """
 
     __tablename__ = "Events"
 
     ID: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    Date: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
+    Date: Mapped[str] = mapped_column(String, nullable=False)
     Action: Mapped[str] = mapped_column(String, nullable=False)
 
 

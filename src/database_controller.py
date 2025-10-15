@@ -71,7 +71,7 @@ class DatabaseController:
         datetime_string = entry_datetime.isoformat()
         logger.info("Add Event: %s, timestamp: %s", event, datetime_string)
         with self.session_scope() as session:
-            new_event = Event(Date=entry_datetime, Action=event)
+            new_event = Event(Date=datetime_string, Action=event)
             session.add(new_event)
 
     def add_pause(self, pause_time: int, entry_date: datetime.date) -> None:
@@ -117,9 +117,11 @@ class DatabaseController:
         with self.session_scope() as session:
             start_dt = datetime.datetime.combine(start, datetime.time.min)
             end_dt = datetime.datetime.combine(end, datetime.time.max)
-            stmt = select(Event).where(Event.Date >= start_dt, Event.Date <= end_dt).order_by(Event.Date)
+            start_str = start_dt.isoformat()
+            end_str = end_dt.isoformat()
+            stmt = select(Event).where(Event.Date >= start_str, Event.Date <= end_str).order_by(Event.Date)
             results = session.execute(stmt).scalars().all()
-            return [(event.Date.isoformat(), event.Action) for event in results]
+            return [(event.Date, event.Action) for event in results]
 
     def get_period_pause(self, start: datetime.date, end: datetime.date) -> list[tuple[str, int]]:
         with self.session_scope() as session:
@@ -131,8 +133,7 @@ class DatabaseController:
 
     def delete_event(self, delete_datetime: str) -> None:
         with self.session_scope() as session:
-            delete_dt = datetime.datetime.fromisoformat(delete_datetime)
-            stmt = delete(Event).where(Event.Date == delete_dt)
+            stmt = delete(Event).where(Event.Date == delete_datetime)
             session.execute(stmt)
 
     def add_vacation(self, vacation_date: datetime.date) -> None:
