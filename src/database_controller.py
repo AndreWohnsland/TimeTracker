@@ -1,3 +1,16 @@
+"""Database controller using SQLAlchemy ORM for type-safe database operations.
+
+This module provides the main database interface for the TimeTracker application.
+It uses SQLAlchemy ORM to provide type-safe database operations with proper Python
+type hints and better developer experience.
+
+The DatabaseController class provides high-level methods for:
+- Event tracking (start/stop events)
+- Pause time management
+- Vacation day management
+- Data retrieval for daily and monthly reports
+"""
+
 import datetime
 import logging
 

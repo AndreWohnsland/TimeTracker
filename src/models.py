@@ -1,4 +1,15 @@
-"""SQLAlchemy ORM models for the TimeTracker database."""
+"""SQLAlchemy ORM models for the TimeTracker database.
+
+This module defines the database models using SQLAlchemy ORM for type-safe
+database operations. The models mirror the existing SQLite database schema
+to maintain backward compatibility while providing better developer experience.
+
+The ORM provides:
+- Type safety with proper Python type hints
+- IDE autocompletion support
+- Cleaner and more maintainable code
+- Support for database migrations via Alembic (future)
+"""
 
 import datetime
 
