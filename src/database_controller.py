@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 class DatabaseController:
     """Controller Class to execute all DB queries and return results as Values / Lists / Dictionaries."""
 
-    def __init__(self) -> None:
+    def __init__(self, db_url: str | None = None) -> None:
         """Abstract Access to the database."""
-        self.handler = DatabaseHandler()
+        self.handler = DatabaseHandler(db_url)
 
     def add_event(self, event: str, entry_datetime: datetime.datetime) -> None:
         datetime_string = entry_datetime.isoformat()
@@ -123,33 +123,37 @@ class DatabaseController:
 class DatabaseHandler:
     """Handler Class for Connecting and querying Databases."""
 
-    def __init__(self) -> None:
+    database_path = DATABASE_PATH
+
+    def __init__(self, db_url: str | None = None) -> None:
         """Class to connect and query the database."""
         # check if the old database exists and move it to the new location
-        self.database_path = DATABASE_PATH
+        if db_url is None:
+            db_url = str(DATABASE_PATH)
+        self.db_url = db_url
         if not self.database_path.exists():
             logger.debug("No database detected, creating Database at %s", self.database_path)
+        self.connection = sqlite3.connect(self.db_url)
         self.create_tables()
 
-    def connect_database(self) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
-        database = sqlite3.connect(self.database_path)
-        cursor = database.cursor()
-        return database, cursor
+    def __del__(self) -> None:
+        """Close the session when the object is deleted."""
+        self.connection.close()
 
     def query_database(self, sql: str, search_tuple: tuple = ()) -> list:
-        database, cursor = self.connect_database()
+        cursor = self.connection.cursor()
         cursor.execute(sql, search_tuple)
 
         if sql[0:6].lower() == "select":
             result = cursor.fetchall()
         else:
-            database.commit()
+            self.connection.commit()
             result = []
-        database.close()
+        cursor.close()
         return result
 
     def create_tables(self) -> None:
-        database, cursor = self.connect_database()
+        cursor = self.connection.cursor()
         # get all table names from the database
         cursor.execute(
             """CREATE TABLE IF NOT EXISTS Events(
@@ -172,8 +176,8 @@ class DatabaseHandler:
         # Creating the Unique Indexes
         cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date ON Pause(Date)")
         cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date_vacation ON Vacation(Date)")
-        database.commit()
-        database.close()
+        self.connection.commit()
+        cursor.close()
 
 
 DB_CONTROLLER = DatabaseController()
