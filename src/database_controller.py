@@ -131,6 +131,8 @@ class DatabaseHandler:
         """Class to connect and query the database."""
         # check if the old database exists and move it to the new location
         if db_url is None:
+            # Ensure parent directory exists
+            DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
             db_url = f"sqlite:///{DATABASE_PATH}"
         elif not db_url.startswith("sqlite://"):
             # Handle :memory: case and other direct paths
