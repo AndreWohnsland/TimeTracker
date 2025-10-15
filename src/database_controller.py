@@ -142,6 +142,8 @@ class DatabaseController:
         session = self.handler.get_session()
         try:
             # Filter by year at database level using date range (ISO format YYYY-MM-DD)
+            # String comparison works correctly because ISO date format (YYYY-MM-DD) is
+            # lexicographically sortable (year, then month, then day)
             start_date = f"{year}-01-01"
             end_date = f"{year}-12-31"
             stmt = select(Vacation).where(Vacation.Date >= start_date, Vacation.Date <= end_date)
