@@ -141,9 +141,10 @@ class DatabaseController:
     def get_vacation_days(self, year: int) -> list[datetime.date]:
         session = self.handler.get_session()
         try:
-            # Filter by year at database level using LIKE pattern (YYYY-MM-DD format)
-            year_pattern = f"{year}-%"
-            stmt = select(Vacation).where(Vacation.Date.like(year_pattern))
+            # Filter by year at database level using date range (ISO format YYYY-MM-DD)
+            start_date = f"{year}-01-01"
+            end_date = f"{year}-12-31"
+            stmt = select(Vacation).where(Vacation.Date >= start_date, Vacation.Date <= end_date)
             results = session.execute(stmt).scalars().all()
             return [datetime.date.fromisoformat(vacation.Date) for vacation in results]
         finally:

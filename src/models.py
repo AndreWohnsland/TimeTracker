@@ -38,6 +38,9 @@ class Pause(Base):
 
     Date is stored as ISO format string (YYYY-MM-DD) to maintain
     compatibility with the existing SQLite database schema.
+    
+    Note: Date strings are always generated via datetime.date.isoformat()
+    in the application code, ensuring consistent ISO format.
     """
 
     __tablename__ = "Pause"
@@ -54,6 +57,9 @@ class Vacation(Base):
 
     Date is stored as ISO format string (YYYY-MM-DD) to maintain
     compatibility with the existing SQLite database schema.
+    
+    Note: Date strings are always generated via datetime.date.isoformat()
+    in the application code, ensuring consistent ISO format.
     """
 
     __tablename__ = "Vacation"
