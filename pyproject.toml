@@ -20,6 +20,7 @@ dependencies = [
     "numpy==2.2.6",
     "win11toast>=0.35; sys_platform == 'win32'",
     "seaborn>=0.13.2",
+    "sqlalchemy>=2.0.0",
 ]
 
 [tool.uv]
@@ -31,6 +32,7 @@ dev-dependencies = [
     "pyqt6-tools>=6.4.2.3.3",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
+    "alembic>=1.13.0",
 ]
 
 [tool.hatch.metadata]
