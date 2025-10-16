@@ -95,8 +95,8 @@ class Config:
         return [self.get_daily_hours_at(day) for day in range(7)]
 
     def get_holidays(self, year: int) -> list[datetime.date]:
-        available_holidays = holidays.CountryHoliday(
-            CONFIG_HANDLER.config.country, prov=CONFIG_HANDLER.config.subdiv or None, years=year
+        available_holidays = holidays.country_holidays(
+            CONFIG_HANDLER.config.country, subdiv=CONFIG_HANDLER.config.subdiv or None, years=year
         )
         return list(available_holidays.keys())
 

@@ -20,7 +20,7 @@ def is_working_day(date: datetime.date, holidays: set, vacations: set, workdays:
 def main() -> None:
     # Define the date range
     start_date = datetime.date(2025, 1, 1)
-    end_date = datetime.date(2025, 6, 30)
+    end_date = datetime.date(2025, 12, 30)
 
     # Get holidays and vacations for 2025
     country = CONFIG_HANDLER.config.country
