@@ -15,6 +15,7 @@ def mock_db_controller() -> MagicMock:
     mock.get_vacation_days.return_value = []
     mock.get_day_data.return_value = ([], [])
     mock.get_month_data.return_value = ([], [])
+    mock.get_months_with_data.return_value = []
     return mock
 
 
@@ -70,6 +71,7 @@ def test_get_free_days_with_vacation_and_holiday(store_and_controller: tuple[Sto
 def test_generate_all_data_populates_all_data(store_and_controller: tuple[Store, MagicMock]) -> None:
     store_instance, mock_db_controller = store_and_controller
     # Simulate month data
+    mock_db_controller.get_months_with_data.return_value = [(2025, 5)]
     mock_db_controller.get_month_data.return_value = ([("2025-05-01T08:00:00", "start")], [])
     store_instance.generate_all_data()
     assert len(store_instance.all_data) > 0
@@ -117,6 +119,7 @@ def test_generate_month_data_with_work(store_and_controller: tuple[Store, MagicM
 def test_calculate_overtime_totals_with_data(store_and_controller: tuple[Store, MagicMock]) -> None:
     store_instance, mock_db_controller = store_and_controller
     # Simulate month data with overtime
+    mock_db_controller.get_months_with_data.return_value = [(2025, 5)]
     mock_db_controller.get_month_data.return_value = (
         [("2025-05-01T08:00:00", "start"), ("2025-05-01T18:00:00", "stop")],
         [],

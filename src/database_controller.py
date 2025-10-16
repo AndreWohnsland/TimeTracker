@@ -1,10 +1,27 @@
+"""Database controller using SQLAlchemy ORM for type-safe database operations.
+
+This module provides the main database interface for the TimeTracker application.
+It uses SQLAlchemy ORM to provide type-safe database operations with proper Python
+type hints and better developer experience.
+
+The DatabaseController class provides high-level methods for:
+- Event tracking (start/stop events)
+- Pause time management
+- Vacation day management
+- Data retrieval for daily and monthly reports
+"""
+
 import datetime
 import logging
-import sqlite3
+from collections.abc import Generator
+from contextlib import contextmanager
 
 from dateutil.relativedelta import relativedelta
+from sqlalchemy import create_engine, delete, func, select, update
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from src.filepath import DATABASE_PATH
+from src.models import Base, Event, Pause, Vacation
 
 logger = logging.getLogger(__name__)
 
@@ -12,54 +29,77 @@ logger = logging.getLogger(__name__)
 class DatabaseController:
     """Controller Class to execute all DB queries and return results as Values / Lists / Dictionaries."""
 
+    database_path = DATABASE_PATH
+
     def __init__(self, db_url: str | None = None) -> None:
-        """Abstract Access to the database."""
-        self.handler = DatabaseHandler(db_url)
+        """Initialize the database controller with SQLAlchemy ORM."""
+        self.call_count = 0
+        if db_url is None:
+            # Ensure parent directory exists
+            DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            db_url = f"sqlite:///{DATABASE_PATH}"
+        elif not db_url.startswith("sqlite://"):
+            # Handle :memory: case and other direct paths
+            db_url = f"sqlite:///{db_url}"
+
+        self.db_url = db_url
+        if not self.database_path.exists():
+            logger.debug("No database detected, creating Database at %s", self.database_path)
+
+        self.engine = create_engine(self.db_url, echo=False)
+        Base.metadata.create_all(self.engine)
+        self.Session = scoped_session(sessionmaker(bind=self.engine, expire_on_commit=False))
+
+    def __del__(self) -> None:
+        """Close the session when the object is deleted."""
+        self.Session.remove()
+        self.engine.dispose()
+
+    @contextmanager
+    def session_scope(self) -> Generator[Session, None, None]:
+        """Provide a transactional scope around a series of operations."""
+        self.call_count += 1
+        # print(f"DB Call count: {self.call_count}")
+        session = self.Session()
+        try:
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
 
     def add_event(self, event: str, entry_datetime: datetime.datetime) -> None:
         datetime_string = entry_datetime.isoformat()
         logger.info("Add Event: %s, timestamp: %s", event, datetime_string)
-        query = "INSERT INTO Events(Date, Action) VALUES(?, ?)"
-        self.handler.query_database(
-            query,
-            (
-                datetime_string,
-                event,
-            ),
-        )
+        with self.session_scope() as session:
+            new_event = Event(date=entry_datetime, action=event)
+            session.add(new_event)
 
     def add_pause(self, pause_time: int, entry_date: datetime.date) -> None:
-        date_string = entry_date.isoformat()
-        if self.day_exists(date_string):
-            self.update_pause(pause_time, date_string)
+        if self.day_exists(entry_date):
+            self.update_pause(pause_time, entry_date)
         else:
-            self.insert_pause(pause_time, date_string)
+            self.insert_pause(pause_time, entry_date)
 
-    def update_pause(self, pause_time: int, date_string: str) -> None:
-        logger.info("Updating pause time by %s at %s", pause_time, date_string)
-        query = "UPDATE OR IGNORE Pause SET Time = Time + ? WHERE Date = ?"
-        self.handler.query_database(
-            query,
-            (
-                pause_time,
-                date_string,
-            ),
-        )
+    def update_pause(self, pause_time: int, date: datetime.date) -> None:
+        logger.info("Updating pause time by %s at %s", pause_time, date.isoformat())
+        with self.session_scope() as session:
+            stmt = update(Pause).where(Pause.date == date).values(time=Pause.time + pause_time)
+            session.execute(stmt)
 
-    def insert_pause(self, pause_time: int, date_string: str) -> None:
-        logger.info("Inserting pause time by %s at %s", pause_time, date_string)
-        query = "INSERT INTO Pause(Date, Time) VALUES(?, ?)"
-        self.handler.query_database(
-            query,
-            (
-                date_string,
-                pause_time,
-            ),
-        )
+    def insert_pause(self, pause_time: int, date: datetime.date) -> None:
+        logger.info("Inserting pause time by %s at %s", pause_time, date.isoformat())
+        with self.session_scope() as session:
+            new_pause = Pause(date=date, time=pause_time)
+            session.add(new_pause)
 
-    def day_exists(self, date_str: str) -> int:
-        query = "SELECT COUNT(*) FROM Pause WHERE Date = ?"
-        return self.handler.query_database(query, (date_str,))[0][0]
+    def day_exists(self, date: datetime.date) -> int:
+        with self.session_scope() as session:
+            stmt = select(Pause).where(Pause.date == date)
+            result = session.execute(stmt).scalar_one_or_none()
+            return 1 if result else 0
 
     def get_month_data(self, search_date: datetime.date) -> tuple[list[tuple[str, str]], list[tuple[str, int]]]:
         start = datetime.date(search_date.year, search_date.month, 1)
@@ -76,108 +116,59 @@ class DatabaseController:
         return work, pause
 
     def get_period_work(self, start: datetime.date, end: datetime.date) -> list[tuple[str, str]]:
-        query = "SELECT Date, Action FROM Events WHERE Date BETWEEN ? AND ? ORDER BY Date"
-        return self.handler.query_database(
-            query,
-            (
-                start.isoformat(),
-                end.isoformat(),
-            ),
-        )
+        with self.session_scope() as session:
+            start_dt = datetime.datetime.combine(start, datetime.time.min)
+            end_dt = datetime.datetime.combine(end, datetime.time.min)
+            stmt = select(Event).where(Event.date >= start_dt, Event.date < end_dt).order_by(Event.date)
+            results = session.execute(stmt).scalars().all()
+            return [(event.date.isoformat(), event.action) for event in results]
 
     def get_period_pause(self, start: datetime.date, end: datetime.date) -> list[tuple[str, int]]:
-        query = "SELECT Date, Time FROM Pause WHERE Date BETWEEN ? AND ? ORDER BY Date"
-        return self.handler.query_database(
-            query,
-            (
-                start.isoformat(),
-                end.isoformat(),
-            ),
-        )
+        with self.session_scope() as session:
+            stmt = select(Pause).where(Pause.date >= start, Pause.date <= end).order_by(Pause.date)
+            results = session.execute(stmt).scalars().all()
+            return [(pause.date.isoformat(), pause.time) for pause in results]
 
-    def delete_event(self, delete_datetime: str) -> None:
-        query = "DELETE FROM Events WHERE Date = ?"
-        self.handler.query_database(query, (delete_datetime,))
+    def get_months_with_data(self, year: int | None = None) -> list[tuple[int, int]]:
+        """Return distinct year/month combinations that have recorded events."""
+        with self.session_scope() as session:
+            year_col = func.strftime("%Y", Event.date)
+            month_col = func.strftime("%m", Event.date)
+            stmt = select(year_col, month_col).group_by(year_col, month_col).order_by(year_col, month_col)
+            if year is not None:
+                stmt = stmt.where(year_col == str(year))
+            results = session.execute(stmt).all()
+            return [(int(year), int(month)) for year, month in results]
+
+    def delete_event(self, delete_datetime: datetime.datetime) -> None:
+        with self.session_scope() as session:
+            stmt = delete(Event).where(Event.date == delete_datetime)
+            session.execute(stmt)
 
     def add_vacation(self, vacation_date: datetime.date) -> None:
         date_string = vacation_date.isoformat()
         logger.info("Adding Vacation on %s", date_string)
-        # only enter (ignore) if the date does not exist
-        query = "INSERT OR IGNORE INTO Vacation(Date) VALUES(?)"
-        self.handler.query_database(query, (date_string,))
+        with self.session_scope() as session:
+            # only enter if the date does not exist
+            existing = session.execute(select(Vacation).where(Vacation.date == vacation_date)).scalar_one_or_none()
+            if not existing:
+                new_vacation = Vacation(date=vacation_date)
+                session.add(new_vacation)
 
     def get_vacation_days(self, year: int) -> list[datetime.date]:
-        query = "SELECT Date FROM Vacation WHERE strftime('%Y', Date) = ?"
-        # using str(year) is important, since strftime returns a string
-        days: list[tuple[str]] = self.handler.query_database(query, (str(year),))
-        # convert to a list of dates
-        return [datetime.date.fromisoformat(day[0]) for day in days]
+        with self.session_scope() as session:
+            stmt = select(Vacation).where(
+                Vacation.date >= datetime.date(year, 1, 1),
+                Vacation.date <= datetime.date(year, 12, 31),
+            )
+            results = session.execute(stmt).scalars().all()
+            return [vacation.date for vacation in results]
 
     def remove_vacation(self, vacation_date: datetime.date) -> None:
-        date_string = vacation_date.isoformat()
-        logger.info("Removing Vacation on %s", date_string)
-        query = "DELETE FROM Vacation WHERE Date = ?"
-        self.handler.query_database(query, (date_string,))
-
-
-class DatabaseHandler:
-    """Handler Class for Connecting and querying Databases."""
-
-    database_path = DATABASE_PATH
-
-    def __init__(self, db_url: str | None = None) -> None:
-        """Class to connect and query the database."""
-        # check if the old database exists and move it to the new location
-        if db_url is None:
-            db_url = str(DATABASE_PATH)
-        self.db_url = db_url
-        if not self.database_path.exists():
-            logger.debug("No database detected, creating Database at %s", self.database_path)
-        self.connection = sqlite3.connect(self.db_url)
-        self.create_tables()
-
-    def __del__(self) -> None:
-        """Close the session when the object is deleted."""
-        self.connection.close()
-
-    def query_database(self, sql: str, search_tuple: tuple = ()) -> list:
-        cursor = self.connection.cursor()
-        cursor.execute(sql, search_tuple)
-
-        if sql[0:6].lower() == "select":
-            result = cursor.fetchall()
-        else:
-            self.connection.commit()
-            result = []
-        cursor.close()
-        return result
-
-    def create_tables(self) -> None:
-        cursor = self.connection.cursor()
-        # get all table names from the database
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS Events(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                Date DATETIME NOT NULL,
-                Action TEXT NOT NULL);"""
-        )
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS Pause(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                Date DATE NOT NULL,
-                Time INTEGER NOT NULL);"""
-        )
-        # create vacation table (id and date)
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS Vacation(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                Date DATE NOT NULL);"""
-        )
-        # Creating the Unique Indexes
-        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date ON Pause(Date)")
-        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_date_vacation ON Vacation(Date)")
-        self.connection.commit()
-        cursor.close()
+        logger.info("Removing Vacation on %s", vacation_date.isoformat())
+        with self.session_scope() as session:
+            stmt = delete(Vacation).where(Vacation.date == vacation_date)
+            session.execute(stmt)
 
 
 DB_CONTROLLER = DatabaseController()
