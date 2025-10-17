@@ -18,6 +18,8 @@ jobs:
             artifact_name: timetracker_win.exe
           - os: macos-latest
             artifact_name: timetracker_mac
+    env:
+      PYI_NAME: ${{ matrix.artifact_name }}
 
     steps:
       - name: Checkout code
@@ -29,31 +31,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
 
-      - name: Build (Windows)
-        if: matrix.os == 'windows-latest'
-        run: >
-          uv run pyinstaller
-          --onefile
-          -w
-          --name ${{ matrix.artifact_name }}
-          --icon="ui/clock.png"
-          --hidden-import="holidays.countries"
-          --add-data "alembic.ini;."
-          --add-data "alembic;alembic"
-          runme.py
-
-      - name: Build (Unix)
-        if: matrix.os != 'windows-latest'
-        run: >
-          uv run pyinstaller
-          --onefile
-          -w
-          --name ${{ matrix.artifact_name }}
-          --icon="ui/clock.png"
-          --hidden-import="holidays.countries"
-          --add-data "alembic.ini:."
-          --add-data "alembic:alembic"
-          runme.py
+      - name: Build with PyInstaller
+        run: uv run pyinstaller installer.spec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
