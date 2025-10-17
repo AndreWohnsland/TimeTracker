@@ -6,8 +6,10 @@ from pathlib import Path
 
 import darkdetect
 import qdarktheme
+from alembic.config import Config
 from PyQt6.QtWidgets import QApplication
 
+from alembic import command
 from src.filepath import (
     CONFIG_PATH,
     DATABASE_PATH,
@@ -124,3 +126,11 @@ def setup_logging(log_file_path: Path = LOG_FILE_PATH) -> None:
     if not log_file_path.parent.exists():
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
     logging.config.dictConfig(logging_config)
+
+
+def run_db_migrations() -> None:
+    """Run the alembic migrations to update the database schema."""
+    alembic_cfg = Config("alembic.ini")
+    alembic_cfg.attributes["configure_logger"] = False
+    alembic_cfg.set_main_option("sqlalchemy.url", f"sqlite:///{DATABASE_PATH}")
+    command.upgrade(alembic_cfg, "head")

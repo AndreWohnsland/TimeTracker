@@ -20,35 +20,51 @@ jobs:
             artifact_name: timetracker_mac
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install the latest version of uv
-      uses: astral-sh/setup-uv@v6
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v6
 
-    - name: Install dependencies
-      run: uv sync --all-extras
+      - name: Install dependencies
+        run: uv sync --all-extras
 
-    - name: Build
-      run: >
-        uv run pyinstaller
-        --onefile 
-        -w
-        --name ${{ matrix.artifact_name }}
-        --icon="ui/clock.png"
-        --hidden-import="holidays.countries"
-        runme.py
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        run: >
+          uv run pyinstaller
+          --onefile
+          -w
+          --name ${{ matrix.artifact_name }}
+          --icon="ui/clock.png"
+          --hidden-import="holidays.countries"
+          --add-data "alembic.ini;."
+          --add-data "alembic;alembic"
+          runme.py
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.artifact_name }}
-        path: dist/${{ matrix.artifact_name }}
+      - name: Build (Unix)
+        if: matrix.os != 'windows-latest'
+        run: >
+          uv run pyinstaller
+          --onefile
+          -w
+          --name ${{ matrix.artifact_name }}
+          --icon="ui/clock.png"
+          --hidden-import="holidays.countries"
+          --add-data "alembic.ini:."
+          --add-data "alembic:alembic"
+          runme.py
 
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/${{ matrix.artifact_name }}
-        asset_name: ${{ matrix.artifact_name }}
-        tag: ${{ github.event.release.tag_name }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.artifact_name }}
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.artifact_name }}
+          tag: ${{ github.event.release.tag_name }}
