@@ -50,16 +50,24 @@ class Pause(Base):
         self.time = time
 
 
-class Vacation(Base):
-    __tablename__ = "Vacation"
+class TimeOff(Base):
+    __tablename__ = "TimeOff"
 
     ID: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     date: Mapped[datetime.date] = mapped_column(SqlDate, nullable=False, unique=True, name="Date")
+    reason: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        default="Vacation",
+        server_default="Vacation",
+        name="Reason",
+    )
 
     __table_args__ = (Index("idx_date_vacation", "Date", unique=True),)
 
-    def __init__(self, date: datetime.date) -> None:  # noqa: D107
+    def __init__(self, date: datetime.date, reason: str = "Vacation") -> None:  # noqa: D107
         self.date = date
+        self.reason = reason
 
 
 def create_session_factory(db_url: str) -> sessionmaker:

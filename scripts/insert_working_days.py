@@ -26,7 +26,7 @@ def main() -> None:
     country = CONFIG_HANDLER.config.country
     subdiv = CONFIG_HANDLER.config.subdiv or None
     holidays_set = set(holidays.CountryHoliday(country, prov=subdiv, years=2025).keys())
-    vacations_set = set(DB_CONTROLLER.get_vacation_days(2025))
+    vacations_set = set(DB_CONTROLLER.get_time_off_days(2025))
     workdays_set = set(CONFIG_HANDLER.config.workdays)
 
     current = start_date

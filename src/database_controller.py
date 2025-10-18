@@ -21,7 +21,7 @@ from sqlalchemy import create_engine, delete, func, select, update
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from src.filepath import DATABASE_PATH
-from src.models import Base, Event, Pause, Vacation
+from src.models import Base, Event, Pause, TimeOff
 
 logger = logging.getLogger(__name__)
 
@@ -145,29 +145,38 @@ class DatabaseController:
             stmt = delete(Event).where(Event.date == delete_datetime)
             session.execute(stmt)
 
-    def add_vacation(self, vacation_date: datetime.date) -> None:
-        date_string = vacation_date.isoformat()
-        logger.info("Adding Vacation on %s", date_string)
+    def add_time_off(self, day: datetime.date, reason: str) -> None:
+        date_string = day.isoformat()
+        logger.info("Adding Time Off on %s", date_string)
         with self.session_scope() as session:
             # only enter if the date does not exist
-            existing = session.execute(select(Vacation).where(Vacation.date == vacation_date)).scalar_one_or_none()
+            existing = session.execute(select(TimeOff).where(TimeOff.date == day)).scalar_one_or_none()
             if not existing:
-                new_vacation = Vacation(date=vacation_date)
+                new_vacation = TimeOff(date=day, reason=reason)
                 session.add(new_vacation)
 
-    def get_vacation_days(self, year: int) -> list[datetime.date]:
+    def get_time_off_days(self, year: int) -> list[datetime.date]:
+        return [vacation.date for vacation in self.get_time_off(year)]
+
+    def get_time_off(self, year: int) -> list[TimeOff]:
         with self.session_scope() as session:
-            stmt = select(Vacation).where(
-                Vacation.date >= datetime.date(year, 1, 1),
-                Vacation.date <= datetime.date(year, 12, 31),
+            stmt = select(TimeOff).where(
+                TimeOff.date >= datetime.date(year, 1, 1),
+                TimeOff.date <= datetime.date(year, 12, 31),
             )
             results = session.execute(stmt).scalars().all()
-            return [vacation.date for vacation in results]
+            return list(results)
 
-    def remove_vacation(self, vacation_date: datetime.date) -> None:
-        logger.info("Removing Vacation on %s", vacation_date.isoformat())
+    def remove_time_off(self, vacation_date: datetime.date) -> None:
+        logger.info("Removing Time Off on %s", vacation_date.isoformat())
         with self.session_scope() as session:
-            stmt = delete(Vacation).where(Vacation.date == vacation_date)
+            stmt = delete(TimeOff).where(TimeOff.date == vacation_date)
+            session.execute(stmt)
+
+    def change_time_off_reason(self, vacation_date: datetime.date, new_reason: str) -> None:
+        logger.info("Changing Time Off reason on %s to %s", vacation_date.isoformat(), new_reason)
+        with self.session_scope() as session:
+            stmt = update(TimeOff).where(TimeOff.date == vacation_date).values(reason=new_reason)
             session.execute(stmt)
 
 

@@ -16,6 +16,7 @@ class PresetIconNames:
     setting = "fa6s.gear"
     clock = "fa5.clock"
     delete = "fa5.trash-alt"
+    edit = "fa5.edit"
 
 
 @dataclass
@@ -29,6 +30,8 @@ class PresetIcon:
     clock: QIcon
     delete: QIcon
     delete_inverted: QIcon
+    edit: QIcon
+    edit_inverted: QIcon
 
 
 def generate_icon(icon_name: str, color: str = "white") -> QIcon:
@@ -48,6 +51,8 @@ def get_preset_icons() -> PresetIcon:
         clock=generate_icon(PresetIconNames.clock, default_color),
         delete=generate_icon(PresetIconNames.delete, "red"),
         delete_inverted=generate_icon(PresetIconNames.delete, bg_color),
+        edit=generate_icon(PresetIconNames.edit, "#0F84FF"),
+        edit_inverted=generate_icon(PresetIconNames.edit, bg_color),
     )
 
 

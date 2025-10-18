@@ -66,12 +66,28 @@ class TestController:
 
     def test_add_get_remove_vacation(self, db_controller: DatabaseController) -> None:
         vacation_date = datetime.date(2026, 2, 1)
-        db_controller.add_vacation(vacation_date)
-        vacation_days = db_controller.get_vacation_days(2026)
+        db_controller.add_time_off(vacation_date, "Vacation")
+        vacation_days = db_controller.get_time_off_days(2026)
         assert vacation_date in vacation_days
-        db_controller.remove_vacation(vacation_date)
-        vacation_days = db_controller.get_vacation_days(2026)
+        db_controller.remove_time_off(vacation_date)
+        vacation_days = db_controller.get_time_off_days(2026)
         assert vacation_date not in vacation_days
+
+    def test_reason_on_vacation(self, db_controller: DatabaseController) -> None:
+        vacation_date = datetime.date(2026, 2, 2)
+        reason = "Sick Leave"
+        db_controller.add_time_off(vacation_date, reason)
+        vacation_days = db_controller.get_time_off(2026)
+        assert any(vacation.date == vacation_date and vacation.reason == reason for vacation in vacation_days)
+
+    def test_change_time_off_reason(self, db_controller: DatabaseController) -> None:
+        vacation_date = datetime.date(2026, 2, 3)
+        initial_reason = "Vacation"
+        new_reason = "Sick Leave"
+        db_controller.add_time_off(vacation_date, initial_reason)
+        db_controller.change_time_off_reason(vacation_date, new_reason)
+        vacation_days = db_controller.get_time_off(2026)
+        assert any(vacation.date == vacation_date and vacation.reason == new_reason for vacation in vacation_days)
 
     def test_get_period_work_orders_results(self, db_controller: DatabaseController) -> None:
         random_events = [

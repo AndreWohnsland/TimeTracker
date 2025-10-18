@@ -51,7 +51,7 @@ class Store:
             self.calculate_overtime_totals()
 
     def get_free_days(self, year: int) -> list[datetime.date]:
-        vacation_days = DB_CONTROLLER.get_vacation_days(year)
+        vacation_days = DB_CONTROLLER.get_time_off_days(year)
         holiday_list = CONFIG_HANDLER.config.get_holidays(year)
         unique_days = list(set(vacation_days + holiday_list))
         return [day for day in unique_days if day.weekday() in CONFIG_HANDLER.config.workdays]

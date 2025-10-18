@@ -78,7 +78,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addLayout(self.verticalLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 368, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 368, 22))
         self.menubar.setObjectName("menubar")
         self.menuOptions = QtWidgets.QMenu(parent=self.menubar)
         self.menuOptions.setObjectName("menuOptions")
@@ -138,7 +138,7 @@ class Ui_MainWindow(object):
         self.action_tmp2.setText(_translate("MainWindow", "tmp2"))
         self.action_about.setText(_translate("MainWindow", "About"))
         self.action_open_folder.setText(_translate("MainWindow", "Open Config Folder"))
-        self.action_set_vacation.setText(_translate("MainWindow", "Set Vacation Days"))
+        self.action_set_vacation.setText(_translate("MainWindow", "Set Time Off"))
 
 
 if __name__ == "__main__":

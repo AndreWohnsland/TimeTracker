@@ -12,7 +12,7 @@ from src.datastore import MonthData, Store
 def mock_db_controller() -> MagicMock:
     mock = MagicMock()
     # Default: no data
-    mock.get_vacation_days.return_value = []
+    mock.get_time_off_days.return_value = []
     mock.get_day_data.return_value = ([], [])
     mock.get_month_data.return_value = ([], [])
     mock.get_months_with_data.return_value = []
@@ -60,7 +60,7 @@ def test_update_data_none_date(store_and_controller: tuple[Store, MagicMock]) ->
 def test_get_free_days_with_vacation_and_holiday(store_and_controller: tuple[Store, MagicMock]) -> None:
     store_instance, mock_db_controller = store_and_controller
     # Simulate vacation and holiday
-    mock_db_controller.get_vacation_days.return_value = [datetime.date(2025, 5, 1)]
+    mock_db_controller.get_time_off_days.return_value = [datetime.date(2025, 5, 1)]
     with patch("src.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_holidays.return_value = [datetime.date(2025, 5, 2)]
         mock_config.config.workdays = [0, 1, 2, 3, 4]

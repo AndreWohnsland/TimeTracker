@@ -27,7 +27,7 @@ def get_app_dir(app_name: str = APP_NAME) -> Path:
 
 
 # Root path
-ROOT_PATH = Path(__file__).parents[1].absolute()
+ROOT_PATH = Path(__file__).resolve().parents[1]
 HOME_PATH = Path.home()
 
 # UI
@@ -49,3 +49,7 @@ REPORTS_PATH = SAVE_FOLDER / "reports"
 
 # Logs
 LOG_FILE_PATH = SAVE_FOLDER / "app.log"
+
+# Alembic
+ALEMBIC_INI_PATH = ROOT_PATH / "alembic.ini"
+ALEMBIC_SCRIPT_PATH = ROOT_PATH / "alembic"
