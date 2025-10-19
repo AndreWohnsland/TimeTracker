@@ -19,6 +19,7 @@ jobs:
 
     env:
       PYI_NAME: ${{ matrix.artifact_name }}
+      UPLOAD_PATH: dist/${{ matrix.artifact_name }}
 
     steps:
       - name: Checkout code
@@ -33,12 +34,12 @@ jobs:
       - name: Build with PyInstaller
         run: uv run pyinstaller installer.spec
 
-      - name: Extract macOS binary
+      - name: Bundle macOS outputs
         if: matrix.os == 'macos-latest'
         run: |
-          rm dist/${{ matrix.artifact_name }}
-          cp dist/${{ matrix.artifact_name }}.app/Contents/MacOS/${{ matrix.artifact_name }} dist/${{ matrix.artifact_name }}
-          rm -r dist/${{ matrix.artifact_name }}.app
+          cd dist
+          zip -r "${{ matrix.artifact_name }}.zip" "${{ matrix.artifact_name }}" "${{ matrix.artifact_name }}.app"
+          echo "UPLOAD_PATH=$(pwd)/${{ matrix.artifact_name }}.zip" >> $GITHUB_ENV
 
       - name: "Debug: List dist directory"
         run: ls dist/
@@ -47,4 +48,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: dist/${{ matrix.artifact_name }}
+          path: ${{ env.UPLOAD_PATH }}
