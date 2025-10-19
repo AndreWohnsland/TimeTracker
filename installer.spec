@@ -1,8 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+from pathlib import Path
 
 # dynamic name passed from CI/CD
 artifact_name = os.getenv("PYI_NAME", "pyi_name_not_set")
+icon_path = str((Path("ui") / "clock.png").resolve())
 
 a = Analysis(
     ["runme.py"],
@@ -38,5 +40,12 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=["ui\\clock.png"],
+    icon=[icon_path],
+)
+
+app = BUNDLE(
+    exe,
+    name=f"{artifact_name}.app",
+    icon=icon_path,
+    bundle_identifier=None,
 )
