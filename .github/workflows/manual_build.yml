@@ -33,6 +33,13 @@ jobs:
       - name: Build with PyInstaller
         run: uv run pyinstaller installer.spec
 
+      - name: Extract macOS binary
+        if: matrix.os == 'macos-latest'
+        run: |
+          rm dist/${{ matrix.artifact_name }}
+          cp dist/${{ matrix.artifact_name }}.app/Contents/MacOS/${{ matrix.artifact_name }} dist/${{ matrix.artifact_name }}
+          rm -r dist/${{ matrix.artifact_name }}.app
+
       - name: "Debug: List dist directory"
         run: ls dist/
 
