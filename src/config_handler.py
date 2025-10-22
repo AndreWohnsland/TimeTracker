@@ -40,8 +40,6 @@ CONFIG_NAMES = Literal[
 class Config:
     name: str
     save_path: str
-    daily_hours: float
-    weekly_hours: float
     work_hours: float
     use_hours_per_week: bool
     country: str
