@@ -1,8 +1,9 @@
-from src.utils import prepare_data_location_and_files, setup_logging
+from src.utils import prepare_data_location_and_files, run_db_migrations, setup_logging
 
 # Prepare the data location and files. meeds to be done before importing the main application
 setup_logging()
 prepare_data_location_and_files()
+run_db_migrations()
 
 import logging
 import sys

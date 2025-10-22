@@ -39,7 +39,8 @@ This is currently still experimental, but you can try either the manual installa
 
 ### B: Manual Installation
 
-This application needs at least Python 3.11 installed at the system as well as the required packages.
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) for managing Python versions.
+If you don't want to use uv, you can also use your system Python and pip to install the required packages.
 First clone the repository and cd into it.
 The required package can be installed with pip or uv.
 To start the app, you run the `runme.py` file with python, you can create a shortcut on your desktop:
@@ -53,6 +54,19 @@ uv run runme.py
 pip install -r requirements.txt
 python runme.py
 ```
+
+### Manual build of the standalone version
+
+If you want to build the standalone version by yourself, you can also do it with [uv](https://docs.astral.sh/uv/getting-started/installation/).
+Especially on windows and macOS, because on these systems, they will probably complain that the downloaded binary is not trusted.
+First, make sure you have uv installed and clone the repository.
+Then run the following commands to create the standalone version:
+
+```bash
+uv run pyinstaller installer.spec
+```
+
+The created binary will be in the `dist` folder.
 
 ## Options
 

@@ -17,28 +17,35 @@ jobs:
           - os: macos-latest
             artifact_name: timetracker_latest_mac
 
+    env:
+      PYI_NAME: ${{ matrix.artifact_name }}
+      UPLOAD_PATH: dist/${{ matrix.artifact_name }}
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install the latest version of uv
-      uses: astral-sh/setup-uv@v6
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v6
 
-    - name: Install dependencies
-      run: uv sync --all-extras
+      - name: Install dependencies
+        run: uv sync --all-extras
 
-    - name: Build
-      run: >
-        uv run pyinstaller
-        --onefile
-        -w
-        --name ${{ matrix.artifact_name }}
-        --icon="ui/clock.png"
-        --hidden-import="holidays.countries"
-        runme.py
+      - name: Build with PyInstaller
+        run: uv run pyinstaller installer.spec
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.artifact_name }}
-        path: dist/${{ matrix.artifact_name }}
+      - name: Bundle macOS outputs
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd dist
+          zip -r "${{ matrix.artifact_name }}.zip" "${{ matrix.artifact_name }}" "${{ matrix.artifact_name }}.app"
+          echo "UPLOAD_PATH=$(pwd)/${{ matrix.artifact_name }}.zip" >> $GITHUB_ENV
+
+      - name: "Debug: List dist directory"
+        run: ls dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ env.UPLOAD_PATH }}

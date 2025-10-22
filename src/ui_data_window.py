@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class EventData:
-    event_time: str
+    event_time: datetime.datetime
     event: str
 
 
@@ -355,7 +355,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             event = self.tableWidget.item(row, 1).text()
             if event_datetime == "Pause":
                 return None
-            return EventData(event_datetime, event)
+            return EventData(datetime.datetime.fromisoformat(event_datetime), event)
         return None
 
     def change_month(self, delta: int) -> None:

@@ -79,7 +79,7 @@ class DataExporter:
         report_date: datetime.date,
     ) -> None:
         free_days = set(
-            CONFIG_HANDLER.config.get_holidays(report_date.year) + DB_CONTROLLER.get_vacation_days(report_date.year)
+            CONFIG_HANDLER.config.get_holidays(report_date.year) + DB_CONTROLLER.get_time_off_days(report_date.year)
         )
         for i, (index, row) in enumerate(df.iterrows()):
             color = vacation_color if index.date() in free_days else normal_color  # type: ignore

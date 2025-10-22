@@ -184,7 +184,7 @@
      <x>0</x>
      <y>0</y>
      <width>368</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
@@ -256,7 +256,7 @@
   </action>
   <action name="action_set_vacation">
    <property name="text">
-    <string>Set Vacation Days</string>
+    <string>Set Time Off</string>
    </property>
   </action>
  </widget>

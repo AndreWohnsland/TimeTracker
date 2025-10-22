@@ -33,6 +33,9 @@ class Store:
     all_data: dict[(tuple[int, int]), MonthData] = field(default_factory=dict)
     total_overtime: float = field(default=0.0)
     overtime_by_year: dict[int, float] = field(default_factory=dict)
+    # workaround for not to not always recompute the overtime if fast changes are done
+    last_overtime_calculation: datetime.datetime = field(default_factory=lambda: datetime.datetime.min)
+    overtime_min_delta: datetime.timedelta = field(default_factory=lambda: datetime.timedelta(minutes=5))
 
     def __post_init__(self) -> None:
         self.generate_all_data()
@@ -44,18 +47,19 @@ class Store:
         self.generate_daily_data(selected_date)
         month_data = self.generate_month_data(selected_date)
         self.df = month_data.df
-        self.calculate_overtime_totals()
+        if datetime.datetime.now() - self.last_overtime_calculation > self.overtime_min_delta:
+            self.calculate_overtime_totals()
 
     def get_free_days(self, year: int) -> list[datetime.date]:
-        vacation_days = DB_CONTROLLER.get_vacation_days(year)
+        vacation_days = DB_CONTROLLER.get_time_off_days(year)
         holiday_list = CONFIG_HANDLER.config.get_holidays(year)
         unique_days = list(set(vacation_days + holiday_list))
         return [day for day in unique_days if day.weekday() in CONFIG_HANDLER.config.workdays]
 
     def generate_all_data(self) -> None:
-        for year in range(2023, datetime.date.today().year + 1):
-            for month in range(1, 13):
-                self.all_data[(year, month)] = self.generate_month_data(datetime.date(year, month, 1))
+        months_with_data = DB_CONTROLLER.get_months_with_data()
+        for year, month in months_with_data:
+            self.all_data[(year, month)] = self.generate_month_data(datetime.date(year, month, 1))
 
     def get_year_data(self, year: int) -> pd.DataFrame:
         year_data = []
@@ -230,6 +234,7 @@ class Store:
         for year, value in overtime_by_year.items():
             self.overtime_by_year[year] = round(value, 2)
         self.total_overtime = round(merged_df["overtime"].sum(), 2)
+        self.last_overtime_calculation = datetime.datetime.now()
 
 
 def _calculate_break_time(row: pd.Series) -> float:

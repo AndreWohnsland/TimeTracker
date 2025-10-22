@@ -174,8 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def add_event(self, event: str, check_past_entry: bool = True) -> None:
         """Add an event to the database."""
-        entry_datetime = datetime.datetime.now()
-        entry_datetime = entry_datetime.replace(microsecond=0)
+        entry_datetime = datetime.datetime.now().replace(microsecond=0)
         if self.is_past_time and check_past_entry:
             entry_datetime = self.get_past_datetime()
         DB_CONTROLLER.add_event(event, entry_datetime)
