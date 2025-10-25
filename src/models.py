@@ -28,12 +28,14 @@ class Event(Base):
     ID: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     date: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, name="Date")
     action: Mapped[str] = mapped_column(String, nullable=False, name="Action")
+    project: Mapped[str | None] = mapped_column(String, nullable=True, name="Project")
 
     __table_args__ = (Index("idx_datetime", "Date"),)
 
-    def __init__(self, date: datetime.datetime, action: str) -> None:  # noqa: D107
+    def __init__(self, date: datetime.datetime, action: str, project: str | None) -> None:  # noqa: D107
         self.date = date
         self.action = action
+        self.project = project
 
 
 class Pause(Base):
