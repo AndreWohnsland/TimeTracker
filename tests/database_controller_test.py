@@ -91,10 +91,10 @@ class TestController:
 
     def test_get_period_work_orders_results(self, db_controller: DatabaseController) -> None:
         random_events = [
-            Event(date=datetime.datetime(2030, 5, 1, 15, 45), action="stop"),
-            Event(date=datetime.datetime(2030, 5, 1, 6, 15), action="start"),
-            Event(date=datetime.datetime(2030, 5, 1, 12, 0), action="coffee"),
-            Event(date=datetime.datetime(2030, 5, 1, 14, 0), action="resume"),
+            Event(date=datetime.datetime(2030, 5, 1, 15, 45), action="stop", project="default"),
+            Event(date=datetime.datetime(2030, 5, 1, 6, 15), action="start", project="default"),
+            Event(date=datetime.datetime(2030, 5, 1, 12, 0), action="coffee", project="default"),
+            Event(date=datetime.datetime(2030, 5, 1, 14, 0), action="resume", project="default"),
         ]
 
         with db_controller.session_scope() as session:

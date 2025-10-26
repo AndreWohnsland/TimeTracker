@@ -70,11 +70,11 @@ class DatabaseController:
         finally:
             session.close()
 
-    def add_event(self, event: str, entry_datetime: datetime.datetime) -> None:
+    def add_event(self, event: str, entry_datetime: datetime.datetime, project: str) -> None:
         datetime_string = entry_datetime.isoformat()
         logger.info("Add Event: %s, timestamp: %s", event, datetime_string)
         with self.session_scope() as session:
-            new_event = Event(date=entry_datetime, action=event)
+            new_event = Event(date=entry_datetime, action=event, project=project)
             session.add(new_event)
 
     def add_pause(self, pause_time: int, entry_date: datetime.date) -> None:
