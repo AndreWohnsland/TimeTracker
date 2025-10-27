@@ -13,6 +13,7 @@ from src.filepath import CONFIG_PATH
 # need at least all that config has
 NEEDED_DATA = {
     "name": "",
+    "project_names": ["Default"],
     "save_path": "",
     "work_hours": 40.0,
     "use_hours_per_week": True,
@@ -24,6 +25,7 @@ NEEDED_DATA = {
 }
 CONFIG_NAMES = Literal[
     "name",
+    "project_names",
     "save_path",
     "work_hours",
     "use_hours_per_week",
@@ -39,6 +41,7 @@ CONFIG_NAMES = Literal[
 @dataclass_json
 class Config:
     name: str
+    project_names: list[str]
     save_path: str
     work_hours: float
     use_hours_per_week: bool
@@ -64,7 +67,7 @@ class Config:
             setattr(c, new_name, new_val)
         return c
 
-    def __getitem__(self, item: str) -> Any:
+    def __getitem__(self, item: CONFIG_NAMES) -> Any:
         return getattr(self, item)
 
     def get_weekly_hours(self) -> float:
