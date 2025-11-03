@@ -28,11 +28,11 @@ def db_controller() -> Generator[DatabaseController, Any, None]:
             end_dt = datetime.datetime.combine(current, datetime.time(14, 30))
             pause_start = datetime.datetime.combine(current, datetime.time(12, 0))
             pause_end = datetime.datetime.combine(current, datetime.time(13, 0))
-            db_controller.add_event("start", start_dt)
+            db_controller.add_event("start", start_dt, "default")
             if current.day % 2 == 0:
-                db_controller.add_event("stop", pause_start)
-                db_controller.add_event("start", pause_end)
-            db_controller.add_event("stop", end_dt)
+                db_controller.add_event("stop", pause_start, "default")
+                db_controller.add_event("start", pause_end, "default")
+            db_controller.add_event("stop", end_dt, "default")
         current += datetime.timedelta(days=1)
 
     yield db_controller

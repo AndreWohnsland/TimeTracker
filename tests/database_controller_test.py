@@ -28,10 +28,21 @@ class TestController:
 
     def test_insert_event(self, db_controller: DatabaseController) -> None:
         future_date = datetime.datetime(2026, 1, 1, 10, 0, 0)
-        db_controller.add_event("start", future_date)
+        db_controller.add_event("start", future_date, "default")
         day_data, _ = db_controller.get_day_data(future_date.date())
         assert any(future_date.isoformat() in item for item in day_data)
         assert day_data[0] == (future_date.isoformat(), "start")
+
+    def test_get_last_event_returns_latest_entry(self, db_controller: DatabaseController) -> None:
+        earlier_event = datetime.datetime(2026, 1, 6, 8, 0)
+        latest_event = datetime.datetime(2026, 1, 6, 18, 0)
+        db_controller.add_event("start", earlier_event, "default")
+        db_controller.add_event("stop", latest_event, "default")
+
+        last_event = db_controller.get_last_event()
+        assert last_event is not None
+        assert last_event.date == latest_event
+        assert last_event.action == "stop"
 
     def test_insert_pause(self, db_controller: DatabaseController) -> None:
         future_date = datetime.date(2026, 1, 2)
@@ -42,7 +53,7 @@ class TestController:
 
     def test_delete_event(self, db_controller: DatabaseController) -> None:
         future_date = datetime.datetime(2026, 1, 3, 10, 0, 0)
-        db_controller.add_event("start", future_date)
+        db_controller.add_event("start", future_date, "default")
         db_controller.delete_event(future_date)
         day_data, _ = db_controller.get_day_data(future_date.date())
         assert not any(future_date.isoformat() in item for item in day_data)
