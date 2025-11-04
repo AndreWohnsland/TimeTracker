@@ -77,6 +77,11 @@ class DatabaseController:
             new_event = Event(date=entry_datetime, action=event, project=project)
             session.add(new_event)
 
+    def get_last_event(self) -> Event | None:
+        with self.session_scope() as session:
+            stmt = select(Event).order_by(Event.date.desc()).limit(1)
+            return session.execute(stmt).scalar_one_or_none()
+
     def add_pause(self, pause_time: int, entry_date: datetime.date) -> None:
         if self.day_exists(entry_date):
             self.update_pause(pause_time, entry_date)

@@ -340,12 +340,14 @@ class DataWindow(QWidget, Ui_DataWindow):
         event_data = self.get_selected_event()
         if event_data is None:
             return
-        if UIC.user_okay(f"Do you want to delete event {event_data.event} at: {event_data.event_time}?"):
-            logger.info("Delete event %s at: %s", event_data.event, event_data.event_time)
-            DB_CONTROLLER.delete_event(event_data.event_time)
-            store.update_data(self.selected_date)
-            self.update_table_data()
-            self.plot()
+        if not UIC.user_okay(f"Do you want to delete event {event_data.event} at: {event_data.event_time}?"):
+            return
+        logger.info("Delete event %s at: %s", event_data.event, event_data.event_time)
+        DB_CONTROLLER.delete_event(event_data.event_time)
+        store.update_data(self.selected_date)
+        self.update_table_data()
+        self.plot()
+        self.main_window.update_last_event_label()
 
     def get_selected_event(self) -> EventData | None:
         indexes = self.tableWidget.selectionModel().selectedRows()

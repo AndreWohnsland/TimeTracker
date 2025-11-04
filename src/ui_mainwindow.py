@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon
 
+from src.config_handler import CONFIG_HANDLER
 from src.database_controller import DB_CONTROLLER
 from src.icons import get_preset_icons
 from src.ui_config_window import ConfigWindow
@@ -33,6 +34,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_tray()
         self.menubar.setNativeMenuBar(False)  # for macOS to show the menu bar in the app window
         self.setWindowIcon(self.clock_icon)
+        self.update_project_names()
         # set manual here, since it does not recognize the hidden state at init somehow.
         # The default app shows the elements and got the additional height.
         self.past_datetime_edit.hide()
@@ -42,6 +44,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.data_window = DataWindow(self)
         self.config_window: ConfigWindow | None = None
         self.vacation_window: VacationWindow | None = None
+        self.update_last_event_label()
 
     def connect_buttons(self) -> None:
         self.start_button.clicked.connect(lambda: self.add_start())
@@ -81,6 +84,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         start_action = QAction(icon, text, self)
         start_action.triggered.connect(action)
         tray_menu.addAction(start_action)
+
+    def update_project_names(self) -> None:
+        """Update the project names in the project input box."""
+        self.input_project.clear()
+        self.input_project.addItems(CONFIG_HANDLER.config.project_names)
 
     def close_app(self) -> None:
         """Close the app after asking the user."""
@@ -177,10 +185,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         entry_datetime = datetime.datetime.now().replace(microsecond=0)
         if self.is_past_time and check_past_entry:
             entry_datetime = self.get_past_datetime()
-        DB_CONTROLLER.add_event(event, entry_datetime)
+        project = self.input_project.currentText()
+        DB_CONTROLLER.add_event(event, entry_datetime, project)
         UIC.show_notification(
             self.tray_icon, f"Added event {event} at {entry_datetime.strftime('%d-%m-%Y - %H:%M:%S')}", "Event Added"
         )
+        self.update_last_event_label()
 
     def add_start(self, check_past_entry: bool = True) -> None:
         """Add a start event."""
@@ -191,6 +201,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Add a stop event."""
         self.add_event("stop", check_past_entry)
         self.update_other_windows()
+
+    def update_last_event_label(self) -> None:
+        """Refresh the last-event label with the latest stored event."""
+        last_event = DB_CONTROLLER.get_last_event()
+        if last_event is None:
+            label_text = "No Events Recorded"
+        else:
+            timestamp = last_event.date.strftime("%Y/%m/%d %H:%M")
+            label_text = f"{last_event.project} | {timestamp} | {last_event.action.capitalize()}"
+
+        self.label_last_event.setText(label_text)
 
     def get_updates(self) -> None:
         """Ask the user if they want to update and then update."""
