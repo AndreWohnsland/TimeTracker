@@ -85,9 +85,9 @@ def open_folder_in_explorer(p: Path = SAVE_FOLDER) -> None:
     if system == "Windows":
         os.startfile(resolved_path)  # type: ignore
     elif system == "Darwin":  # Mac
-        os.system(f"open {resolved_path}")
+        os.system(f'open "{resolved_path}"')
     elif system == "Linux":
-        os.system(f"xdg-open {resolved_path}")
+        os.system(f'xdg-open "{resolved_path}"')
 
 
 def setup_logging(log_file_path: Path = LOG_FILE_PATH) -> None:

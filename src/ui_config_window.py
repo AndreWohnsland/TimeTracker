@@ -100,6 +100,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
     def set_config_values(self) -> None:
         """Set config values to the input fields, other than country and subdiv."""
         self.input_name.setText(CONFIG_HANDLER.config.name)
+        self.input_project_names.setText(";".join(CONFIG_HANDLER.config.project_names))
         self.input_working_hours.setValue(CONFIG_HANDLER.config.work_hours)
         self.work_hours_button.setChecked(CONFIG_HANDLER.config.use_hours_per_week)
         self.work_hours_button.setText("/ Week" if CONFIG_HANDLER.config.use_hours_per_week else "/ Day")
@@ -118,6 +119,9 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.country = self.input_country.currentText()
         CONFIG_HANDLER.config.subdiv = self.input_subdiv.currentText() or None
         CONFIG_HANDLER.config.name = self.input_name.text()
+        CONFIG_HANDLER.config.project_names = [
+            name.strip() for name in self.input_project_names.text().split(";") if name.strip()
+        ]
         CONFIG_HANDLER.config.work_hours = self.input_working_hours.value()
         CONFIG_HANDLER.config.use_hours_per_week = self.work_hours_button.isChecked()
         selected_days: list[int] = []
@@ -132,6 +136,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
 
         CONFIG_HANDLER.write_config_file()
         self.main_window.update_data_window()
+        self.main_window.update_project_names()
         self.close()
 
     def _apply_subdiv_filter(self) -> None:

@@ -41,17 +41,17 @@ def main() -> None:
             end_minute = random.randint(0, 59)
             end_dt = datetime.datetime.combine(current, datetime.time(end_hour, end_minute))
             # Insert start event
-            DB_CONTROLLER.add_event("start", start_dt)
+            DB_CONTROLLER.add_event("start", start_dt, "default")
             # 40% chance for a break from 12:00 to 13:00
             pause_chance = 0.8
             if random.random() < pause_chance:
                 pause_start = datetime.datetime.combine(current, datetime.time(12, 0))
                 pause_end = datetime.datetime.combine(current, datetime.time(13, 0))
-                DB_CONTROLLER.add_event("stop", pause_start)
-                DB_CONTROLLER.add_event("start", pause_end)
+                DB_CONTROLLER.add_event("stop", pause_start, "default")
+                DB_CONTROLLER.add_event("start", pause_end, "default")
                 # Add pause (60 minutes)
             # Insert end event
-            DB_CONTROLLER.add_event("stop", end_dt)
+            DB_CONTROLLER.add_event("stop", end_dt, "default")
         current += datetime.timedelta(days=1)
 
 

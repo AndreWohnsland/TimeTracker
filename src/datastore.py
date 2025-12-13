@@ -282,10 +282,13 @@ def _calculate_overtime(row: pd.Series) -> float:
     # Make typing happy, should not happen here
     if not isinstance(day_date, datetime.date):
         return 0.0
+    # For future dates, we cannot calculate overtime yet since the day hasn't happened
+    if day_date > today:
+        return 0.0
+    # For today, only show positive, since we can still work to get more hours
     overtime = work_hours - daily_target
-    if day_date >= today:
+    if day_date == today:
         return max(0.0, overtime)
-
     return overtime
 
 
