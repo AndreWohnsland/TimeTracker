@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_VacationWindow:
+class Ui_VacationWindow(object):
     def setupUi(self, VacationWindow):
         VacationWindow.setObjectName("VacationWindow")
         VacationWindow.resize(475, 656)
@@ -55,11 +55,7 @@ class Ui_VacationWindow:
         font = QtGui.QFont()
         font.setPointSize(18)
         self.year_select.setFont(font)
-        self.year_select.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.year_select.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.year_select.setMinimum(2000)
         self.year_select.setMaximum(2050)
         self.year_select.setProperty("value", 2024)
@@ -102,12 +98,7 @@ class Ui_VacationWindow:
     def retranslateUi(self, VacationWindow):
         _translate = QtCore.QCoreApplication.translate
         VacationWindow.setWindowTitle(_translate("VacationWindow", "Manage your Time Off"))
-        self.label_5.setText(
-            _translate(
-                "VacationWindow",
-                "<html><head/><body><p>Enter your day time off. Each day will count as your configured daily working hour on that day, so no need to enter holidays or weekends (non-working days) here.</p></body></html>",
-            )
-        )
+        self.label_5.setText(_translate("VacationWindow", "<html><head/><body><p>Enter your day time off. Each day will count as your configured daily working hour on that day, so no need to enter holidays or weekends (non-working days) here.</p></body></html>"))
         self.select_reason.setPlaceholderText(_translate("VacationWindow", "Select Reason"))
         self.date_edit.setDisplayFormat(_translate("VacationWindow", "dd/MM/yyyy"))
         self.save_button.setText(_translate("VacationWindow", "Add"))
@@ -117,7 +108,6 @@ class Ui_VacationWindow:
 
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     VacationWindow = QtWidgets.QWidget()
     ui = Ui_VacationWindow()

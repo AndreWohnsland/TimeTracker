@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_ConfigWindow:
+class Ui_ConfigWindow(object):
     def setupUi(self, ConfigWindow):
         ConfigWindow.setObjectName("ConfigWindow")
         ConfigWindow.resize(752, 504)
@@ -52,11 +52,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.filter_subdiv.setFont(font)
-        self.filter_subdiv.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.filter_subdiv.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.filter_subdiv.setObjectName("filter_subdiv")
         self.gridLayout_2.addWidget(self.filter_subdiv, 7, 3, 1, 1)
         self.input_country = QtWidgets.QComboBox(parent=self.scrollAreaWidgetContents)
@@ -78,11 +74,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_name.setFont(font)
-        self.input_name.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_name.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_name.setObjectName("input_name")
         self.gridLayout_2.addWidget(self.input_name, 0, 1, 1, 3)
         self.work_hours_button = QtWidgets.QPushButton(parent=self.scrollAreaWidgetContents)
@@ -106,22 +98,14 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_working_hours.setFont(font)
-        self.input_working_hours.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_working_hours.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_working_hours.setObjectName("input_working_hours")
         self.gridLayout_2.addWidget(self.input_working_hours, 2, 1, 1, 2)
         self.label_7 = QtWidgets.QLabel(parent=self.scrollAreaWidgetContents)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label_7.setFont(font)
-        self.label_7.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.label_7.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.label_7.setObjectName("label_7")
         self.gridLayout_2.addWidget(self.label_7, 6, 2, 1, 1)
         self.label_6 = QtWidgets.QLabel(parent=self.scrollAreaWidgetContents)
@@ -160,11 +144,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_hours_day_0.setFont(font)
-        self.input_hours_day_0.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_hours_day_0.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_hours_day_0.setObjectName("input_hours_day_0")
         self.horizontalLayout_3.addWidget(self.input_hours_day_0)
         self.input_hours_day_1 = QtWidgets.QDoubleSpinBox(parent=self.scrollAreaWidgetContents)
@@ -172,11 +152,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_hours_day_1.setFont(font)
-        self.input_hours_day_1.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_hours_day_1.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_hours_day_1.setObjectName("input_hours_day_1")
         self.horizontalLayout_3.addWidget(self.input_hours_day_1)
         self.input_hours_day_2 = QtWidgets.QDoubleSpinBox(parent=self.scrollAreaWidgetContents)
@@ -184,11 +160,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_hours_day_2.setFont(font)
-        self.input_hours_day_2.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_hours_day_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_hours_day_2.setObjectName("input_hours_day_2")
         self.horizontalLayout_3.addWidget(self.input_hours_day_2)
         self.input_hours_day_3 = QtWidgets.QDoubleSpinBox(parent=self.scrollAreaWidgetContents)
@@ -196,11 +168,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_hours_day_3.setFont(font)
-        self.input_hours_day_3.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_hours_day_3.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_hours_day_3.setObjectName("input_hours_day_3")
         self.horizontalLayout_3.addWidget(self.input_hours_day_3)
         self.input_hours_day_4 = QtWidgets.QDoubleSpinBox(parent=self.scrollAreaWidgetContents)
@@ -208,11 +176,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_hours_day_4.setFont(font)
-        self.input_hours_day_4.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_hours_day_4.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_hours_day_4.setObjectName("input_hours_day_4")
         self.horizontalLayout_3.addWidget(self.input_hours_day_4)
         self.input_hours_day_5 = QtWidgets.QDoubleSpinBox(parent=self.scrollAreaWidgetContents)
@@ -220,11 +184,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_hours_day_5.setFont(font)
-        self.input_hours_day_5.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_hours_day_5.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_hours_day_5.setObjectName("input_hours_day_5")
         self.horizontalLayout_3.addWidget(self.input_hours_day_5)
         self.input_hours_day_6 = QtWidgets.QDoubleSpinBox(parent=self.scrollAreaWidgetContents)
@@ -232,11 +192,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_hours_day_6.setFont(font)
-        self.input_hours_day_6.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_hours_day_6.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_hours_day_6.setObjectName("input_hours_day_6")
         self.horizontalLayout_3.addWidget(self.input_hours_day_6)
         self.gridLayout_2.addLayout(self.horizontalLayout_3, 5, 1, 1, 3)
@@ -339,22 +295,14 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.filter_country.setFont(font)
-        self.filter_country.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.filter_country.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.filter_country.setObjectName("filter_country")
         self.gridLayout_2.addWidget(self.filter_country, 6, 3, 1, 1)
         self.label_8 = QtWidgets.QLabel(parent=self.scrollAreaWidgetContents)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label_8.setFont(font)
-        self.label_8.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.label_8.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.label_8.setObjectName("label_8")
         self.gridLayout_2.addWidget(self.label_8, 7, 2, 1, 1)
         self.label_3 = QtWidgets.QLabel(parent=self.scrollAreaWidgetContents)
@@ -369,11 +317,7 @@ class Ui_ConfigWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.input_project_names.setFont(font)
-        self.input_project_names.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.input_project_names.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.input_project_names.setObjectName("input_project_names")
         self.gridLayout_2.addWidget(self.input_project_names, 1, 1, 1, 3)
         self.verticalLayout_3.addLayout(self.gridLayout_2)
@@ -393,12 +337,7 @@ class Ui_ConfigWindow:
     def retranslateUi(self, ConfigWindow):
         _translate = QtCore.QCoreApplication.translate
         ConfigWindow.setWindowTitle(_translate("ConfigWindow", "Settings"))
-        self.label_5.setText(
-            _translate(
-                "ConfigWindow",
-                '<html><head/><body><p align="center"><span style=" font-weight:700;">Change your local settings</span></p><p align="center"><span style=" font-size:10pt;">Use decimals for minutes, e.g. 30 minutes are 30/60 = 0.5 h</span></p><p align="center"><span style=" font-size:10pt;">Project Names should be &quot;;&quot; separated like&quot;Name;Name2;...&quot;</span></p></body></html>',
-            )
-        )
+        self.label_5.setText(_translate("ConfigWindow", "<html><head/><body><p align=\"center\"><span style=\" font-weight:700;\">Change your local settings</span></p><p align=\"center\"><span style=\" font-size:10pt;\">Use decimals for minutes, e.g. 30 minutes are 30/60 = 0.5 h</span></p><p align=\"center\"><span style=\" font-size:10pt;\">Project Names should be &quot;;&quot; separated like&quot;Name;Name2;...&quot;</span></p></body></html>"))
         self.label_4.setText(_translate("ConfigWindow", "Different Times:"))
         self.label_13.setText(_translate("ConfigWindow", "Subdiv:"))
         self.work_hours_button.setText(_translate("ConfigWindow", "/ Week"))
@@ -423,7 +362,6 @@ class Ui_ConfigWindow:
 
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     ConfigWindow = QtWidgets.QWidget()
     ui = Ui_ConfigWindow()

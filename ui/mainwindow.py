@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow:
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(368, 370)
@@ -55,11 +55,7 @@ class Ui_MainWindow:
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label_project.setFont(font)
-        self.label_project.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight
-            | QtCore.Qt.AlignmentFlag.AlignTrailing
-            | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
+        self.label_project.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.label_project.setObjectName("label_project")
         self.horizontalLayout_2.addWidget(self.label_project)
         self.input_project = QtWidgets.QComboBox(parent=self.centralwidget)
@@ -179,7 +175,6 @@ class Ui_MainWindow:
 
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
