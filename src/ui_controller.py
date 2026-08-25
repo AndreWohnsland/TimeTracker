@@ -120,7 +120,7 @@ class UiController:
                     continue
                 widget = item.widget()
                 if widget is not None:
-                    widget.setParent(None)  # type: ignore
+                    widget.setParent(None)
                 else:
                     self.delete_items_of_layout(item.layout())
 

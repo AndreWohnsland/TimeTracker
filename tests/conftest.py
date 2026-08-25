@@ -13,7 +13,7 @@ def _is_working_day(date: datetime.date, holidays: set, vacations: set, workdays
 
 
 @pytest.fixture
-def db_controller() -> Generator[DatabaseController, Any, None]:
+def db_controller() -> Generator[DatabaseController, Any]:
     # Define the date range
     start_date = datetime.date(2025, 1, 1)
     end_date = datetime.date(2025, 12, 30)

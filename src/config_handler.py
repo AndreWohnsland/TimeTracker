@@ -1,11 +1,10 @@
 import datetime
 import json
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from inspect import signature
 from typing import Any, Literal
 
 import holidays
-from dataclasses_json import dataclass_json
 
 from src.filepath import CONFIG_PATH
 
@@ -21,7 +20,7 @@ NEEDED_DATA = {
     "subdiv": None,
     "workdays": [0, 1, 2, 3, 4],  # 0-6, 0=Monday, 6=Sunday
     "different_workdays": False,
-    "time_per_day": (8.0, 8.0, 8.0, 8.0, 8.0, 0, 0),
+    "time_per_day": [8.0, 8.0, 8.0, 8.0, 8.0, 0.0, 0.0],
 }
 CONFIG_NAMES = Literal[
     "name",
@@ -38,7 +37,6 @@ CONFIG_NAMES = Literal[
 
 
 @dataclass
-@dataclass_json
 class Config:
     name: str
     project_names: list[str]
@@ -49,7 +47,8 @@ class Config:
     subdiv: str | None
     workdays: list[int]
     different_workdays: bool
-    time_per_day: tuple[float, float, float, float, float, float, float]
+    # 7 entries, Monday-Sunday; a list (not tuple) so it survives the JSON roundtrip unchanged
+    time_per_day: list[float]
 
     @classmethod
     def from_kwargs(cls, **kwargs: Any) -> "Config":
@@ -96,9 +95,7 @@ class Config:
         return [self.get_daily_hours_at(day) for day in range(7)]
 
     def get_holidays(self, year: int) -> list[datetime.date]:
-        available_holidays = holidays.country_holidays(
-            CONFIG_HANDLER.config.country, subdiv=CONFIG_HANDLER.config.subdiv or None, years=year
-        )
+        available_holidays = holidays.country_holidays(self.country, subdiv=self.subdiv or None, years=year)
         return list(available_holidays.keys())
 
 
@@ -123,8 +120,7 @@ class ConfigHandler:
 
     def write_config_file(self) -> None:
         with CONFIG_PATH.open("w", encoding="utf-8") as write_file:
-            # pylint: disable=no-member
-            json.dump(self.config.to_dict(), write_file)  # type: ignore
+            json.dump(asdict(self.config), write_file)
 
     def set_config_value(self, key: CONFIG_NAMES, value: Any, write: bool = True) -> None:
         setattr(self.config, key, value)
@@ -134,7 +130,7 @@ class ConfigHandler:
 
     def config_hash(self) -> int:
         """Get a hash of the current config."""
-        return hash(json.dumps(self.config.to_dict()))  # type: ignore
+        return hash(json.dumps(asdict(self.config)))
 
 
 CONFIG_HANDLER = ConfigHandler()

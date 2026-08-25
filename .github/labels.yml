@@ -29,6 +29,9 @@
 - name: 'dependencies'
   color: 1d76db
   description: 'Upgrade or downgrade of project dependencies.'
+- name: 'skip-changelog'
+  color: cccccc
+  description: 'Excluded from release notes and version resolving (e.g. dependabot).'
 
 - name: 'in-progress'
   color: fbca04

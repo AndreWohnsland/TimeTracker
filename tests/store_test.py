@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from src.datastore import MonthData, Store
+from src.models import OvertimeAdjustment
 
 
 @pytest.fixture
@@ -16,11 +17,12 @@ def mock_db_controller() -> MagicMock:
     mock.get_day_data.return_value = ([], [])
     mock.get_month_data.return_value = ([], [])
     mock.get_months_with_data.return_value = []
+    mock.get_overtime_adjustments.return_value = []
     return mock
 
 
 @pytest.fixture
-def store_and_controller(mock_db_controller: MagicMock) -> Generator[tuple[Store, MagicMock], None, None]:
+def store_and_controller(mock_db_controller: MagicMock) -> Generator[tuple[Store, MagicMock]]:
     with patch("src.datastore.DB_CONTROLLER", mock_db_controller):
         yield Store(), mock_db_controller
 
@@ -128,6 +130,73 @@ def test_calculate_overtime_totals_with_data(store_and_controller: tuple[Store, 
     store_instance.calculate_overtime_totals()
     assert isinstance(store_instance.total_overtime, float)
     assert isinstance(store_instance.overtime_by_year, dict)
+
+
+def test_overtime_adjustment_counts_in_totals(store_and_controller: tuple[Store, MagicMock]) -> None:
+    """A past adjustment shifts the overtime totals by exactly its hours."""
+    store_instance, mock_db_controller = store_and_controller
+    adjustment_hours = -20.0
+    mock_db_controller.get_months_with_data.return_value = [(2025, 5)]
+    mock_db_controller.get_month_data.return_value = (
+        [("2025-05-01T08:00:00", "start"), ("2025-05-01T18:00:00", "stop")],
+        [],
+    )
+    mock_db_controller.get_overtime_adjustments.return_value = [
+        OvertimeAdjustment(date=datetime.date(2025, 5, 15), hours=adjustment_hours)
+    ]
+    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+        mock_config.config.get_daily_hours_at.return_value = 8.0
+        mock_config.config.workdays = [0, 1, 2, 3, 4]
+        mock_config.config.get_holidays.return_value = []
+        mock_config.config_hash.return_value = 12345
+
+        store_instance.calculate_overtime_totals()
+        month_df = store_instance.all_data[(2025, 5)].df
+
+        assert month_df["overtime_adjustment"].sum() == adjustment_hours
+        expected_total = round(month_df["overtime"].sum() + adjustment_hours, 2)
+        assert store_instance.total_overtime == expected_total
+        assert store_instance.overtime_by_year[2025] == expected_total
+
+
+def test_future_overtime_adjustment_is_not_counted(store_and_controller: tuple[Store, MagicMock]) -> None:
+    """An adjustment dated in the future does not affect the month data until its date arrives."""
+    store_instance, mock_db_controller = store_and_controller
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    month_first = tomorrow.replace(day=1)
+    start_str = f"{month_first.isoformat()}T08:00:00"
+    mock_db_controller.get_month_data.return_value = (
+        [(start_str, "start"), (start_str.replace("T08", "T09"), "stop")],
+        [],
+    )
+    mock_db_controller.get_overtime_adjustments.return_value = [OvertimeAdjustment(date=tomorrow, hours=-20.0)]
+    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+        mock_config.config.get_daily_hours_at.return_value = 8.0
+        mock_config.config.workdays = [0, 1, 2, 3, 4]
+        mock_config.config.get_holidays.return_value = []
+        mock_config.config_hash.return_value = 12345
+
+        month_data = store_instance.generate_month_data(month_first)
+        assert month_data.df["overtime_adjustment"].sum() == 0.0
+
+
+def test_month_with_only_adjustment_is_not_dropped(store_and_controller: tuple[Store, MagicMock]) -> None:
+    """A month without any work events but with an adjustment still produces a report."""
+    store_instance, mock_db_controller = store_and_controller
+    adjustment_hours = -15.0
+    mock_db_controller.get_month_data.return_value = ([], [])
+    mock_db_controller.get_overtime_adjustments.return_value = [
+        OvertimeAdjustment(date=datetime.date(2025, 6, 10), hours=adjustment_hours)
+    ]
+    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+        mock_config.config.get_daily_hours_at.return_value = 8.0
+        mock_config.config.workdays = [0, 1, 2, 3, 4]
+        mock_config.config.get_holidays.return_value = []
+        mock_config.config_hash.return_value = 12345
+
+        month_data = store_instance.generate_month_data(datetime.date(2025, 6, 1))
+        assert not month_data.df.empty
+        assert month_data.df["overtime_adjustment"].sum() == adjustment_hours
 
 
 def test_vacation_day_future_no_work_should_have_zero_work_and_overtime(

@@ -2,45 +2,41 @@
 name = "time-tracker"
 version = "1.5.1"
 description = "Track your time with Python and Qt"
-authors = [{ name= "Andre Wohnsland" , email =  "50302161+AndreWohnsland@users.noreply.github.com"}]
+authors = [{ name = "Andre Wohnsland", email = "50302161+AndreWohnsland@users.noreply.github.com" }]
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.13"
 
 dependencies = [
-    "alembic>=1.17.0",
-    "gitpython>=3.1.45",
-    "matplotlib>=3.10.7",
-    "pandas>=2.3.3",
+    "alembic>=1.19.1",
+    "gitpython>=3.1.59",
+    "matplotlib>=3.11.1",
+    "pandas>=3.0.5",
     "xlsxwriter>=3.2.9",
     "pyqtdarktheme>=2.1.0",
-    "qtawesome>=1.4.0",
-    "holidays>=0.82",
-    "dataclasses-json>=0.6.7",
-    "pyqt6>=6.4.2",
-    "plyer>=2.1.0",
-    "numpy>=2.3.3",
-    "win11toast>=0.35; sys_platform == 'win32'",
+    "qtawesome>=1.4.2",
+    "holidays>=0.103",
+    "pyqt6>=6.11.0",
+    "numpy>=2.5.2",
     "seaborn>=0.13.2",
-    "sqlalchemy>=2.0.44",
+    "sqlalchemy>=2.0.52",
 ]
 
 [dependency-groups]
 dev = [
-    "pyinstaller>=6.16.0",
-    "jupyterlab>=4.4.9",
-    "mypy>=1.18.2",
-    "ruff>=0.14.0",
-    "pyqt6-tools>=6.4.2.3.3",
-    "pytest>=8.4.2",
-    "pytest-cov>=7.0.0",
+    "pyinstaller>=6.22.2",
+    "jupyterlab>=4.6.3",
+    "ty==0.0.73",
+    "ruff>=0.16.4",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pre-commit>=4.6.2",
 ]
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 120
+# ui/ holds pyuic6-generated code
+exclude = ["ui", "*.ipynb"]
 
 [tool.ruff.lint]
 extend-safe-fixes = [
@@ -49,7 +45,7 @@ extend-safe-fixes = [
   "D205", # 1 blank line required between summary line and description
   "W291", # Trailing whitespace
 ]
-per-file-ignores = { "runme.py" = ["E402"] }
+per-file-ignores = { "runme.py" = ["E402"], "tests/*" = ["PLR2004"] }
 select = [
   "A", # flake8-builtins
   "ANN", # Type annotations
@@ -58,8 +54,7 @@ select = [
   "D", # pydocstyle 
   "E", # pycodestyle
   "F", # Pyflakes
-  "FAST", # FastAPI
-  "I", # isort 
+  "I", # isort
   "ICN001", # {name} should be imported as {asname},
   "PIE", # flake8-pie
   "PL", # pylint
@@ -84,15 +79,3 @@ ignore = [
   "D213", # Multi-line docstring summary should start at the second line
   "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
 ]
-
-[tool.mypy]
-disable_error_code = ["annotation-unchecked", "import-untyped"]
-
-[tool.pylint]
-disable = ["C0301", "C0114", "C0115", "C0116", "R0912"]
-max-line-length = 120
-extension-pkg-whitelist= ["PyQt5"]
-
-[tool.autopep8]
-max-line-length = 120
-ignore = ["E402"]

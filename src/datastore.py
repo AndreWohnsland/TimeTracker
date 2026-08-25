@@ -73,11 +73,19 @@ class Store:
             return year_data_df
 
         # Only sum numeric columns, exclude time-based columns
-        numeric_columns = ["total_time", "pause", "work", "break_time", "overtime", "target_time"]
+        numeric_columns = [
+            "total_time",
+            "pause",
+            "work",
+            "break_time",
+            "overtime",
+            "overtime_adjustment",
+            "target_time",
+        ]
         columns_to_sum = [col for col in numeric_columns if col in year_data_df.columns]
 
         year_data_df = year_data_df[columns_to_sum].resample("ME").sum()
-        year_data_df.index = year_data_df.index.to_period("M")  # type: ignore
+        year_data_df.index = year_data_df.index.to_period("M")
         return year_data_df
 
     def generate_daily_data(self, selected_date: datetime.date) -> None:
@@ -88,19 +96,25 @@ class Store:
 
     def generate_month_data(self, selected_date: datetime.date) -> MonthData:
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
+        adjustment_data = self._get_month_adjustments(selected_date)
         free_days = self.get_free_days(selected_date.year)
-        data_hash = hash((tuple(work_data), tuple(pause_data), tuple(free_days)))
+        data_hash = hash((tuple(work_data), tuple(pause_data), tuple(adjustment_data), tuple(free_days)))
         # check if we already have the same data computes (no config or DB data changes)
         # skip for current month, since it constantly changes
         last_data = self.all_data.get((selected_date.year, selected_date.month))
         if last_data and last_data.is_same_data(data_hash) and not self.is_current_month(selected_date):
             return last_data
-        if not work_data:
+        if not work_data and not adjustment_data:
             return MonthData(df=pd.DataFrame([]), data_hash=data_hash)
         return MonthData(
-            df=self._generate_month_report(work_data, selected_date, free_days, pause_data),
+            df=self._generate_month_report(work_data, selected_date, free_days, pause_data, adjustment_data),
             data_hash=data_hash,
         )
+
+    def _get_month_adjustments(self, selected_date: datetime.date) -> list[tuple[datetime.date, float]]:
+        start = datetime.date(selected_date.year, selected_date.month, 1)
+        end = start + relativedelta(months=+1)
+        return [(a.date, a.hours) for a in DB_CONTROLLER.get_overtime_adjustments(start, end)]
 
     def _generate_month_report(
         self,
@@ -108,10 +122,12 @@ class Store:
         selected_date: datetime.date,
         free_days: list[datetime.date],
         pause_data: list[tuple[str, int]],
+        adjustment_data: list[tuple[datetime.date, float]],
     ) -> pd.DataFrame:
         """Generate the complete monthly report DataFrame with all columns."""
         work_df = pd.DataFrame(work_data, columns=["datetime", "event"])
-        work_df["datetime"] = work_df["datetime"].apply(pd.to_datetime)
+        # not using .apply here, it would leave an empty frame (adjustment-only month) as non-datetime dtype
+        work_df["datetime"] = pd.to_datetime(work_df["datetime"])
         work_df["time"] = work_df["datetime"].dt.time
         work_df["date"] = work_df["datetime"].dt.date
 
@@ -120,7 +136,7 @@ class Store:
 
         report_data = []
 
-        for day in pd.date_range(start, end - datetime.timedelta(days=1), freq="d"):
+        for day in pd.date_range(start, end - datetime.timedelta(days=1), freq="D"):
             days_data = work_df[work_df["date"] == day.date()]
             calculated_time = 0.0
             # Free days adds the daily target time to the total time (in case the user still worked to get overtime)
@@ -156,8 +172,15 @@ class Store:
         combined_df["work"] = combined_df["work"].apply(lambda x: max(x, 0)).round(2)
         combined_df["break_time"] = combined_df.apply(_calculate_break_time, axis=1)
         combined_df["target_time"] = combined_df.apply(_calculate_target_time, axis=1)
-        combined_df["overtime"] = combined_df.apply(lambda row: _calculate_overtime(row), axis=1)
+        combined_df["overtime"] = combined_df.apply(_calculate_overtime, axis=1)
         combined_df["overtime"] = combined_df["overtime"].round(2)
+
+        # adjustments only count once their date has arrived, same rule as overtime
+        combined_df["overtime_adjustment"] = 0.0
+        today = datetime.date.today()
+        for adjustment_date, hours in adjustment_data:
+            if adjustment_date <= today:
+                combined_df.loc[pd.Timestamp(adjustment_date), "overtime_adjustment"] = hours
 
         return combined_df
 
@@ -209,7 +232,7 @@ class Store:
         # else, use the midnight of this day as end
         else:
             next_day = start_time + datetime.timedelta(days=1)
-            end_of_day = datetime.datetime.combine(next_day, datetime.time.min)  # type: ignore
+            end_of_day = datetime.datetime.combine(next_day, datetime.time.min)
             total_time += end_of_day - start_time
             latest_end = end_of_day.time()
 
@@ -230,11 +253,16 @@ class Store:
         if not dfs:
             return
         merged_df = pd.concat(dfs)
-        overtime_by_year = merged_df.groupby(merged_df.index.year)["overtime"].sum()  # type: ignore
+        effective_overtime = merged_df["overtime"] + merged_df["overtime_adjustment"]
+        overtime_by_year = effective_overtime.groupby(merged_df.index.year).sum()  # type: ignore
         for year, value in overtime_by_year.items():
             self.overtime_by_year[year] = round(value, 2)
-        self.total_overtime = round(merged_df["overtime"].sum(), 2)
+        self.total_overtime = round(effective_overtime.sum(), 2)
         self.last_overtime_calculation = datetime.datetime.now()
+
+    def force_overtime_recalculation(self) -> None:
+        """Make the next update_data bypass the recalculation throttle (e.g. after an adjustment change)."""
+        self.last_overtime_calculation = datetime.datetime.min
 
 
 def _calculate_break_time(row: pd.Series) -> float:

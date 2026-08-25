@@ -147,7 +147,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             title = f"Working time for {store.current_date.strftime('%B %Y')}"
         else:
             title = f"Working time for {store.current_date.year}"
-        sum_overtime = plot_df.overtime.sum()
+        sum_overtime = plot_df.overtime.sum() + plot_df.overtime_adjustment.sum()
         sum_work = plot_df.work.sum()
         title += f" | Work: {sum_work:.0f} h | Overtime: {sum_overtime:.0f} h"
         self.figure.suptitle(title, weight="bold", fontsize=15)
@@ -239,6 +239,33 @@ class DataWindow(QWidget, Ui_DataWindow):
         ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{int(x)}"))
         ax.spines["bottom"].set_position(("data", 0))
         ax.set_ylabel("Overtime (h)")
+        self._plot_adjustments(ax, df)
+
+    def _plot_adjustments(self, ax: Axes, df: pd.DataFrame) -> None:
+        """Mark overtime adjustments on the zero line.
+
+        They can be many times the daily overtime (e.g. a 20 h payout), so drawing them
+        as bars would flatten the regular overtime bars.
+        """
+        for i, (_, row) in enumerate(df.iterrows()):
+            adjustment = row["overtime_adjustment"]
+            if adjustment == 0.0:
+                continue
+            ax.plot(i, 0, marker="D", color=self.colors.purple, markersize=4, zorder=6)
+            # place the label opposite to the day's overtime bar to avoid overlapping its value
+            place_below = row["overtime"] >= 0
+            ax.annotate(
+                f"{adjustment:+g} h",
+                (i, 0),
+                xytext=(0, -12 if place_below else 6),
+                textcoords="offset points",
+                ha="center",
+                va="top" if place_below else "bottom",
+                color=self.colors.purple,
+                fontsize=7,
+                weight="bold",
+                zorder=6,
+            )
 
     def adjust_df_for_plot(self, df: pd.DataFrame) -> pd.DataFrame:
         """Adjust the dataframe for plotting."""
@@ -250,7 +277,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             df["is_free_day"] = df.index.to_series().apply(lambda x: x.date() in free_days)
         else:
             df["is_free_day"] = False
-        to_keep = ["work", "overtime", "color", "target_time", "is_free_day"]
+        to_keep = ["work", "overtime", "overtime_adjustment", "color", "target_time", "is_free_day"]
         return df[to_keep]
 
     def _create_dummy_df(self) -> pd.DataFrame:
@@ -263,7 +290,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             data_points = 12
             index = pd.date_range(start=date.replace(month=1, day=1), periods=data_points, freq="ME")
         zeros = [0] * data_points
-        data = {"work": zeros, "pause": zeros, "overtime": zeros, "target_time": zeros}
+        data = {"work": zeros, "pause": zeros, "overtime": zeros, "overtime_adjustment": zeros, "target_time": zeros}
         return pd.DataFrame(data, index=index)
 
     def save_plot(self) -> None:
@@ -350,14 +377,18 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.main_window.update_last_event_label()
 
     def get_selected_event(self) -> EventData | None:
-        indexes = self.tableWidget.selectionModel().selectedRows()
+        selection_model = self.tableWidget.selectionModel()
+        indexes = selection_model.selectedRows() if selection_model else []
         if indexes:
             row = indexes[0].row()
-            event_datetime = self.tableWidget.item(row, 0).text()
-            event = self.tableWidget.item(row, 1).text()
+            datetime_item = self.tableWidget.item(row, 0)
+            event_item = self.tableWidget.item(row, 1)
+            if datetime_item is None or event_item is None:
+                return None
+            event_datetime = datetime_item.text()
             if event_datetime == "Pause":
                 return None
-            return EventData(datetime.datetime.fromisoformat(event_datetime), event)
+            return EventData(datetime.datetime.fromisoformat(event_datetime), event_item.text())
         return None
 
     def change_month(self, delta: int) -> None:
@@ -373,6 +404,8 @@ class DataWindow(QWidget, Ui_DataWindow):
             return
         row = item.row()
         date_item = self.tableWidget.item(row, 0)
+        if date_item is None:
+            return
         date = date_item.text()
         date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
         self.date_edit.setDate(date)

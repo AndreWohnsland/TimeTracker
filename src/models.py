@@ -14,7 +14,7 @@ The ORM provides:
 import datetime
 
 from sqlalchemy import Date as SqlDate
-from sqlalchemy import DateTime, Index, Integer, String, create_engine
+from sqlalchemy import DateTime, Float, Index, Integer, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 
@@ -70,6 +70,22 @@ class TimeOff(Base):
     def __init__(self, date: datetime.date, reason: str = "Vacation") -> None:  # noqa: D107
         self.date = date
         self.reason = reason
+
+
+class OvertimeAdjustment(Base):
+    """Manual change to the overtime balance (e.g. payout or expiration), signed hours, one per date."""
+
+    __tablename__ = "OvertimeAdjustment"
+
+    ID: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    date: Mapped[datetime.date] = mapped_column(SqlDate, nullable=False, unique=True, name="Date")
+    hours: Mapped[float] = mapped_column(Float, nullable=False, name="Hours")
+
+    __table_args__ = (Index("idx_date_adjustment", "Date", unique=True),)
+
+    def __init__(self, date: datetime.date, hours: float) -> None:  # noqa: D107
+        self.date = date
+        self.hours = hours
 
 
 def create_session_factory(db_url: str) -> sessionmaker:

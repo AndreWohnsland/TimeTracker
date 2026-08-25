@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\mainwindow.ui'
+# Form implementation generated from reading ui file 'mainwindow.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.2
 #
@@ -131,11 +131,14 @@ class Ui_MainWindow(object):
         self.action_open_folder.setObjectName("action_open_folder")
         self.action_set_vacation = QtGui.QAction(parent=MainWindow)
         self.action_set_vacation.setObjectName("action_set_vacation")
+        self.action_overtime_adjustment = QtGui.QAction(parent=MainWindow)
+        self.action_overtime_adjustment.setObjectName("action_overtime_adjustment")
         self.menuOptions.addAction(self.action_report)
         self.menuOptions.addAction(self.action_past_entry)
         self.menuOptions.addSeparator()
         self.menuOptions.addAction(self.action_configuration)
         self.menuOptions.addAction(self.action_set_vacation)
+        self.menuOptions.addAction(self.action_overtime_adjustment)
         self.menuOptions.addAction(self.action_save_folder)
         self.menuOptions.addSeparator()
         self.menuOptions.addAction(self.action_about)
@@ -167,6 +170,7 @@ class Ui_MainWindow(object):
         self.action_about.setText(_translate("MainWindow", "About"))
         self.action_open_folder.setText(_translate("MainWindow", "Open Config Folder"))
         self.action_set_vacation.setText(_translate("MainWindow", "Set Time Off"))
+        self.action_overtime_adjustment.setText(_translate("MainWindow", "Adjust Overtime"))
 
 
 if __name__ == "__main__":
