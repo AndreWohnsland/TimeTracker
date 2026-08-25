@@ -251,7 +251,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             adjustment = row["overtime_adjustment"]
             if adjustment == 0.0:
                 continue
-            ax.plot(i, 0, marker="D", color=self.colors.purple, markersize=7, zorder=6)
+            ax.plot(i, 0, marker="D", color=self.colors.purple, markersize=4, zorder=6)
             # place the label opposite to the day's overtime bar to avoid overlapping its value
             place_below = row["overtime"] >= 0
             ax.annotate(
@@ -377,14 +377,18 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.main_window.update_last_event_label()
 
     def get_selected_event(self) -> EventData | None:
-        indexes = self.tableWidget.selectionModel().selectedRows()
+        selection_model = self.tableWidget.selectionModel()
+        indexes = selection_model.selectedRows() if selection_model else []
         if indexes:
             row = indexes[0].row()
-            event_datetime = self.tableWidget.item(row, 0).text()
-            event = self.tableWidget.item(row, 1).text()
+            datetime_item = self.tableWidget.item(row, 0)
+            event_item = self.tableWidget.item(row, 1)
+            if datetime_item is None or event_item is None:
+                return None
+            event_datetime = datetime_item.text()
             if event_datetime == "Pause":
                 return None
-            return EventData(datetime.datetime.fromisoformat(event_datetime), event)
+            return EventData(datetime.datetime.fromisoformat(event_datetime), event_item.text())
         return None
 
     def change_month(self, delta: int) -> None:
@@ -400,6 +404,8 @@ class DataWindow(QWidget, Ui_DataWindow):
             return
         row = item.row()
         date_item = self.tableWidget.item(row, 0)
+        if date_item is None:
+            return
         date = date_item.text()
         date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
         self.date_edit.setDate(date)

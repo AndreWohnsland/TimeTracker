@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_OvertimeWindow(object):
+class Ui_OvertimeWindow:
     def setupUi(self, OvertimeWindow):
         OvertimeWindow.setObjectName("OvertimeWindow")
         OvertimeWindow.resize(475, 656)
@@ -36,7 +36,11 @@ class Ui_OvertimeWindow(object):
         font = QtGui.QFont()
         font.setPointSize(18)
         self.hours_select.setFont(font)
-        self.hours_select.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.hours_select.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignRight
+            | QtCore.Qt.AlignmentFlag.AlignTrailing
+            | QtCore.Qt.AlignmentFlag.AlignVCenter
+        )
         self.hours_select.setDecimals(2)
         self.hours_select.setMinimum(-2000.0)
         self.hours_select.setMaximum(2000.0)
@@ -84,7 +88,12 @@ class Ui_OvertimeWindow(object):
     def retranslateUi(self, OvertimeWindow):
         _translate = QtCore.QCoreApplication.translate
         OvertimeWindow.setWindowTitle(_translate("OvertimeWindow", "Manage Overtime Adjustments"))
-        self.label_info.setText(_translate("OvertimeWindow", "<html><head/><body><p>Enter manual changes to your overtime balance, like payouts or expiration. Negative hours reduce your overtime (e.g. -20 for a 20 hour payout), positive hours add to it. Adding a date that already has an entry overwrites its value.</p></body></html>"))
+        self.label_info.setText(
+            _translate(
+                "OvertimeWindow",
+                "<html><head/><body><p>Enter manual changes to your overtime balance, like payouts or expiration. Negative hours reduce your overtime (e.g. -20 for a 20 hour payout), positive hours add to it. Adding a date that already has an entry overwrites its value.</p></body></html>",
+            )
+        )
         self.date_edit.setDisplayFormat(_translate("OvertimeWindow", "dd/MM/yyyy"))
         self.hours_select.setSuffix(_translate("OvertimeWindow", " h"))
         self.save_button.setText(_translate("OvertimeWindow", "Add"))
@@ -93,6 +102,7 @@ class Ui_OvertimeWindow(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     OvertimeWindow = QtWidgets.QWidget()
     ui = Ui_OvertimeWindow()

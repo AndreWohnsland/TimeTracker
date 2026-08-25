@@ -132,7 +132,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.workdays = selected_days
         CONFIG_HANDLER.config.different_workdays = self.input_different_times.isChecked()
         if self.input_different_times.isChecked():
-            CONFIG_HANDLER.config.time_per_day = tuple(getattr(self, f"input_hours_day_{i}").value() for i in range(7))
+            CONFIG_HANDLER.config.time_per_day = [getattr(self, f"input_hours_day_{i}").value() for i in range(7)]
 
         CONFIG_HANDLER.write_config_file()
         self.main_window.update_data_window()

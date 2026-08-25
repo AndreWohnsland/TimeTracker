@@ -85,7 +85,7 @@ class Store:
         columns_to_sum = [col for col in numeric_columns if col in year_data_df.columns]
 
         year_data_df = year_data_df[columns_to_sum].resample("ME").sum()
-        year_data_df.index = year_data_df.index.to_period("M")  # type: ignore
+        year_data_df.index = year_data_df.index.to_period("M")
         return year_data_df
 
     def generate_daily_data(self, selected_date: datetime.date) -> None:
@@ -136,7 +136,7 @@ class Store:
 
         report_data = []
 
-        for day in pd.date_range(start, end - datetime.timedelta(days=1), freq="d"):
+        for day in pd.date_range(start, end - datetime.timedelta(days=1), freq="D"):
             days_data = work_df[work_df["date"] == day.date()]
             calculated_time = 0.0
             # Free days adds the daily target time to the total time (in case the user still worked to get overtime)
@@ -172,7 +172,7 @@ class Store:
         combined_df["work"] = combined_df["work"].apply(lambda x: max(x, 0)).round(2)
         combined_df["break_time"] = combined_df.apply(_calculate_break_time, axis=1)
         combined_df["target_time"] = combined_df.apply(_calculate_target_time, axis=1)
-        combined_df["overtime"] = combined_df.apply(lambda row: _calculate_overtime(row), axis=1)
+        combined_df["overtime"] = combined_df.apply(_calculate_overtime, axis=1)
         combined_df["overtime"] = combined_df["overtime"].round(2)
 
         # adjustments only count once their date has arrived, same rule as overtime
@@ -232,7 +232,7 @@ class Store:
         # else, use the midnight of this day as end
         else:
             next_day = start_time + datetime.timedelta(days=1)
-            end_of_day = datetime.datetime.combine(next_day, datetime.time.min)  # type: ignore
+            end_of_day = datetime.datetime.combine(next_day, datetime.time.min)
             total_time += end_of_day - start_time
             latest_end = end_of_day.time()
 

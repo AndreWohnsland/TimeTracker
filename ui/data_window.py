@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_DataWindow(object):
+class Ui_DataWindow:
     def setupUi(self, DataWindow):
         DataWindow.setObjectName("DataWindow")
         DataWindow.resize(1761, 800)
@@ -105,7 +105,9 @@ class Ui_DataWindow(object):
         self.button_month_next.setCheckable(False)
         self.button_month_next.setObjectName("button_month_next")
         self.horizontalLayout.addWidget(self.button_month_next)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem)
         self.radio_month = QtWidgets.QRadioButton(parent=DataWindow)
         self.radio_month.setMaximumSize(QtCore.QSize(100, 16777215))
@@ -130,7 +132,9 @@ class Ui_DataWindow(object):
         self.radio_year.setObjectName("radio_year")
         self.plot_type_group.addButton(self.radio_year)
         self.horizontalLayout.addWidget(self.radio_year)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem1)
         self.save_button = QtWidgets.QPushButton(parent=DataWindow)
         self.save_button.setMaximumSize(QtCore.QSize(16777215, 50))
@@ -166,6 +170,7 @@ class Ui_DataWindow(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     DataWindow = QtWidgets.QWidget()
     ui = Ui_DataWindow()

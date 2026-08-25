@@ -49,9 +49,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_last_event_label()
 
     def connect_buttons(self) -> None:
-        self.start_button.clicked.connect(lambda: self.add_start())
-        self.stop_button.clicked.connect(lambda: self.add_stop())
-        self.pause_button.clicked.connect(lambda: self.add_pause())
+        # lambdas swallow the clicked(checked) bool, which would otherwise land in check_past_entry
+        self.start_button.clicked.connect(lambda: self.add_start())  # noqa: PLW0108
+        self.stop_button.clicked.connect(lambda: self.add_stop())  # noqa: PLW0108
+        self.pause_button.clicked.connect(lambda: self.add_pause())  # noqa: PLW0108
         self.back_button.clicked.connect(self.hide_ui_elements)
 
     def set_tray(self) -> None:

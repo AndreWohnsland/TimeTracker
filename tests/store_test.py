@@ -22,7 +22,7 @@ def mock_db_controller() -> MagicMock:
 
 
 @pytest.fixture
-def store_and_controller(mock_db_controller: MagicMock) -> Generator[tuple[Store, MagicMock], None, None]:
+def store_and_controller(mock_db_controller: MagicMock) -> Generator[tuple[Store, MagicMock]]:
     with patch("src.datastore.DB_CONTROLLER", mock_db_controller):
         yield Store(), mock_db_controller
 

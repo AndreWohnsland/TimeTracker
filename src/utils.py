@@ -2,6 +2,7 @@ import logging
 import logging.config
 import os
 import platform
+import subprocess
 from pathlib import Path
 
 import darkdetect
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def is_light() -> bool:
     """Return if the system uses dark or light mode."""
-    return darkdetect.isLight()  # type: ignore
+    return darkdetect.isLight()
 
 
 def get_style_name() -> str:
@@ -85,9 +86,9 @@ def open_folder_in_explorer(p: Path = SAVE_FOLDER) -> None:
     if system == "Windows":
         os.startfile(resolved_path)  # type: ignore
     elif system == "Darwin":  # Mac
-        os.system(f'open "{resolved_path}"')
+        subprocess.run(["open", resolved_path], check=False)
     elif system == "Linux":
-        os.system(f'xdg-open "{resolved_path}"')
+        subprocess.run(["xdg-open", resolved_path], check=False)
 
 
 def setup_logging(log_file_path: Path = LOG_FILE_PATH) -> None:

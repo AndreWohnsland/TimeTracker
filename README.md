@@ -39,20 +39,15 @@ This is currently still experimental, but you can try either the manual installa
 
 ### B: Manual Installation
 
-We use [uv](https://docs.astral.sh/uv/getting-started/installation/) for managing Python versions.
-If you don't want to use uv, you can also use your system Python and pip to install the required packages.
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) for managing Python versions and packages.
 First clone the repository and cd into it.
-The required package can be installed with pip or uv.
-To start the app, you run the `runme.py` file with python, you can create a shortcut on your desktop:
+To start the app, you run the `runme.py` file, you can create a shortcut on your desktop:
 
 ```bash
 git clone https://github.com/AndreWohnsland/TimeTracker.git
 cd TimeTracker
 uv sync
 uv run runme.py
-# or with pip
-pip install -r requirements.txt
-python runme.py
 ```
 
 ### Manual build of the standalone version

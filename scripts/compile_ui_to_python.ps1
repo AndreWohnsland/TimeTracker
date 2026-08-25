@@ -2,7 +2,7 @@ cd .\ui\
 
 $files = @(
   "mainwindow", "config_window", "data_window",
-  "vacation_window"
+  "vacation_window", "overtime_window"
 )
 
 foreach ($f in $files) {

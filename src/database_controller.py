@@ -56,7 +56,7 @@ class DatabaseController:
         self.engine.dispose()
 
     @contextmanager
-    def session_scope(self) -> Generator[Session, None, None]:
+    def session_scope(self) -> Generator[Session]:
         """Provide a transactional scope around a series of operations."""
         self.call_count += 1
         # print(f"DB Call count: {self.call_count}")
