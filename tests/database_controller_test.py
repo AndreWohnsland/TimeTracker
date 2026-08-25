@@ -100,6 +100,35 @@ class TestController:
         vacation_days = db_controller.get_time_off(2026)
         assert any(vacation.date == vacation_date and vacation.reason == new_reason for vacation in vacation_days)
 
+    def test_overtime_adjustment_add_upsert_remove(self, db_controller: DatabaseController) -> None:
+        day = datetime.date(2026, 3, 1)
+        initial_hours = -20.0
+        overwritten_hours = -10.0
+        db_controller.add_overtime_adjustment(day, initial_hours)
+        adjustments = db_controller.get_overtime_adjustments()
+        assert any(a.date == day and a.hours == initial_hours for a in adjustments)
+
+        # adding the same date again overwrites instead of duplicating
+        db_controller.add_overtime_adjustment(day, overwritten_hours)
+        matching = [a for a in db_controller.get_overtime_adjustments() if a.date == day]
+        assert len(matching) == 1
+        assert matching[0].hours == overwritten_hours
+
+        db_controller.remove_overtime_adjustment(day)
+        assert not any(a.date == day for a in db_controller.get_overtime_adjustments())
+
+    def test_get_overtime_adjustments_period_is_half_open(self, db_controller: DatabaseController) -> None:
+        db_controller.add_overtime_adjustment(datetime.date(2026, 4, 1), 1.0)
+        db_controller.add_overtime_adjustment(datetime.date(2026, 4, 30), 2.0)
+        db_controller.add_overtime_adjustment(datetime.date(2026, 5, 1), 3.0)
+        period = db_controller.get_overtime_adjustments(datetime.date(2026, 4, 1), datetime.date(2026, 5, 1))
+        assert [a.hours for a in period] == [1.0, 2.0]
+
+    def test_months_with_data_includes_adjustment_only_month(self, db_controller: DatabaseController) -> None:
+        db_controller.add_overtime_adjustment(datetime.date(2031, 6, 15), -5.0)
+        assert (2031, 6) in db_controller.get_months_with_data()
+        assert db_controller.get_months_with_data(2031) == [(2031, 6)]
+
     def test_get_period_work_orders_results(self, db_controller: DatabaseController) -> None:
         random_events = [
             Event(date=datetime.datetime(2030, 5, 1, 15, 45), action="stop", project="default"),

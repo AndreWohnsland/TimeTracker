@@ -21,7 +21,7 @@ from sqlalchemy import create_engine, delete, func, select, update
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from src.filepath import DATABASE_PATH
-from src.models import Base, Event, Pause, TimeOff
+from src.models import Base, Event, OvertimeAdjustment, Pause, TimeOff
 
 logger = logging.getLogger(__name__)
 
@@ -135,15 +135,17 @@ class DatabaseController:
             return [(pause.date.isoformat(), pause.time) for pause in results]
 
     def get_months_with_data(self, year: int | None = None) -> list[tuple[int, int]]:
-        """Return distinct year/month combinations that have recorded events."""
+        """Return distinct year/month combinations that have recorded events or overtime adjustments."""
         with self.session_scope() as session:
-            year_col = func.strftime("%Y", Event.date)
-            month_col = func.strftime("%m", Event.date)
-            stmt = select(year_col, month_col).group_by(year_col, month_col).order_by(year_col, month_col)
-            if year is not None:
-                stmt = stmt.where(year_col == str(year))
-            results = session.execute(stmt).all()
-            return [(int(year), int(month)) for year, month in results]
+            months: set[tuple[int, int]] = set()
+            for date_column in (Event.date, OvertimeAdjustment.date):
+                year_col = func.strftime("%Y", date_column)
+                month_col = func.strftime("%m", date_column)
+                stmt = select(year_col, month_col).group_by(year_col, month_col)
+                if year is not None:
+                    stmt = stmt.where(year_col == str(year))
+                months.update((int(y), int(m)) for y, m in session.execute(stmt).all())
+            return sorted(months)
 
     def delete_event(self, delete_datetime: datetime.datetime) -> None:
         with self.session_scope() as session:
@@ -176,6 +178,36 @@ class DatabaseController:
         logger.info("Removing Time Off on %s", vacation_date.isoformat())
         with self.session_scope() as session:
             stmt = delete(TimeOff).where(TimeOff.date == vacation_date)
+            session.execute(stmt)
+
+    def add_overtime_adjustment(self, day: datetime.date, hours: float) -> None:
+        """Add an overtime adjustment, overwriting the value if the date already has one."""
+        logger.info("Adding overtime adjustment of %s h on %s", hours, day.isoformat())
+        with self.session_scope() as session:
+            existing = session.execute(
+                select(OvertimeAdjustment).where(OvertimeAdjustment.date == day)
+            ).scalar_one_or_none()
+            if existing:
+                existing.hours = hours
+            else:
+                session.add(OvertimeAdjustment(date=day, hours=hours))
+
+    def get_overtime_adjustments(
+        self, start: datetime.date | None = None, end: datetime.date | None = None
+    ) -> list[OvertimeAdjustment]:
+        """Return adjustments within [start, end), or all if no period is given."""
+        with self.session_scope() as session:
+            stmt = select(OvertimeAdjustment).order_by(OvertimeAdjustment.date)
+            if start is not None:
+                stmt = stmt.where(OvertimeAdjustment.date >= start)
+            if end is not None:
+                stmt = stmt.where(OvertimeAdjustment.date < end)
+            return list(session.execute(stmt).scalars().all())
+
+    def remove_overtime_adjustment(self, day: datetime.date) -> None:
+        logger.info("Removing overtime adjustment on %s", day.isoformat())
+        with self.session_scope() as session:
+            stmt = delete(OvertimeAdjustment).where(OvertimeAdjustment.date == day)
             session.execute(stmt)
 
     def change_time_off_reason(self, vacation_date: datetime.date, new_reason: str) -> None:

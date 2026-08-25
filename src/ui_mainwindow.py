@@ -13,6 +13,7 @@ from src.icons import get_preset_icons
 from src.ui_config_window import ConfigWindow
 from src.ui_controller import UI_CONTROLLER as UIC
 from src.ui_data_window import DataWindow
+from src.ui_overtime_window import OvertimeWindow
 from src.ui_vacation_window import VacationWindow
 from src.updater import UPDATER
 from src.utils import open_folder_in_explorer
@@ -44,6 +45,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.data_window = DataWindow(self)
         self.config_window: ConfigWindow | None = None
         self.vacation_window: VacationWindow | None = None
+        self.overtime_window: OvertimeWindow | None = None
         self.update_last_event_label()
 
     def connect_buttons(self) -> None:
@@ -114,6 +116,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_about.triggered.connect(UIC.display_about)
         self.action_open_folder.triggered.connect(lambda _: open_folder_in_explorer())
         self.action_set_vacation.triggered.connect(self.show_vacation_window)
+        self.action_overtime_adjustment.triggered.connect(self.show_overtime_window)
 
     def show_ui_elements(self) -> None:
         """Show the past time elements."""
@@ -246,3 +249,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Show the vacation window."""
         self.vacation_window = VacationWindow(self)
         self.vacation_window.show()
+
+    def show_overtime_window(self) -> None:
+        """Show the overtime adjustment window."""
+        self.overtime_window = OvertimeWindow(self)
+        self.overtime_window.show()

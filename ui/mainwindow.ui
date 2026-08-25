@@ -262,6 +262,7 @@
     <addaction name="separator"/>
     <addaction name="action_configuration"/>
     <addaction name="action_set_vacation"/>
+    <addaction name="action_overtime_adjustment"/>
     <addaction name="action_save_folder"/>
     <addaction name="separator"/>
     <addaction name="action_about"/>
@@ -323,6 +324,11 @@
   <action name="action_set_vacation">
    <property name="text">
     <string>Set Time Off</string>
+   </property>
+  </action>
+  <action name="action_overtime_adjustment">
+   <property name="text">
+    <string>Adjust Overtime</string>
    </property>
   </action>
  </widget>
