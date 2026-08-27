@@ -12,14 +12,14 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication
 
 from src.ui_mainwindow import MainWindow
-from src.utils import get_additional_run_args, sync_theme
+from src.utils import sync_theme
 
 logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
     try:
-        app = QApplication(sys.argv + get_additional_run_args())
+        app = QApplication(sys.argv)
         # Qt 6.8+ hides menu icons on macOS by default (Apple HIG), we want them back
         app.setAttribute(Qt.ApplicationAttribute.AA_DontShowIconsInMenus, False)
         w = MainWindow()

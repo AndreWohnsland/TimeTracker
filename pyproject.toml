@@ -12,13 +12,13 @@ dependencies = [
     "matplotlib>=3.11.1",
     "pandas>=3.0.5",
     "xlsxwriter>=3.2.9",
-    "pyqtdarktheme>=2.1.0",
     "qtawesome>=1.4.2",
     "holidays>=0.103",
     "pyqt6>=6.11.0",
     "numpy>=2.5.2",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.52",
+    "pyqtdarktheme-fork>=2.3.6",
 ]
 
 [dependency-groups]
