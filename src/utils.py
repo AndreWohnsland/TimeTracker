@@ -5,9 +5,10 @@ import platform
 import subprocess
 from pathlib import Path
 
-import darkdetect
 import qdarktheme
 from alembic.config import Config
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import QApplication
 
 from alembic import command
@@ -28,12 +29,8 @@ logger = logging.getLogger(__name__)
 
 def is_light() -> bool:
     """Return if the system uses dark or light mode."""
-    return darkdetect.isLight()
-
-
-def get_style_name() -> str:
-    """Return if the system uses dark or light mode."""
-    return "light" if is_light() else "dark"
+    hints = QGuiApplication.styleHints()  # None before the app instance exists
+    return hints is None or hints.colorScheme() != Qt.ColorScheme.Dark
 
 
 def get_background_color() -> str:
@@ -47,17 +44,9 @@ def get_font_color() -> str:
 
 
 def sync_theme() -> None:
-    stylesheet = qdarktheme.load_stylesheet(get_style_name())
+    """Apply the qdarktheme stylesheet matching the OS color scheme."""
+    stylesheet = qdarktheme.load_stylesheet("light" if is_light() else "dark")
     QApplication.instance().setStyleSheet(stylesheet)  # type: ignore
-
-
-def get_additional_run_args() -> list[str]:
-    """Return the additional run arguments for the app."""
-    system = platform.system()
-    # windows need some extra love for the window header to be dark
-    if system == "Windows" and not is_light():
-        return ["-platform", "windows:darkmode=2"]
-    return []
 
 
 def prepare_data_location_and_files() -> None:
