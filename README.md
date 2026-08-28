@@ -50,6 +50,12 @@ uv sync
 uv run runme.py
 ```
 
+If you want to contribute, also install the [pre-commit](https://pre-commit.com/) hooks, they run linting and formatting before each commit:
+
+```bash
+uv run pre-commit install
+```
+
 ### Manual build of the standalone version
 
 If you want to build the standalone version by yourself, you can also do it with [uv](https://docs.astral.sh/uv/getting-started/installation/).
