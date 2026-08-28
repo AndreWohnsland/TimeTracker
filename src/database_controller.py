@@ -20,10 +20,28 @@ from dateutil.relativedelta import relativedelta
 from sqlalchemy import create_engine, delete, func, select, update
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
+from src.config_handler import CONFIG_HANDLER
 from src.filepath import DATABASE_PATH
-from src.models import Base, Event, OvertimeAdjustment, Pause, TimeOff
+from src.models import Base, Event, OvertimeAdjustment, Pause, TimeOff, WorkSchedule
 
 logger = logging.getLogger(__name__)
+
+
+def _baseline_work_schedule() -> WorkSchedule:
+    """Baseline schedule covering all days before the first change.
+
+    Older versions kept these values in the config file, so they are taken over from
+    there (or the former defaults) the first time the schedule table is created.
+    """
+    legacy = CONFIG_HANDLER.read_config_file()
+    return WorkSchedule(
+        valid_from=datetime.date.min,
+        work_hours=legacy.get("work_hours", 40.0),
+        use_hours_per_week=legacy.get("use_hours_per_week", True),
+        workdays=legacy.get("workdays", [0, 1, 2, 3, 4]),
+        different_workdays=legacy.get("different_workdays", False),
+        time_per_day=legacy.get("time_per_day", [8.0, 8.0, 8.0, 8.0, 8.0, 0.0, 0.0]),
+    )
 
 
 class DatabaseController:
@@ -49,6 +67,8 @@ class DatabaseController:
         self.engine = create_engine(self.db_url, echo=False)
         Base.metadata.create_all(self.engine)
         self.Session = scoped_session(sessionmaker(bind=self.engine, expire_on_commit=False))
+        # every consumer may rely on the schedule table always resolving any date
+        self.seed_work_schedule_if_empty(_baseline_work_schedule())
 
     def __del__(self) -> None:
         """Close the session when the object is deleted."""
@@ -117,7 +137,7 @@ class DatabaseController:
         start = day
         end = start + relativedelta(days=+1)
         work = self.get_period_work(start, end)
-        pause = self.get_period_pause(start, start)
+        pause = self.get_period_pause(start, end)
         return work, pause
 
     def get_period_work(self, start: datetime.date, end: datetime.date) -> list[tuple[str, str]]:
@@ -130,7 +150,8 @@ class DatabaseController:
 
     def get_period_pause(self, start: datetime.date, end: datetime.date) -> list[tuple[str, int]]:
         with self.session_scope() as session:
-            stmt = select(Pause).where(Pause.date >= start, Pause.date <= end).order_by(Pause.date)
+            # end-exclusive like get_period_work, else the first day of the next month leaks into the month df
+            stmt = select(Pause).where(Pause.date >= start, Pause.date < end).order_by(Pause.date)
             results = session.execute(stmt).scalars().all()
             return [(pause.date.isoformat(), pause.time) for pause in results]
 
@@ -209,6 +230,85 @@ class DatabaseController:
         with self.session_scope() as session:
             stmt = delete(OvertimeAdjustment).where(OvertimeAdjustment.date == day)
             session.execute(stmt)
+
+    def get_work_schedules(self) -> list[WorkSchedule]:
+        """Return all work schedules, oldest first."""
+        with self.session_scope() as session:
+            stmt = select(WorkSchedule).order_by(WorkSchedule.valid_from)
+            return list(session.execute(stmt).scalars().all())
+
+    def get_work_schedule_at(self, day: datetime.date) -> WorkSchedule:
+        """Return the schedule effective on the given day (the seeded baseline guarantees one exists)."""
+        with self.session_scope() as session:
+            stmt = (
+                select(WorkSchedule)
+                .where(WorkSchedule.valid_from <= day)
+                .order_by(WorkSchedule.valid_from.desc())
+                .limit(1)
+            )
+            return session.execute(stmt).scalar_one()
+
+    def upsert_work_schedule(self, schedule: WorkSchedule) -> None:
+        """Insert the schedule, or overwrite the values of the row sharing its valid_from.
+
+        A row identical to its predecessor resolves every day the same as the predecessor,
+        so it is deleted instead of stored (e.g. a change that got reverted the same day).
+        """
+        logger.info("Setting work schedule effective %s", schedule.valid_from.isoformat())
+        with self.session_scope() as session:
+            existing = session.execute(
+                select(WorkSchedule).where(WorkSchedule.valid_from == schedule.valid_from)
+            ).scalar_one_or_none()
+            predecessor = session.execute(
+                select(WorkSchedule)
+                .where(WorkSchedule.valid_from < schedule.valid_from)
+                .order_by(WorkSchedule.valid_from.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+            if predecessor is not None and predecessor.settings_key() == schedule.settings_key():
+                if existing is not None:
+                    session.delete(existing)
+                return
+            if existing is None:
+                session.add(schedule)
+                return
+            self._copy_schedule_values(schedule, existing)
+
+    def update_work_schedule(self, schedule_id: int, schedule: WorkSchedule) -> bool:
+        """Update the row with the given values; False if another row already owns the valid_from."""
+        with self.session_scope() as session:
+            clash = session.execute(
+                select(WorkSchedule).where(
+                    WorkSchedule.valid_from == schedule.valid_from,
+                    WorkSchedule.ID != schedule_id,  # noqa: SIM300
+                )
+            ).scalar_one_or_none()
+            if clash is not None:
+                return False
+            existing = session.get_one(WorkSchedule, schedule_id)
+            existing.valid_from = schedule.valid_from
+            self._copy_schedule_values(schedule, existing)
+            return True
+
+    def delete_work_schedule(self, schedule_id: int) -> None:
+        logger.info("Removing work schedule with id %s", schedule_id)
+        with self.session_scope() as session:
+            stmt = delete(WorkSchedule).where(WorkSchedule.ID == schedule_id)  # noqa: SIM300
+            session.execute(stmt)
+
+    def seed_work_schedule_if_empty(self, schedule: WorkSchedule) -> None:
+        """Create the baseline schedule once; no-op if any schedule exists."""
+        with self.session_scope() as session:
+            if session.execute(select(WorkSchedule).limit(1)).scalar_one_or_none() is None:
+                session.add(schedule)
+
+    @staticmethod
+    def _copy_schedule_values(source: WorkSchedule, target: WorkSchedule) -> None:
+        target.work_hours = source.work_hours
+        target.use_hours_per_week = source.use_hours_per_week
+        target.workdays = source.workdays
+        target.different_workdays = source.different_workdays
+        target.time_per_day = source.time_per_day
 
     def change_time_off_reason(self, vacation_date: datetime.date, new_reason: str) -> None:
         logger.info("Changing Time Off reason on %s to %s", vacation_date.isoformat(), new_reason)

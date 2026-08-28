@@ -1,10 +1,20 @@
 import datetime
+import tempfile
 from collections.abc import Generator
+from pathlib import Path
 from typing import Any
 
 import pytest
 
-from src.database_controller import DatabaseController
+# Isolate tests from the developer's real data: the src modules create their DB/config
+# singletons at import time, so the app paths must be redirected before any src import.
+import src.filepath
+
+_TEST_DATA_DIR = Path(tempfile.mkdtemp(prefix="timetracker-tests-"))
+src.filepath.DATABASE_PATH = _TEST_DATA_DIR / "database.db"
+src.filepath.CONFIG_PATH = _TEST_DATA_DIR / "config.json"
+
+from src.database_controller import DatabaseController  # noqa: E402
 
 
 # Helper to check if a date is a working day (not weekend, not holiday, not vacation)

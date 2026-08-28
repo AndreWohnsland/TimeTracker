@@ -14,6 +14,7 @@ from src.ui_config_window import ConfigWindow
 from src.ui_controller import UI_CONTROLLER as UIC
 from src.ui_data_window import DataWindow
 from src.ui_overtime_window import OvertimeWindow
+from src.ui_schedule_window import ScheduleWindow
 from src.ui_vacation_window import VacationWindow
 from src.updater import UPDATER
 from src.utils import open_folder_in_explorer
@@ -46,6 +47,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config_window: ConfigWindow | None = None
         self.vacation_window: VacationWindow | None = None
         self.overtime_window: OvertimeWindow | None = None
+        self.schedule_window: ScheduleWindow | None = None
         self.update_last_event_label()
 
     def connect_buttons(self) -> None:

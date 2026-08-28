@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from src.config_handler import CONFIG_HANDLER
 from src.database_controller import DB_CONTROLLER
+from src.models import WorkSchedule
 
 
 @dataclass
@@ -54,7 +55,8 @@ class Store:
         vacation_days = DB_CONTROLLER.get_time_off_days(year)
         holiday_list = CONFIG_HANDLER.config.get_holidays(year)
         unique_days = list(set(vacation_days + holiday_list))
-        return [day for day in unique_days if day.weekday() in CONFIG_HANDLER.config.workdays]
+        schedules = DB_CONTROLLER.get_work_schedules()
+        return [day for day in unique_days if day.weekday() in _schedule_at(schedules, day).workdays]
 
     def generate_all_data(self) -> None:
         months_with_data = DB_CONTROLLER.get_months_with_data()
@@ -88,6 +90,20 @@ class Store:
         year_data_df.index = year_data_df.index.to_period("M")
         return year_data_df
 
+    def get_month_targets(self, month: datetime.date) -> list[float]:
+        """Daily target hours for the month; all zeros if the month predates all tracked data.
+
+        Lets the plot draw target lines for months without any data (gap months) while
+        keeping months before tracking started blank.
+        """
+        start = month.replace(day=1)
+        days = pd.date_range(start, start + relativedelta(months=+1) - datetime.timedelta(days=1), freq="D")
+        months_with_data = DB_CONTROLLER.get_months_with_data()
+        if not months_with_data or (month.year, month.month) < months_with_data[0]:
+            return [0.0] * len(days)
+        schedules = DB_CONTROLLER.get_work_schedules()
+        return [_target_time_at(day.date(), schedules) for day in days]
+
     def generate_daily_data(self, selected_date: datetime.date) -> None:
         day_work, day_pause = DB_CONTROLLER.get_day_data(selected_date)
         if day_pause:
@@ -98,7 +114,9 @@ class Store:
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
         adjustment_data = self._get_month_adjustments(selected_date)
         free_days = self.get_free_days(selected_date.year)
-        data_hash = hash((tuple(work_data), tuple(pause_data), tuple(adjustment_data), tuple(free_days)))
+        schedules = DB_CONTROLLER.get_work_schedules()
+        schedule_key = tuple((s.valid_from, s.settings_key()) for s in schedules)
+        data_hash = hash((tuple(work_data), tuple(pause_data), tuple(adjustment_data), tuple(free_days), schedule_key))
         # check if we already have the same data computes (no config or DB data changes)
         # skip for current month, since it constantly changes
         last_data = self.all_data.get((selected_date.year, selected_date.month))
@@ -107,7 +125,7 @@ class Store:
         if not work_data and not adjustment_data:
             return MonthData(df=pd.DataFrame([]), data_hash=data_hash)
         return MonthData(
-            df=self._generate_month_report(work_data, selected_date, free_days, pause_data, adjustment_data),
+            df=self._generate_month_report(work_data, selected_date, free_days, pause_data, adjustment_data, schedules),
             data_hash=data_hash,
         )
 
@@ -116,13 +134,14 @@ class Store:
         end = start + relativedelta(months=+1)
         return [(a.date, a.hours) for a in DB_CONTROLLER.get_overtime_adjustments(start, end)]
 
-    def _generate_month_report(
+    def _generate_month_report(  # noqa: PLR0913, PLR0917
         self,
         work_data: list[tuple[str, str]],
         selected_date: datetime.date,
         free_days: list[datetime.date],
         pause_data: list[tuple[str, int]],
         adjustment_data: list[tuple[datetime.date, float]],
+        schedules: list[WorkSchedule],
     ) -> pd.DataFrame:
         """Generate the complete monthly report DataFrame with all columns."""
         work_df = pd.DataFrame(work_data, columns=["datetime", "event"])
@@ -141,7 +160,7 @@ class Store:
             calculated_time = 0.0
             # Free days adds the daily target time to the total time (in case the user still worked to get overtime)
             if day.date() in free_days:
-                calculated_time += CONFIG_HANDLER.config.get_daily_hours_at(day.weekday()) * 60
+                calculated_time += _schedule_at(schedules, day.date()).get_daily_hours_at(day.weekday()) * 60
 
             day_work_time, start_time, end_time = self._calculate_day_time_with_times(days_data)
             calculated_time += day_work_time
@@ -171,7 +190,7 @@ class Store:
         combined_df["work"] = combined_df["total_time"] - combined_df["pause"]
         combined_df["work"] = combined_df["work"].apply(lambda x: max(x, 0)).round(2)
         combined_df["break_time"] = combined_df.apply(_calculate_break_time, axis=1)
-        combined_df["target_time"] = combined_df.apply(_calculate_target_time, axis=1)
+        combined_df["target_time"] = combined_df.apply(lambda row: _calculate_target_time(row, schedules), axis=1)
         combined_df["overtime"] = combined_df.apply(_calculate_overtime, axis=1)
         combined_df["overtime"] = combined_df["overtime"].round(2)
 
@@ -288,17 +307,26 @@ def _calculate_break_time(row: pd.Series) -> float:
         return 0.0
 
 
-def _calculate_target_time(row: pd.Series) -> float:
+def _schedule_at(schedules: list[WorkSchedule], day: datetime.date) -> WorkSchedule:
+    """Resolve the schedule effective on a day; schedules are sorted by valid_from, oldest first."""
+    return next(s for s in reversed(schedules) if s.valid_from <= day)
+
+
+def _calculate_target_time(row: pd.Series, schedules: list[WorkSchedule]) -> float:
     """Calculate the target time for a given row."""
     day_date = row.name.date() if hasattr(row.name, "date") else row.name  # type: ignore
     # Make typing happy, should not happen here
 
     if not isinstance(day_date, datetime.date):
         return 0.0
-    if day_date > datetime.date.today():
-        return 0.0
+    return _target_time_at(day_date, schedules)
 
-    return CONFIG_HANDLER.config.get_daily_hours_at(day_date.weekday())
+
+def _target_time_at(day: datetime.date, schedules: list[WorkSchedule]) -> float:
+    """Target hours for a day; future days have no target yet."""
+    if day > datetime.date.today():
+        return 0.0
+    return _schedule_at(schedules, day).get_daily_hours_at(day.weekday())
 
 
 def _calculate_overtime(row: pd.Series) -> float:

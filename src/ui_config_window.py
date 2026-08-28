@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import TYPE_CHECKING
 
 import holidays
@@ -7,7 +8,11 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDoubleSpinBox, QRadioButton, QWidget
 
 from src.config_handler import CONFIG_HANDLER
+from src.database_controller import DB_CONTROLLER
+from src.datastore import store
 from src.icons import get_app_icon
+from src.models import WorkSchedule
+from src.ui_schedule_window import ScheduleWindow
 from ui import Ui_ConfigWindow
 
 if TYPE_CHECKING:
@@ -39,6 +44,7 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
             radio.toggled.connect(lambda checked, day=i: self._handle_enable_state_of_specific_day(day, checked))
         self.input_different_times.toggled.connect(self._handle_enable_state_of_times_per_day)
         self.work_hours_button.toggled.connect(self._change_work_hours_button_text)
+        self.past_settings_button.clicked.connect(self._open_schedule_window)
         self.set_config_values()
 
     def _handle_enable_state_of_times_per_day(self, isChecked: bool) -> None:
@@ -101,18 +107,22 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         """Set config values to the input fields, other than country and subdiv."""
         self.input_name.setText(CONFIG_HANDLER.config.name)
         self.input_project_names.setText(";".join(CONFIG_HANDLER.config.project_names))
-        self.input_working_hours.setValue(CONFIG_HANDLER.config.work_hours)
-        self.work_hours_button.setChecked(CONFIG_HANDLER.config.use_hours_per_week)
-        self.work_hours_button.setText("/ Week" if CONFIG_HANDLER.config.use_hours_per_week else "/ Day")
-        for day in CONFIG_HANDLER.config.workdays:
+        self.set_schedule_values()
+
+    def set_schedule_values(self) -> None:
+        """Set the fields of the schedule effective today, e.g. on start or after a schedule change elsewhere."""
+        schedule = DB_CONTROLLER.get_work_schedule_at(datetime.date.today())
+        self.input_working_hours.setValue(schedule.work_hours)
+        self.work_hours_button.setChecked(schedule.use_hours_per_week)
+        self.work_hours_button.setText("/ Week" if schedule.use_hours_per_week else "/ Day")
+        for day in range(7):
             radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
-            radio.setChecked(True)
-        self.input_different_times.setChecked(CONFIG_HANDLER.config.different_workdays)
-        for i, time in enumerate(CONFIG_HANDLER.config.time_per_day):
+            radio.setChecked(day in schedule.workdays)
+        self.input_different_times.setChecked(schedule.different_workdays)
+        for i, time in enumerate(schedule.time_per_day):
             input_box: QDoubleSpinBox = getattr(self, f"input_hours_day_{i}")
             input_box.setValue(time)
-            if i not in CONFIG_HANDLER.config.workdays or not CONFIG_HANDLER.config.different_workdays:
-                input_box.setEnabled(False)
+            input_box.setEnabled(i in schedule.workdays and schedule.different_workdays)
 
     def apply_config(self) -> None:
         """Apply the config values to the config file and close the window."""
@@ -122,22 +132,45 @@ class ConfigWindow(QWidget, Ui_ConfigWindow):
         CONFIG_HANDLER.config.project_names = [
             name.strip() for name in self.input_project_names.text().split(";") if name.strip()
         ]
-        CONFIG_HANDLER.config.work_hours = self.input_working_hours.value()
-        CONFIG_HANDLER.config.use_hours_per_week = self.work_hours_button.isChecked()
+        CONFIG_HANDLER.write_config_file()
+        self._apply_schedule()
+        self.main_window.update_data_window()
+        self.main_window.update_project_names()
+        self.close()
+
+    def _apply_schedule(self) -> None:
+        """Persist changed time settings as a new schedule effective today; past days keep their old schedule."""
+        today = datetime.date.today()
+        current = DB_CONTROLLER.get_work_schedule_at(today)
         selected_days: list[int] = []
         for day in range(7):
             radio: QRadioButton = getattr(self, f"radio_weekday_{day}")
             if radio.isChecked():
                 selected_days.append(day)
-        CONFIG_HANDLER.config.workdays = selected_days
-        CONFIG_HANDLER.config.different_workdays = self.input_different_times.isChecked()
+        time_per_day = current.time_per_day
         if self.input_different_times.isChecked():
-            CONFIG_HANDLER.config.time_per_day = [getattr(self, f"input_hours_day_{i}").value() for i in range(7)]
+            time_per_day = [getattr(self, f"input_hours_day_{i}").value() for i in range(7)]
+        new_schedule = WorkSchedule(
+            valid_from=today,
+            work_hours=self.input_working_hours.value(),
+            use_hours_per_week=self.work_hours_button.isChecked(),
+            workdays=selected_days,
+            different_workdays=self.input_different_times.isChecked(),
+            time_per_day=time_per_day,
+        )
+        if new_schedule.settings_key() == current.settings_key():
+            return
+        DB_CONTROLLER.upsert_work_schedule(new_schedule)
+        store.force_overtime_recalculation()
+        # an open schedule management window would otherwise show a stale list
+        schedule_window = self.main_window.schedule_window
+        if schedule_window is not None and schedule_window.isVisible():
+            schedule_window.refresh_list()
 
-        CONFIG_HANDLER.write_config_file()
-        self.main_window.update_data_window()
-        self.main_window.update_project_names()
-        self.close()
+    def _open_schedule_window(self) -> None:
+        """Open the window to manage schedules with other effective dates."""
+        self.main_window.schedule_window = ScheduleWindow(self.main_window)
+        self.main_window.schedule_window.show()
 
     def _apply_subdiv_filter(self) -> None:
         """Apply the filter to the subdiv list and update the list."""

@@ -14,25 +14,15 @@ NEEDED_DATA = {
     "name": "",
     "project_names": ["Default"],
     "save_path": "",
-    "work_hours": 40.0,
-    "use_hours_per_week": True,
     "country": "US",
     "subdiv": None,
-    "workdays": [0, 1, 2, 3, 4],  # 0-6, 0=Monday, 6=Sunday
-    "different_workdays": False,
-    "time_per_day": [8.0, 8.0, 8.0, 8.0, 8.0, 0.0, 0.0],
 }
 CONFIG_NAMES = Literal[
     "name",
     "project_names",
     "save_path",
-    "work_hours",
-    "use_hours_per_week",
     "country",
     "subdiv",
-    "workdays",
-    "different_workdays",
-    "time_per_day",
 ]
 
 
@@ -41,14 +31,8 @@ class Config:
     name: str
     project_names: list[str]
     save_path: str
-    work_hours: float
-    use_hours_per_week: bool
     country: str
     subdiv: str | None
-    workdays: list[int]
-    different_workdays: bool
-    # 7 entries, Monday-Sunday; a list (not tuple) so it survives the JSON roundtrip unchanged
-    time_per_day: list[float]
 
     @classmethod
     def from_kwargs(cls, **kwargs: Any) -> "Config":
@@ -68,31 +52,6 @@ class Config:
 
     def __getitem__(self, item: CONFIG_NAMES) -> Any:
         return getattr(self, item)
-
-    def get_weekly_hours(self) -> float:
-        """Get the total work time for the week."""
-        if self.different_workdays:
-            return sum(self.time_per_day[day] for day in self.workdays)
-        if self.use_hours_per_week:
-            return self.work_hours
-        return self.work_hours * len(self.workdays)
-
-    def get_daily_hours_at(self, day: int) -> float:
-        """Get the work time for a specific day, 0-6, 0=Monday, 6=Sunday."""
-        if day not in self.workdays:
-            return 0.0
-        if self.different_workdays:
-            return self.time_per_day[day]
-        number_work_days = len(self.workdays)
-        if number_work_days == 0:
-            return 0.0
-        if not self.use_hours_per_week:
-            return self.work_hours / number_work_days
-        return self.work_hours
-
-    def get_all_daily_hours(self) -> list[float]:
-        """Get the work time for each day, 0-6, 0=Monday, 6=Sunday."""
-        return [self.get_daily_hours_at(day) for day in range(7)]
 
     def get_holidays(self, year: int) -> list[datetime.date]:
         available_holidays = holidays.country_holidays(self.country, subdiv=self.subdiv or None, years=year)

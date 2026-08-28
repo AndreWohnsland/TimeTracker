@@ -10,12 +10,12 @@ def test_config_survives_write_read_roundtrip(tmp_path: Path) -> None:
     with patch("src.config_handler.CONFIG_PATH", config_file):
         handler = ConfigHandler()
         handler.set_config_value("name", "Alice")
-        handler.set_config_value("work_hours", 32.5)
-        handler.set_config_value("workdays", [0, 1, 2, 3])
+        handler.set_config_value("country", "DE")
+        handler.set_config_value("project_names", ["Alpha", "Beta"])
 
         reloaded = ConfigHandler()
 
     assert reloaded.config.name == "Alice"
-    assert reloaded.config.work_hours == 32.5
-    assert reloaded.config.workdays == [0, 1, 2, 3]
+    assert reloaded.config.country == "DE"
+    assert reloaded.config.project_names == ["Alpha", "Beta"]
     assert asdict(reloaded.config) == asdict(handler.config)
