@@ -3,7 +3,7 @@ import datetime
 import pytest
 
 from src.database_controller import DatabaseController
-from src.models import Event, Pause
+from src.models import Event, Pause, WorkSchedule
 
 
 class TestController:
@@ -158,7 +158,8 @@ class TestController:
         period = db_controller.get_period_pause(datetime.date(2030, 5, 1), datetime.date(2030, 5, 3))
         pause_dates = [date for date, _ in period]
 
-        assert pause_dates == sorted(pause.date.isoformat() for pause in random_pauses)
+        # end is exclusive: the pause on May 3 must not leak into the period
+        assert pause_dates == ["2030-05-01", "2030-05-02"]
 
     def test_get_months_with_data(self, db_controller: DatabaseController) -> None:
         months = db_controller.get_months_with_data()
@@ -174,3 +175,69 @@ class TestController:
     ) -> None:
         result = db_controller.get_months_with_data(year)
         assert (len(result) > 0) == has_data
+
+
+def _schedule(valid_from: datetime.date, work_hours: float = 40.0) -> WorkSchedule:
+    return WorkSchedule(
+        valid_from=valid_from,
+        work_hours=work_hours,
+        use_hours_per_week=True,
+        workdays=[0, 1, 2, 3, 4],
+        different_workdays=False,
+        time_per_day=[8.0, 8.0, 8.0, 8.0, 8.0, 0.0, 0.0],
+    )
+
+
+class TestWorkSchedules:
+    def test_controller_always_has_baseline_schedule(self, db_controller: DatabaseController) -> None:
+        schedules = db_controller.get_work_schedules()
+        assert len(schedules) == 1
+        assert schedules[0].valid_from == datetime.date.min
+        # seeding is a no-op once any schedule exists
+        db_controller.seed_work_schedule_if_empty(_schedule(datetime.date(2025, 1, 1)))
+        assert len(db_controller.get_work_schedules()) == 1
+
+    def test_upsert_collapses_same_day_changes(self, db_controller: DatabaseController) -> None:
+        change_date = datetime.date(2025, 6, 1)
+        db_controller.upsert_work_schedule(_schedule(datetime.date.min, work_hours=99.0))
+        db_controller.upsert_work_schedule(_schedule(change_date, work_hours=38.0))
+        db_controller.upsert_work_schedule(_schedule(change_date, work_hours=35.0))
+        schedules = db_controller.get_work_schedules()
+        assert [s.valid_from for s in schedules] == [datetime.date.min, change_date]
+        assert db_controller.get_work_schedule_at(change_date).work_hours == 35.0
+
+    def test_upsert_reverting_to_predecessor_removes_row(self, db_controller: DatabaseController) -> None:
+        """Changing settings back to the previous schedule's values deletes the now-pointless row."""
+        change_date = datetime.date(2025, 6, 1)
+        db_controller.upsert_work_schedule(_schedule(datetime.date.min, work_hours=99.0))
+        db_controller.upsert_work_schedule(_schedule(change_date, work_hours=38.0))
+        db_controller.upsert_work_schedule(_schedule(change_date, work_hours=99.0))
+        assert [s.valid_from for s in db_controller.get_work_schedules()] == [datetime.date.min]
+
+    def test_schedule_resolution_boundaries(self, db_controller: DatabaseController) -> None:
+        change_date = datetime.date(2025, 6, 1)
+        db_controller.upsert_work_schedule(_schedule(datetime.date.min, work_hours=38.0))
+        db_controller.upsert_work_schedule(_schedule(change_date, work_hours=40.0))
+        assert db_controller.get_work_schedule_at(change_date - datetime.timedelta(days=1)).work_hours == 38.0
+        assert db_controller.get_work_schedule_at(change_date).work_hours == 40.0
+
+    def test_update_refuses_date_collision(self, db_controller: DatabaseController) -> None:
+        june_date, july_date = datetime.date(2025, 6, 1), datetime.date(2025, 7, 1)
+        db_controller.upsert_work_schedule(_schedule(datetime.date.min, work_hours=99.0))
+        db_controller.upsert_work_schedule(_schedule(june_date, work_hours=36.0))
+        db_controller.upsert_work_schedule(_schedule(july_date))
+        july = next(s for s in db_controller.get_work_schedules() if s.valid_from == july_date)
+        assert db_controller.update_work_schedule(july.ID, _schedule(june_date)) is False
+        moved = _schedule(datetime.date(2025, 8, 1), work_hours=30.0)
+        assert db_controller.update_work_schedule(july.ID, moved) is True
+        schedules = db_controller.get_work_schedules()
+        assert [s.valid_from for s in schedules] == [datetime.date.min, june_date, datetime.date(2025, 8, 1)]
+        assert schedules[2].work_hours == 30.0
+
+    def test_delete_work_schedule(self, db_controller: DatabaseController) -> None:
+        change_date = datetime.date(2025, 6, 1)
+        db_controller.upsert_work_schedule(_schedule(datetime.date.min, work_hours=99.0))
+        db_controller.upsert_work_schedule(_schedule(change_date))
+        schedule = next(s for s in db_controller.get_work_schedules() if s.valid_from == change_date)
+        db_controller.delete_work_schedule(schedule.ID)
+        assert [s.valid_from for s in db_controller.get_work_schedules()] == [datetime.date.min]

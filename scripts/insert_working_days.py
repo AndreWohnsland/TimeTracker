@@ -27,7 +27,7 @@ def main() -> None:
     subdiv = CONFIG_HANDLER.config.subdiv or None
     holidays_set = set(holidays.CountryHoliday(country, prov=subdiv, years=2025).keys())
     vacations_set = set(DB_CONTROLLER.get_time_off_days(2025))
-    workdays_set = set(CONFIG_HANDLER.config.workdays)
+    workdays_set = set(DB_CONTROLLER.get_work_schedule_at(datetime.date.today()).workdays)
 
     current = start_date
     while current <= end_date:

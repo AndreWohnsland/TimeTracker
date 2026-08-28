@@ -179,14 +179,22 @@ class DataWindow(QWidget, Ui_DataWindow):
             rotation = "horizontal"
         ax.set_xticks(range(len(tick_labels)))
         ax.set_xticklabels(tick_labels, rotation=rotation)
+        # pin the limits: the adjustment markers on the shared overtime axis otherwise autoscale in extra margin
+        ax.set_xlim(-0.5, len(tick_labels) - 0.5)
         ax.tick_params(axis="x", which="both", bottom=False, top=False)
         ax.set_ylabel("Work Time (h)")
 
         # Add numbers above the bars
         max_value = df.work.max()
         for i, (_, row) in enumerate(df.iterrows()):
+            # target line for every day that has a target (future days carry target 0)
+            target = row["target_time"]
+            if target > 0:
+                bar_width = 0.9
+                ax.hlines(target, i - bar_width / 2, i + bar_width / 2, color=self.colors.text, lw=1, ls="--", zorder=3)
             total_time = row["work"]
-            if total_time <= 0.0:
+            # days with a target still get their (0.0) annotation, work-free days stay blank
+            if total_time <= 0.0 and target <= 0:
                 continue
             position = (i, total_time + max_value * 0.012)
             ax.annotate(
@@ -204,11 +212,6 @@ class DataWindow(QWidget, Ui_DataWindow):
                 },
                 zorder=5,
             )
-            target = row["target_time"]
-            bar_width = 0.9
-            x_start = i - bar_width / 2
-            x_end = i + bar_width / 2
-            ax.hlines(target, x_start, x_end, color=self.colors.text, lw=1, ls="--", zorder=3)
 
     def _plot_overtime(self, ax: Axes, df: pd.DataFrame) -> None:
         sns.barplot(
@@ -290,7 +293,9 @@ class DataWindow(QWidget, Ui_DataWindow):
             data_points = 12
             index = pd.date_range(start=date.replace(month=1, day=1), periods=data_points, freq="ME")
         zeros = [0] * data_points
-        data = {"work": zeros, "pause": zeros, "overtime": zeros, "overtime_adjustment": zeros, "target_time": zeros}
+        # month view still shows target lines for tracked-but-empty months; year view stays blank
+        targets = store.get_month_targets(date) if self.plot_month else zeros
+        data = {"work": zeros, "pause": zeros, "overtime": zeros, "overtime_adjustment": zeros, "target_time": targets}
         return pd.DataFrame(data, index=index)
 
     def save_plot(self) -> None:
