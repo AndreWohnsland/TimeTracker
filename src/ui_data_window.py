@@ -3,6 +3,7 @@ from __future__ import annotations
 import calendar
 import datetime
 import logging
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -78,6 +79,9 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.plot_type_group.buttonClicked.connect(self.plot)
         self.date_edit.dateChanged.connect(self.update_date)
 
+        self.update_project_selector()
+        self.project_selector.currentIndexChanged.connect(self._on_project_change)
+
         self.export_button.clicked.connect(self.export_data)
         self.switch_button.clicked.connect(self.switch_data_view)
         self.delete_event_button.clicked.connect(self.delete_selected_event)
@@ -88,6 +92,8 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.tableWidget.itemClicked.connect(self.on_item_click)
 
         self.delete_button = None
+        # the window opens in month view, where events cannot be deleted
+        self.delete_event_button.hide()
         # workaround to prevent the date change to trigger the plot
         self.programmatic_change = False
 
@@ -102,6 +108,28 @@ class DataWindow(QWidget, Ui_DataWindow):
     @property
     def plot_month(self) -> bool:
         return self.radio_month.isChecked()
+
+    @property
+    def selected_project(self) -> str | None:
+        """The project the view is filtered to, None for all projects."""
+        if self.project_selector.currentIndex() <= 0:
+            return None
+        return self.project_selector.currentText()
+
+    def update_project_selector(self) -> None:
+        """Refresh the selector with the projects found in the events, keeping the current selection."""
+        current = self.project_selector.currentText()
+        self.project_selector.blockSignals(True)
+        self.project_selector.clear()
+        self.project_selector.addItems(["All Projects", *DB_CONTROLLER.get_event_projects()])
+        index = self.project_selector.findText(current)
+        if index >= 0:
+            self.project_selector.setCurrentIndex(index)
+        self.project_selector.blockSignals(False)
+
+    def _on_project_change(self) -> None:
+        self.plot()
+        self.update_table_data()
 
     def update_date(self) -> None:
         """Update the date and plot the new data."""
@@ -124,35 +152,62 @@ class DataWindow(QWidget, Ui_DataWindow):
         self.programmatic_change = False
 
     def plot(self) -> None:
-        # clears the old values and then adds a subplot to insert all the data
+        self.update_project_selector()
+        # clears the old values before dispatching to the selected view
         self.figure.clear()
+        # update the store before plotting
+        store.update_data(self.selected_date)
+        # get the store date -> this is needed to show the correct month in the dropdown
+        # if the user did not change it there before
+        self._only_change_date(store.current_date)
+        project = self.selected_project
+        if project is None:
+            self._plot_all_projects()
+        else:
+            self._plot_single_project(project)
+        self.canvas.draw()
+
+    def _plot_all_projects(self) -> None:
         # Top: small plot with only the overtime
         # Bottom: main plot with the data
         gs = GridSpec(2, 1, height_ratios=[1, 4])
         ax1 = self.figure.add_subplot(gs[1])
         ax2 = self.figure.add_subplot(gs[0], sharex=ax1)
 
-        # update the store before plotting
-        store.update_data(self.selected_date)
-        # get the store date -> this is needed to show the correct month in the dropdown
-        # if the user did not change it there before
-        self._only_change_date(store.current_date)
-
         df = store.df.copy() if self.plot_month else store.get_year_data(store.current_date.year)
         plot_df = self.adjust_df_for_plot(df)
         self._plot_work_time(ax1, plot_df)
         self._plot_overtime(ax2, plot_df)
 
-        if self.plot_month:
-            title = f"Working time for {store.current_date.strftime('%B %Y')}"
-        else:
-            title = f"Working time for {store.current_date.year}"
         sum_overtime = plot_df.overtime.sum() + plot_df.overtime_adjustment.sum()
         sum_work = plot_df.work.sum()
-        title += f" | Work: {sum_work:.0f} h | Overtime: {sum_overtime:.0f} h"
+        title = f"Working time for {self._period_name()} | Work: {sum_work:.0f} h | Overtime: {sum_overtime:.0f} h"
         self.figure.suptitle(title, weight="bold", fontsize=15)
-        # self.figure.autofmt_xdate(rotation=90)
-        self.canvas.draw()
+
+    def _plot_single_project(self, project: str) -> None:
+        """Booked hours of one project; pause, target and overtime do not exist at this grain."""
+        ax = self.figure.add_subplot(111)
+        frame = store.get_project_data(store.current_date, whole_year=not self.plot_month)
+        hours = frame[project] if project in frame.columns else pd.Series(0.0, index=frame.index)
+
+        ax.bar(range(len(hours)), hours, color=self.colors.blue, zorder=2, width=0.8)
+        self._style_time_axis(ax, hours.index)
+        # "booked", not "work": the day-level pause cannot be attributed to a project (ADR 0002)
+        ax.set_ylabel("Booked Time (h)")
+        max_value = hours.max()
+        for i, value in enumerate(hours):
+            if value <= 0.0:
+                continue
+            position = (i, value + max_value * 0.012)
+            ax.annotate(f"{value:.1f}", position, ha="center", va="bottom", fontsize=8, weight="bold", zorder=5)
+
+        title = f"{project} for {self._period_name()} | Booked: {hours.sum():.1f} h"
+        self.figure.suptitle(title, weight="bold", fontsize=15)
+
+    def _period_name(self) -> str:
+        if self.plot_month:
+            return store.current_date.strftime("%B %Y")
+        return str(store.current_date.year)
 
     def _plot_work_time(self, ax: Axes, df: pd.DataFrame) -> None:
         sns.barplot(
@@ -168,20 +223,7 @@ class DataWindow(QWidget, Ui_DataWindow):
             legend=False,
         )
 
-        ax.yaxis.grid(True, lw=1, ls=":", color=self.colors.text, alpha=0.2, zorder=1)
-        ax.xaxis.get_label().set_visible(False)
-
-        if self.plot_month:
-            tick_labels = [day.strftime("%a %d") for day in df.index]
-            rotation = "vertical"
-        else:
-            tick_labels = [month.strftime("%b") for month in df.index]
-            rotation = "horizontal"
-        ax.set_xticks(range(len(tick_labels)))
-        ax.set_xticklabels(tick_labels, rotation=rotation)
-        # pin the limits: the adjustment markers on the shared overtime axis otherwise autoscale in extra margin
-        ax.set_xlim(-0.5, len(tick_labels) - 0.5)
-        ax.tick_params(axis="x", which="both", bottom=False, top=False)
+        self._style_time_axis(ax, df.index)
         ax.set_ylabel("Work Time (h)")
 
         # Add numbers above the bars
@@ -212,6 +254,23 @@ class DataWindow(QWidget, Ui_DataWindow):
                 },
                 zorder=5,
             )
+
+    def _style_time_axis(self, ax: Axes, index: pd.Index) -> None:
+        """Grid and day/month tick labels shared by the work-time and project plots."""
+        ax.yaxis.grid(True, lw=1, ls=":", color=self.colors.text, alpha=0.2, zorder=1)
+        ax.xaxis.get_label().set_visible(False)
+
+        if self.plot_month:
+            tick_labels = [day.strftime("%a %d") for day in index]
+            rotation = "vertical"
+        else:
+            tick_labels = [month.strftime("%b") for month in index]
+            rotation = "horizontal"
+        ax.set_xticks(range(len(tick_labels)))
+        ax.set_xticklabels(tick_labels, rotation=rotation)
+        # pin the limits: the adjustment markers on the shared overtime axis otherwise autoscale in extra margin
+        ax.set_xlim(-0.5, len(tick_labels) - 0.5)
+        ax.tick_params(axis="x", which="both", bottom=False, top=False)
 
     def _plot_overtime(self, ax: Axes, df: pd.DataFrame) -> None:
         sns.barplot(
@@ -304,12 +363,11 @@ class DataWindow(QWidget, Ui_DataWindow):
         # only use the save path if it is set
         if CONFIG_HANDLER.config.save_path:
             folder = Path(CONFIG_HANDLER.config.save_path)
-        # Generate Month or Year name for the file
-        if self.plot_month:
-            name = f"{store.current_date.strftime('%Y_%m')}_plot.png"
-        else:
-            name = f"{store.current_date.strftime('%Y')}_plot.png"
-        file_name = folder / name
+        # Generate Month or Year name for the file, with the project when the view is filtered
+        period = store.current_date.strftime("%Y_%m" if self.plot_month else "%Y")
+        project = self.selected_project
+        infix = f"_{re.sub(r'[^\w-]', '_', project)}" if project else ""
+        file_name = folder / f"{period}{infix}_plot.png"
 
         # check if the file already exists, if so, add a suffix until the file is unique
         suffix = 1
@@ -357,10 +415,26 @@ class DataWindow(QWidget, Ui_DataWindow):
 
     def fill_monthly_data(self) -> None:
         UIC.clear_table(self.tableWidget)
-        UIC.set_header_names(self.tableWidget, "Date", "Time (h)")
-        for index, entry in store.df.iterrows():
-            needed_data = [index.strftime("%d/%m/%Y"), str(round(entry["work"], 1))]  # type: ignore
-            UIC.fill_table(self.tableWidget, needed_data)
+        project = self.selected_project
+        UIC.set_header_names(self.tableWidget, "Date", "Time (h)" if project is None else "Booked (h)")
+        if project is None:
+            for index, entry in store.df.iterrows():
+                needed_data = [index.strftime("%d/%m/%Y"), str(round(entry["work"], 1))]  # type: ignore
+                UIC.fill_table(self.tableWidget, needed_data)
+            self._fill_project_sums()
+            return
+        frame = store.get_project_data(self.selected_date)
+        hours = frame[project] if project in frame.columns else pd.Series(0.0, index=frame.index)
+        for index, value in hours.items():
+            UIC.fill_table(self.tableWidget, [index.strftime("%d/%m/%Y"), str(round(value, 1))])  # type: ignore
+        UIC.fill_table(self.tableWidget, [f"Σ {project}", str(round(hours.sum(), 1))])
+
+    def _fill_project_sums(self) -> None:
+        """Month totals per project below the day rows, to compare the projects at a glance."""
+        totals = store.get_project_data(self.selected_date).sum()
+        for project, hours in totals.items():
+            if hours > 0:
+                UIC.fill_table(self.tableWidget, [f"Σ {project}", str(round(hours, 1))])
 
     def fill_daily_data(self) -> None:
         UIC.clear_table(self.tableWidget)
@@ -390,10 +464,11 @@ class DataWindow(QWidget, Ui_DataWindow):
             event_item = self.tableWidget.item(row, 1)
             if datetime_item is None or event_item is None:
                 return None
-            event_datetime = datetime_item.text()
-            if event_datetime == "Pause":
+            try:
+                return EventData(datetime.datetime.fromisoformat(datetime_item.text()), event_item.text())
+            except ValueError:
+                # pause, date and summary rows carry no event timestamp
                 return None
-            return EventData(datetime.datetime.fromisoformat(event_datetime), event_item.text())
         return None
 
     def change_month(self, delta: int) -> None:
@@ -411,8 +486,11 @@ class DataWindow(QWidget, Ui_DataWindow):
         date_item = self.tableWidget.item(row, 0)
         if date_item is None:
             return
-        date = date_item.text()
-        date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
+        try:
+            date = datetime.datetime.strptime(date_item.text(), "%d/%m/%Y").date()
+        except ValueError:
+            # the project summary rows carry no date
+            return
         self.date_edit.setDate(date)
 
 

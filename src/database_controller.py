@@ -126,27 +126,34 @@ class DatabaseController:
             result = session.execute(stmt).scalar_one_or_none()
             return 1 if result else 0
 
-    def get_month_data(self, search_date: datetime.date) -> tuple[list[tuple[str, str]], list[tuple[str, int]]]:
+    def get_month_data(self, search_date: datetime.date) -> tuple[list[tuple[str, str, str]], list[tuple[str, int]]]:
         start = datetime.date(search_date.year, search_date.month, 1)
         end = start + relativedelta(months=+1)
         work = self.get_period_work(start, end)
         pause = self.get_period_pause(start, end)
         return work, pause
 
-    def get_day_data(self, day: datetime.date) -> tuple[list[tuple[str, str]], list[tuple[str, int]]]:
+    def get_day_data(self, day: datetime.date) -> tuple[list[tuple[str, str, str]], list[tuple[str, int]]]:
         start = day
         end = start + relativedelta(days=+1)
         work = self.get_period_work(start, end)
         pause = self.get_period_pause(start, end)
         return work, pause
 
-    def get_period_work(self, start: datetime.date, end: datetime.date) -> list[tuple[str, str]]:
+    def get_period_work(self, start: datetime.date, end: datetime.date) -> list[tuple[str, str, str]]:
         with self.session_scope() as session:
             start_dt = datetime.datetime.combine(start, datetime.time.min)
             end_dt = datetime.datetime.combine(end, datetime.time.min)
             stmt = select(Event).where(Event.date >= start_dt, Event.date < end_dt).order_by(Event.date)
             results = session.execute(stmt).scalars().all()
-            return [(event.date.isoformat(), event.action) for event in results]
+            # events from before the project column existed read as "Default"
+            return [(event.date.isoformat(), event.action, event.project or "Default") for event in results]
+
+    def get_event_projects(self) -> list[str]:
+        """Distinct project names present in the events, sorted alphabetically."""
+        with self.session_scope() as session:
+            stmt = select(Event.project).distinct()
+            return sorted({project or "Default" for project in session.execute(stmt).scalars()})
 
     def get_period_pause(self, start: datetime.date, end: datetime.date) -> list[tuple[str, int]]:
         with self.session_scope() as session:

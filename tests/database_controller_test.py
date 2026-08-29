@@ -12,18 +12,18 @@ class TestController:
         assert len(month_data) > 0
         assert len(pause_data) == 0
         assert len(month_data) > 0
-        assert month_data[2] == ("2025-01-02T06:00:00", "start")
+        assert month_data[2] == ("2025-01-02T06:00:00", "start", "default")
 
     def test_get_day_data(self, db_controller: DatabaseController) -> None:
         day_data, pause_data = db_controller.get_day_data(datetime.date(2025, 1, 3))
         assert len(day_data) > 0
         assert len(pause_data) == 0
-        assert day_data == [("2025-01-03T06:00:00", "start"), ("2025-01-03T14:30:00", "stop")]
+        assert day_data == [("2025-01-03T06:00:00", "start", "default"), ("2025-01-03T14:30:00", "stop", "default")]
 
     def test_get_day_data_limits_to_selected_day(self, db_controller: DatabaseController) -> None:
         selected_day = datetime.date(2025, 1, 2)
         day_data, _ = db_controller.get_day_data(selected_day)
-        day_dates = {datetime.datetime.fromisoformat(ts).date() for ts, _ in day_data}
+        day_dates = {datetime.datetime.fromisoformat(ts).date() for ts, *_ in day_data}
         assert day_dates == {selected_day}
 
     def test_insert_event(self, db_controller: DatabaseController) -> None:
@@ -31,7 +31,7 @@ class TestController:
         db_controller.add_event("start", future_date, "default")
         day_data, _ = db_controller.get_day_data(future_date.date())
         assert any(future_date.isoformat() in item for item in day_data)
-        assert day_data[0] == (future_date.isoformat(), "start")
+        assert day_data[0] == (future_date.isoformat(), "start", "default")
 
     def test_get_last_event_returns_latest_entry(self, db_controller: DatabaseController) -> None:
         earlier_event = datetime.datetime(2026, 1, 6, 8, 0)
@@ -141,9 +141,25 @@ class TestController:
             session.add_all(random_events)
 
         period = db_controller.get_period_work(datetime.date(2030, 5, 1), datetime.date(2030, 5, 2))
-        timestamps = [datetime.datetime.fromisoformat(ts) for ts, _ in period]
+        timestamps = [datetime.datetime.fromisoformat(ts) for ts, *_ in period]
 
         assert timestamps == sorted(event.date for event in random_events)
+
+    def test_get_event_projects_distinct_with_null_as_default(self, db_controller: DatabaseController) -> None:
+        with db_controller.session_scope() as session:
+            session.add(Event(date=datetime.datetime(2030, 6, 1, 8, 0), action="start", project=None))
+            session.add(Event(date=datetime.datetime(2030, 6, 1, 9, 0), action="stop", project="ProjectX"))
+
+        projects = db_controller.get_event_projects()
+        assert projects == sorted(projects)
+        assert {"Default", "ProjectX", "default"} <= set(projects)
+
+    def test_get_period_work_reads_null_project_as_default(self, db_controller: DatabaseController) -> None:
+        with db_controller.session_scope() as session:
+            session.add(Event(date=datetime.datetime(2030, 7, 1, 8, 0), action="start", project=None))
+
+        period = db_controller.get_period_work(datetime.date(2030, 7, 1), datetime.date(2030, 7, 2))
+        assert period == [("2030-07-01T08:00:00", "start", "Default")]
 
     def test_get_period_pause_orders_results(self, db_controller: DatabaseController) -> None:
         random_pauses = [
