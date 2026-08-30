@@ -10,8 +10,12 @@ a = Analysis(
     ["runme.py"],
     pathex=[],
     binaries=[],
-    # alembic loads migrations from a real directory (MIGRATIONS_PATH), so ship them as data
-    datas=[("stempeluhr/migrations", "stempeluhr/migrations")],
+    # alembic loads migrations from a real directory (MIGRATIONS_PATH), so ship them as
+    # data; the icon SVG is read from the package dir at runtime as well
+    datas=[
+        ("stempeluhr/migrations", "stempeluhr/migrations"),
+        ("stempeluhr/ui/stempeluhr.svg", "stempeluhr/ui"),
+    ],
     hiddenimports=["holidays.countries"],
     hookspath=[],
     hooksconfig={},
