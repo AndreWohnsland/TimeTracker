@@ -20,9 +20,9 @@ from dateutil.relativedelta import relativedelta
 from sqlalchemy import create_engine, delete, func, select, update
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
-from src.config_handler import CONFIG_HANDLER
-from src.filepath import DATABASE_PATH
-from src.models import Base, Event, OvertimeAdjustment, Pause, TimeOff, WorkSchedule
+from stempeluhr.config_handler import CONFIG_HANDLER
+from stempeluhr.filepath import DATABASE_PATH
+from stempeluhr.models import Base, Event, OvertimeAdjustment, Pause, TimeOff, WorkSchedule
 
 logger = logging.getLogger(__name__)
 

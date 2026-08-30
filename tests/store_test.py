@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from src.datastore import MonthData, Store
-from src.models import OvertimeAdjustment, WorkSchedule
+from stempeluhr.datastore import MonthData, Store
+from stempeluhr.models import OvertimeAdjustment, WorkSchedule
 
 
 def make_schedule(
@@ -39,7 +39,7 @@ def mock_db_controller() -> MagicMock:
 
 @pytest.fixture
 def store_and_controller(mock_db_controller: MagicMock) -> Generator[tuple[Store, MagicMock]]:
-    with patch("src.datastore.DB_CONTROLLER", mock_db_controller):
+    with patch("stempeluhr.datastore.DB_CONTROLLER", mock_db_controller):
         yield Store(), mock_db_controller
 
 
@@ -79,7 +79,7 @@ def test_get_free_days_with_vacation_and_holiday(store_and_controller: tuple[Sto
     store_instance, mock_db_controller = store_and_controller
     # Simulate vacation and holiday
     mock_db_controller.get_time_off_days.return_value = [datetime.date(2025, 5, 1)]
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_holidays.return_value = [datetime.date(2025, 5, 2)]
         mock_config.config.workdays = [0, 1, 2, 3, 4]
         free_days = store_instance.get_free_days(2025)
@@ -160,7 +160,7 @@ def test_overtime_adjustment_counts_in_totals(store_and_controller: tuple[Store,
     mock_db_controller.get_overtime_adjustments.return_value = [
         OvertimeAdjustment(date=datetime.date(2025, 5, 15), hours=adjustment_hours)
     ]
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_daily_hours_at.return_value = 8.0
         mock_config.config.workdays = [0, 1, 2, 3, 4]
         mock_config.config.get_holidays.return_value = []
@@ -186,7 +186,7 @@ def test_future_overtime_adjustment_is_not_counted(store_and_controller: tuple[S
         [],
     )
     mock_db_controller.get_overtime_adjustments.return_value = [OvertimeAdjustment(date=tomorrow, hours=-20.0)]
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_daily_hours_at.return_value = 8.0
         mock_config.config.workdays = [0, 1, 2, 3, 4]
         mock_config.config.get_holidays.return_value = []
@@ -204,7 +204,7 @@ def test_month_with_only_adjustment_is_not_dropped(store_and_controller: tuple[S
     mock_db_controller.get_overtime_adjustments.return_value = [
         OvertimeAdjustment(date=datetime.date(2025, 6, 10), hours=adjustment_hours)
     ]
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_daily_hours_at.return_value = 8.0
         mock_config.config.workdays = [0, 1, 2, 3, 4]
         mock_config.config.get_holidays.return_value = []
@@ -228,7 +228,7 @@ def test_vacation_day_future_no_work_should_have_zero_work_and_overtime(
     month_first = tomorrow.replace(day=1)
 
     # Mock CONFIG_HANDLER to return 8 hours as daily target
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_daily_hours_at.return_value = daily_target
         mock_config.config.workdays = [0, 1, 2, 3, 4]  # Mon-Fri
         mock_config.config.get_holidays.return_value = []
@@ -289,7 +289,7 @@ def test_vacation_day_past_no_work_has_correct_zero_overtime(
     month_first = yesterday.replace(day=1)
 
     # Mock CONFIG_HANDLER to return 8 hours as daily target
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_daily_hours_at.return_value = daily_target
         mock_config.config.workdays = [0, 1, 2, 3, 4]  # Mon-Fri
         mock_config.config.get_holidays.return_value = []
@@ -347,7 +347,7 @@ def test_schedule_change_keeps_past_target_times(store_and_controller: tuple[Sto
         [("2025-05-02T08:00:00", "start", "Default"), ("2025-05-02T16:00:00", "stop", "Default")],
         [],
     )
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_holidays.return_value = []
         mock_config.config_hash.return_value = 12345
 
@@ -369,7 +369,7 @@ def test_free_day_credit_uses_schedule_of_that_date(store_and_controller: tuple[
     vacation_friday_before = datetime.date(2025, 5, 16)
     vacation_friday_after = datetime.date(2025, 6, 13)
     mock_db_controller.get_time_off_days.return_value = [vacation_friday_before, vacation_friday_after]
-    with patch("src.datastore.CONFIG_HANDLER") as mock_config:
+    with patch("stempeluhr.datastore.CONFIG_HANDLER") as mock_config:
         mock_config.config.get_holidays.return_value = []
         mock_config.config_hash.return_value = 12345
 

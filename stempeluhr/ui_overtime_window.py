@@ -6,15 +6,15 @@ from typing import TYPE_CHECKING
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QListWidgetItem, QPushButton, QSizePolicy, QWidget
 
-from src.database_controller import DB_CONTROLLER
-from src.datastore import store
-from src.icons import get_app_icon, get_preset_icons
-from src.models import OvertimeAdjustment
-from src.ui_controller import UI_CONTROLLER
-from ui import Ui_OvertimeWindow
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.datastore import store
+from stempeluhr.icons import get_app_icon, get_preset_icons
+from stempeluhr.models import OvertimeAdjustment
+from stempeluhr.ui import Ui_OvertimeWindow
+from stempeluhr.ui_controller import UI_CONTROLLER
 
 if TYPE_CHECKING:
-    from src.ui_mainwindow import MainWindow
+    from stempeluhr.ui_mainwindow import MainWindow
 
 
 class OvertimeWindow(QWidget, Ui_OvertimeWindow):

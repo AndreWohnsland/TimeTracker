@@ -19,14 +19,14 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from src.database_controller import DB_CONTROLLER
-from src.datastore import store
-from src.icons import get_app_icon, get_preset_icons
-from src.models import WorkSchedule
-from src.ui_controller import UI_CONTROLLER
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.datastore import store
+from stempeluhr.icons import get_app_icon, get_preset_icons
+from stempeluhr.models import WorkSchedule
+from stempeluhr.ui_controller import UI_CONTROLLER
 
 if TYPE_CHECKING:
-    from src.ui_mainwindow import MainWindow
+    from stempeluhr.ui_mainwindow import MainWindow
 
 DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 

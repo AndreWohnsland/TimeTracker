@@ -1,10 +1,18 @@
 [project]
-name = "time-tracker"
+name = "stempeluhr"
 version = "1.5.1"
-description = "Track your time with Python and Qt"
+description = "Stempeluhr: track your working time with a Qt tray app"
 authors = [{ name = "Andre Wohnsland", email = "50302161+AndreWohnsland@users.noreply.github.com" }]
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.13"
+keywords = ["time-tracking", "work-hours", "overtime", "qt", "tray", "stempeluhr"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 
 dependencies = [
     "alembic>=1.19.1",
@@ -19,7 +27,22 @@ dependencies = [
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.52",
     "pyqtdarktheme-fork>=2.3.6",
+    "typer>=0.27.1",
 ]
+
+[project.urls]
+Repository = "https://github.com/AndreWohnsland/TimeTracker"
+
+[project.scripts]
+stempeluhr = "stempeluhr.main:app"
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = ["stempeluhr"]
+module-root = ""
 
 [dependency-groups]
 dev = [
@@ -32,11 +55,15 @@ dev = [
     "pre-commit>=4.6.2",
 ]
 
+[tool.ty.src]
+# stempeluhr/ui/ holds pyuic6-generated code, same exclusion as ruff
+exclude = ["stempeluhr/ui"]
+
 [tool.ruff]
 target-version = "py313"
 line-length = 120
-# ui/ holds pyuic6-generated code
-exclude = ["ui", "*.ipynb"]
+# stempeluhr/ui/ holds pyuic6-generated code
+exclude = ["stempeluhr/ui", "*.ipynb"]
 
 [tool.ruff.lint]
 extend-safe-fixes = [
@@ -45,7 +72,8 @@ extend-safe-fixes = [
   "D205", # 1 blank line required between summary line and description
   "W291", # Trailing whitespace
 ]
-per-file-ignores = { "runme.py" = ["E402"], "tests/*" = ["PLR2004"] }
+# main.py imports lazily: data prep must run before the GUI modules' import-time singletons
+per-file-ignores = { "stempeluhr/main.py" = ["PLC0415"], "tests/*" = ["PLR2004"] }
 select = [
   "A", # flake8-builtins
   "ANN", # Type annotations

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import qtawesome as qta
 from PyQt6.QtGui import QIcon
 
-from src.utils import get_background_color, get_font_color
+from stempeluhr.utils import get_background_color, get_font_color
 
 
 @dataclass

@@ -7,9 +7,9 @@ import xlsxwriter
 import xlsxwriter.format
 from xlsxwriter.exceptions import XlsxWriterException
 
-from src.config_handler import CONFIG_HANDLER
-from src.database_controller import DB_CONTROLLER
-from src.filepath import REPORTS_PATH
+from stempeluhr.config_handler import CONFIG_HANDLER
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.filepath import REPORTS_PATH
 
 logger = logging.getLogger(__name__)
 

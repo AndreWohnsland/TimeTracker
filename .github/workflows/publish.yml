@@ -1,0 +1,35 @@
+name: Build & publish to PyPI
+run-name: 📦 Publish ${{ github.ref_name }} to PyPI
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-pypi-package:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - name: Set GitHub tag as package version
+        # release tags carry a v prefix (v1.6.0), PEP 440 versions must not
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          uv version "${TAG#v}"
+      - name: Commit and push version
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add pyproject.toml uv.lock
+          git commit -m 'Change version to ${{ github.event.release.tag_name }}' --allow-empty
+          git push origin HEAD:master
+      - name: Build and publish
+        run: |
+          uv build
+          uv publish

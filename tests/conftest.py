@@ -6,15 +6,15 @@ from typing import Any
 
 import pytest
 
-# Isolate tests from the developer's real data: the src modules create their DB/config
-# singletons at import time, so the app paths must be redirected before any src import.
-import src.filepath
+# Isolate tests from the developer's real data: the app modules create their DB/config
+# singletons at import time, so the app paths must be redirected before any app import.
+import stempeluhr.filepath
 
-_TEST_DATA_DIR = Path(tempfile.mkdtemp(prefix="timetracker-tests-"))
-src.filepath.DATABASE_PATH = _TEST_DATA_DIR / "database.db"
-src.filepath.CONFIG_PATH = _TEST_DATA_DIR / "config.json"
+_TEST_DATA_DIR = Path(tempfile.mkdtemp(prefix="stempeluhr-tests-"))
+stempeluhr.filepath.DATABASE_PATH = _TEST_DATA_DIR / "database.db"
+stempeluhr.filepath.CONFIG_PATH = _TEST_DATA_DIR / "config.json"
 
-from src.database_controller import DatabaseController  # noqa: E402
+from stempeluhr.database_controller import DatabaseController  # noqa: E402
 
 
 # Helper to check if a date is a working day (not weekend, not holiday, not vacation)

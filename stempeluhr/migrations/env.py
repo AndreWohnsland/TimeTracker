@@ -5,11 +5,11 @@ from __future__ import annotations
 import os
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from alembic import context
-from src.filepath import DATABASE_PATH
-from src.models import Base
+from stempeluhr.filepath import DATABASE_PATH
+from stempeluhr.models import Base
 
 config = context.config
 

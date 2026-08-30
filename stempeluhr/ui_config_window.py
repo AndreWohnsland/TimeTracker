@@ -7,16 +7,16 @@ import holidays
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDoubleSpinBox, QRadioButton, QWidget
 
-from src.config_handler import CONFIG_HANDLER
-from src.database_controller import DB_CONTROLLER
-from src.datastore import store
-from src.icons import get_app_icon
-from src.models import WorkSchedule
-from src.ui_schedule_window import ScheduleWindow
-from ui import Ui_ConfigWindow
+from stempeluhr.config_handler import CONFIG_HANDLER
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.datastore import store
+from stempeluhr.icons import get_app_icon
+from stempeluhr.models import WorkSchedule
+from stempeluhr.ui import Ui_ConfigWindow
+from stempeluhr.ui_schedule_window import ScheduleWindow
 
 if TYPE_CHECKING:
-    from src.ui_mainwindow import MainWindow
+    from stempeluhr.ui_mainwindow import MainWindow
 
 
 class ConfigWindow(QWidget, Ui_ConfigWindow):

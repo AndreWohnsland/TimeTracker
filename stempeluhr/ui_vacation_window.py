@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QListWidgetItem, QPushButton, QSizePolicy, QWidget
 
-from src.database_controller import DB_CONTROLLER
-from src.icons import get_app_icon, get_preset_icons
-from src.models import TimeOff
-from src.ui_controller import UI_CONTROLLER
-from ui import Ui_VacationWindow
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.icons import get_app_icon, get_preset_icons
+from stempeluhr.models import TimeOff
+from stempeluhr.ui import Ui_VacationWindow
+from stempeluhr.ui_controller import UI_CONTROLLER
 
 if TYPE_CHECKING:
-    from src.ui_mainwindow import MainWindow
+    from stempeluhr.ui_mainwindow import MainWindow
 
 
 class VacationWindow(QWidget, Ui_VacationWindow):

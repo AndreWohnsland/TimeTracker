@@ -18,18 +18,18 @@ from matplotlib.ticker import FuncFormatter
 from PyQt6.QtCore import QDate, QDateTime, Qt
 from PyQt6.QtWidgets import QTableWidgetItem, QWidget
 
-from src.config_handler import CONFIG_HANDLER
-from src.data_exporter import EXPORTER
-from src.database_controller import DB_CONTROLLER
-from src.datastore import store
-from src.filepath import REPORTS_PATH
-from src.icons import get_app_icon
-from src.ui_controller import UI_CONTROLLER as UIC
-from src.utils import get_background_color, get_font_color
-from ui import Ui_DataWindow
+from stempeluhr.config_handler import CONFIG_HANDLER
+from stempeluhr.data_exporter import EXPORTER
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.datastore import store
+from stempeluhr.filepath import REPORTS_PATH
+from stempeluhr.icons import get_app_icon
+from stempeluhr.ui import Ui_DataWindow
+from stempeluhr.ui_controller import UI_CONTROLLER as UIC
+from stempeluhr.utils import get_background_color, get_font_color
 
 if TYPE_CHECKING:
-    from src.ui_mainwindow import MainWindow
+    from stempeluhr.ui_mainwindow import MainWindow
 
 
 logger = logging.getLogger(__name__)
