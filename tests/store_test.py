@@ -282,8 +282,10 @@ def test_vacation_day_past_no_work_has_correct_zero_overtime(
     store_instance, mock_db_controller = store_and_controller
     daily_target = 8.0
 
-    # Get yesterday's date
+    # Most recent past day that is a workday under the mocked Mon-Fri config
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    while yesterday.weekday() > 4:
+        yesterday -= datetime.timedelta(days=1)
     month_first = yesterday.replace(day=1)
 
     # Mock CONFIG_HANDLER to return 8 hours as daily target
