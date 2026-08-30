@@ -1,9 +1,16 @@
 from dataclasses import dataclass
 
 import qtawesome as qta
-from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import QByteArray, Qt
+from PyQt6.QtGui import QIcon, QImage, QPainter, QPixmap
+from PyQt6.QtSvg import QSvgRenderer
 
+from stempeluhr.filepath import PACKAGE_PATH
 from stempeluhr.utils import get_background_color, get_font_color
+
+APP_ICON_SVG = PACKAGE_PATH / "ui" / "stempeluhr.svg"
+# stroke color the SVG is authored with, swapped for the theme color at runtime
+_SVG_SOURCE_COLOR = "#4d5157"
 
 
 @dataclass
@@ -14,7 +21,6 @@ class PresetIconNames:
     stats = "fa5s.chart-line"
     table = "fa5s.table"
     setting = "fa6s.gear"
-    clock = "fa5.clock"
     delete = "fa5.trash-alt"
     edit = "fa5.edit"
 
@@ -38,6 +44,22 @@ def generate_icon(icon_name: str, color: str = "white") -> QIcon:
     return qta.icon(icon_name, color=color)
 
 
+def generate_app_icon(color: str) -> QIcon:
+    """Render the Stempeluhr SVG in the given color at the common icon sizes."""
+    svg = APP_ICON_SVG.read_text().replace(_SVG_SOURCE_COLOR, color)
+    renderer = QSvgRenderer(QByteArray(svg.encode()))
+    icon = QIcon()
+    for size in (16, 24, 32, 48, 64, 128, 256):
+        image = QImage(size, size, QImage.Format.Format_ARGB32)
+        image.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        renderer.render(painter)
+        painter.end()
+        icon.addPixmap(QPixmap.fromImage(image))
+    return icon
+
+
 def get_preset_icons() -> PresetIcon:
     default_color = get_font_color()
     bg_color = get_background_color()
@@ -48,7 +70,7 @@ def get_preset_icons() -> PresetIcon:
         stats=generate_icon(PresetIconNames.stats, "#0F84FF"),
         table=generate_icon(PresetIconNames.table, default_color),
         setting=generate_icon(PresetIconNames.setting, "gray"),
-        clock=generate_icon(PresetIconNames.clock, default_color),
+        clock=generate_app_icon(default_color),
         delete=generate_icon(PresetIconNames.delete, "red"),
         delete_inverted=generate_icon(PresetIconNames.delete, bg_color),
         edit=generate_icon(PresetIconNames.edit, "#0F84FF"),
@@ -57,5 +79,4 @@ def get_preset_icons() -> PresetIcon:
 
 
 def get_app_icon() -> QIcon:
-    default_color = get_font_color()
-    return generate_icon(PresetIconNames.clock, default_color)
+    return generate_app_icon(get_font_color())
