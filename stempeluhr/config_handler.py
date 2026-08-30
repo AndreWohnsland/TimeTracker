@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 import holidays
 
-from src.filepath import CONFIG_PATH
+from stempeluhr.filepath import CONFIG_PATH
 
 # Fill data currently not in the config file,
 # need at least all that config has

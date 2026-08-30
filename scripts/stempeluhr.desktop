@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Stempeluhr
+NoDisplay=false
+Terminal=false
+Exec=/usr/bin/stempeluhr
+Icon=/usr/share/pixmaps/stempeluhr.png

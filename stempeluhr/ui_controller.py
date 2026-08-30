@@ -13,10 +13,10 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from src import __version__
-from src.config_handler import CONFIG_HANDLER
-from src.filepath import HOME_PATH
-from src.icons import get_app_icon
+from stempeluhr import __version__
+from stempeluhr.config_handler import CONFIG_HANDLER
+from stempeluhr.filepath import HOME_PATH
+from stempeluhr.icons import get_app_icon
 
 
 class UiController:

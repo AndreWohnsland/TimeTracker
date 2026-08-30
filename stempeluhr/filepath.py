@@ -2,7 +2,9 @@ import os
 import sys
 from pathlib import Path
 
-APP_NAME = "time_tracker"
+APP_NAME = "stempeluhr"
+# data dir of installs from before the rename to stempeluhr; never migrated
+LEGACY_APP_NAME = "time_tracker"
 
 
 def _sanitize_name(name: str) -> str:
@@ -26,15 +28,14 @@ def get_app_dir(app_name: str = APP_NAME) -> Path:
     return Path(os.environ.get("XDG_CONFIG_HOME", str(Path("~/.config").expanduser()))) / app_name
 
 
-# Root path
+# Repo root for git-based installs (points into site-packages for pip installs)
 ROOT_PATH = Path(__file__).resolve().parents[1]
+PACKAGE_PATH = Path(__file__).resolve().parent
 HOME_PATH = Path.home()
 
-# UI
-UI_PATH = ROOT_PATH / "ui"
-
-# Data folder (app data)
-SAVE_FOLDER = get_app_dir()
+# Data folder (app data): keep the pre-rename dir if it already exists
+_legacy_folder = get_app_dir(LEGACY_APP_NAME)
+SAVE_FOLDER = _legacy_folder if _legacy_folder.exists() else get_app_dir()
 
 # DB
 OLD_DATABASE_PATH = ROOT_PATH / "data" / "timedata.db"
@@ -51,5 +52,4 @@ REPORTS_PATH = SAVE_FOLDER / "reports"
 LOG_FILE_PATH = SAVE_FOLDER / "app.log"
 
 # Alembic
-ALEMBIC_INI_PATH = ROOT_PATH / "alembic.ini"
-ALEMBIC_SCRIPT_PATH = ROOT_PATH / "alembic"
+MIGRATIONS_PATH = PACKAGE_PATH / "migrations"

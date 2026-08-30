@@ -8,8 +8,8 @@ import holidays
 parent_path = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(parent_path))
 
-from src.config_handler import CONFIG_HANDLER  # noqa: E402
-from src.database_controller import DB_CONTROLLER  # noqa: E402
+from stempeluhr.config_handler import CONFIG_HANDLER  # noqa: E402
+from stempeluhr.database_controller import DB_CONTROLLER  # noqa: E402
 
 
 # Helper to check if a date is a working day (not weekend, not holiday, not vacation)

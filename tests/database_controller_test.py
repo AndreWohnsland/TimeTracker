@@ -2,8 +2,8 @@ import datetime
 
 import pytest
 
-from src.database_controller import DatabaseController
-from src.models import Event, Pause, WorkSchedule
+from stempeluhr.database_controller import DatabaseController
+from stempeluhr.models import Event, Pause, WorkSchedule
 
 
 class TestController:

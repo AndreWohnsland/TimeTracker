@@ -4,13 +4,14 @@ from pathlib import Path
 
 # dynamic name passed from CI/CD
 artifact_name = os.getenv("PYI_NAME", "pyi_name_not_set")
-icon_path = str((Path("ui") / "clock.png").resolve())
+icon_path = str((Path("stempeluhr") / "ui" / "clock.png").resolve())
 
 a = Analysis(
     ["runme.py"],
     pathex=[],
     binaries=[],
-    datas=[("alembic.ini", "."), ("alembic", "alembic")],
+    # alembic loads migrations from a real directory (MIGRATIONS_PATH), so ship them as data
+    datas=[("stempeluhr/migrations", "stempeluhr/migrations")],
     hiddenimports=["holidays.countries"],
     hookspath=[],
     hooksconfig={},

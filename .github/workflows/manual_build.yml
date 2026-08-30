@@ -11,11 +11,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: timetracker_latest_ubuntu
+            artifact_name: stempeluhr_latest_ubuntu
           - os: windows-latest
-            artifact_name: timetracker_latest_win.exe
+            artifact_name: stempeluhr_latest_win.exe
           - os: macos-latest
-            artifact_name: timetracker_latest_mac
+            artifact_name: stempeluhr_latest_mac
 
     env:
       PYI_NAME: ${{ matrix.artifact_name }}

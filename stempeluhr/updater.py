@@ -1,6 +1,6 @@
 from git import Repo
 
-from src.filepath import ROOT_PATH
+from stempeluhr.filepath import ROOT_PATH
 
 
 class Updater:

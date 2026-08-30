@@ -151,7 +151,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Time Tracker"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Stempeluhr"))
         self.pause_button.setText(_translate("MainWindow", "Pause"))
         self.stop_button.setText(_translate("MainWindow", "Stop"))
         self.label_project.setText(_translate("MainWindow", "Project:  "))

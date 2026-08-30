@@ -1,4 +1,6 @@
-# Time Tracker
+# Stempeluhr
+
+> *Stempeluhr* (pronounced SHTEM-pel-oor, [ˈʃtɛmpl̩ˌʔuːɐ̯]) is German for *punch clock* — the clock at the factory gate that workers used to stamp their arrival and leaving times onto a time card. This app is that clock, minus the cardboard.
 
 A Qt-Application to start and stop time tracking, enter additional breaks, view your daily and monthly data, and generate a report out of it.
 
@@ -7,10 +9,26 @@ A Qt-Application to start and stop time tracking, enter additional breaks, view 
 
 ## Installation
 
-Usually, the standalone version is the easiest way to get started.
-If you know your way around Python and pip, you can also install the application manually.
+The easiest way is installing from PyPI, otherwise you can use the standalone version.
 
-### A: Standalone Installation
+### A: Install from PyPI (recommended)
+
+The app is published on PyPI as [`stempeluhr`](https://pypi.org/project/stempeluhr/).
+Install it as a tool with [uv](https://docs.astral.sh/uv/getting-started/installation/) (or use `pipx` if you prefer):
+
+```bash
+uv tool install stempeluhr
+stempeluhr
+```
+
+This is especially recommended on macOS, where the standalone binary is not signed and gets blocked by Gatekeeper.
+Update any time with:
+
+```bash
+uv tool upgrade stempeluhr
+```
+
+### B: Standalone Installation
 
 With a new release, there is also a standalone version available.
 You can download the latest release from the [release page](https://github.com/AndreWohnsland/TimeTracker/releases).

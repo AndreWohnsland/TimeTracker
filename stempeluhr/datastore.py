@@ -5,9 +5,9 @@ from dataclasses import dataclass, field
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 
-from src.config_handler import CONFIG_HANDLER
-from src.database_controller import DB_CONTROLLER
-from src.models import WorkSchedule
+from stempeluhr.config_handler import CONFIG_HANDLER
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.models import WorkSchedule
 
 
 @dataclass

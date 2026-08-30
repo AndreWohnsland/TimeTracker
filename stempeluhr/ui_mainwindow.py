@@ -7,18 +7,18 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon
 
-from src.config_handler import CONFIG_HANDLER
-from src.database_controller import DB_CONTROLLER
-from src.icons import get_preset_icons
-from src.ui_config_window import ConfigWindow
-from src.ui_controller import UI_CONTROLLER as UIC
-from src.ui_data_window import DataWindow
-from src.ui_overtime_window import OvertimeWindow
-from src.ui_schedule_window import ScheduleWindow
-from src.ui_vacation_window import VacationWindow
-from src.updater import UPDATER
-from src.utils import open_folder_in_explorer
-from ui import Ui_MainWindow
+from stempeluhr.config_handler import CONFIG_HANDLER
+from stempeluhr.database_controller import DB_CONTROLLER
+from stempeluhr.icons import get_preset_icons
+from stempeluhr.ui import Ui_MainWindow
+from stempeluhr.ui_config_window import ConfigWindow
+from stempeluhr.ui_controller import UI_CONTROLLER as UIC
+from stempeluhr.ui_data_window import DataWindow
+from stempeluhr.ui_overtime_window import OvertimeWindow
+from stempeluhr.ui_schedule_window import ScheduleWindow
+from stempeluhr.ui_vacation_window import VacationWindow
+from stempeluhr.updater import UPDATER
+from stempeluhr.utils import open_folder_in_explorer
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set the tray
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon(self.clock_icon))
-        self.tray_icon.setToolTip("Time Tracker")
+        self.tray_icon.setToolTip("Stempeluhr")
         self.tray_icon.show()
         self.tray_icon.activated.connect(self.handle_tray_click)
         tray_menu = QMenu(self)
@@ -114,6 +114,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_configuration.triggered.connect(self.show_config_window)
         self.action_report.triggered.connect(self.show_data_window)
         self.action_save_folder.triggered.connect(UIC.get_save_folder)
+        # TODO: updater only works for git-clone installs; hidden until it handles pip/exe installs
+        self.action_update.setVisible(False)
         self.action_update.triggered.connect(self.get_updates)
         self.action_past_entry.triggered.connect(self.show_ui_elements)
         self.action_about.triggered.connect(UIC.display_about)

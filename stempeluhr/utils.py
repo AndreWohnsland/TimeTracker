@@ -6,23 +6,24 @@ import subprocess
 from pathlib import Path
 
 import qdarktheme
+from alembic import command
 from alembic.config import Config
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import QApplication
+from sqlalchemy import create_engine, inspect
 
-from alembic import command
-from src.filepath import (
-    ALEMBIC_INI_PATH,
-    ALEMBIC_SCRIPT_PATH,
+from stempeluhr.filepath import (
     CONFIG_PATH,
     DATABASE_PATH,
     LOG_FILE_PATH,
+    MIGRATIONS_PATH,
     OLD_CONFIG_PATH,
     OLD_DATABASE_PATH,
     REPORTS_PATH,
     SAVE_FOLDER,
 )
+from stempeluhr.models import Base
 
 logger = logging.getLogger(__name__)
 
@@ -122,8 +123,17 @@ def setup_logging(log_file_path: Path = LOG_FILE_PATH) -> None:
 
 def run_db_migrations() -> None:
     """Run the alembic migrations to update the database schema."""
-    alembic_cfg = Config(str(ALEMBIC_INI_PATH))
+    db_url = f"sqlite:///{DATABASE_PATH}"
+    # no ini file: everything alembic needs at runtime is set programmatically
+    alembic_cfg = Config()
     alembic_cfg.attributes["configure_logger"] = False
-    alembic_cfg.set_main_option("script_location", str(ALEMBIC_SCRIPT_PATH))
-    alembic_cfg.set_main_option("sqlalchemy.url", f"sqlite:///{DATABASE_PATH}")
+    alembic_cfg.set_main_option("script_location", str(MIGRATIONS_PATH))
+    alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+    # the migration chain starts from the pre-alembic schema, so it cannot build a
+    # fresh database: create the current schema directly and mark it as up to date
+    engine = create_engine(db_url)
+    if not inspect(engine).has_table("Events"):
+        Base.metadata.create_all(engine)
+        command.stamp(alembic_cfg, "head")
+        return
     command.upgrade(alembic_cfg, "head")

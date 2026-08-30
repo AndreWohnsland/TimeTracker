@@ -1,8 +1,8 @@
 #!/bin/bash
 # installer script for the application
 # mostly used for linux os
-# desktop at: https://github.com/AndreWohnsland/TimeTracker/blob/master/scripts/timetracker.desktop
-# icon at: https://github.com/AndreWohnsland/TimeTracker/blob/master/ui/clock.png
+# desktop at: https://github.com/AndreWohnsland/TimeTracker/blob/master/scripts/stempeluhr.desktop
+# icon at: https://github.com/AndreWohnsland/TimeTracker/blob/master/stempeluhr/ui/clock.png
 
 # retuns the latest release tag
 get_latest_release_tag() {
@@ -16,15 +16,15 @@ get_latest_release_tag() {
 
 # download the latest release for the corresponding os
 download_latest_release() {
-  sudo curl -L -o /usr/bin/timetracker https://github.com/AndreWohnsland/TimeTracker/releases/latest/download/timetracker_ubuntu
-  sudo curl -o /usr/share/pixmaps/timetracker.png https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/ui/clock.png
-  sudo curl -o /usr/share/applications/timetracker.desktop https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/scripts/timetracker.desktop
+  sudo curl -L -o /usr/bin/stempeluhr https://github.com/AndreWohnsland/TimeTracker/releases/latest/download/stempeluhr_ubuntu
+  sudo curl -o /usr/share/pixmaps/stempeluhr.png https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/stempeluhr/ui/clock.png
+  sudo curl -o /usr/share/applications/stempeluhr.desktop https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/scripts/stempeluhr.desktop
 }
 
 # install the application
 install() {
   download_latest_release
-  sudo chmod +x /usr/bin/timetracker
+  sudo chmod +x /usr/bin/stempeluhr
 }
 
 # execute the installer
