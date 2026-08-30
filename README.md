@@ -4,8 +4,8 @@
 
 A Qt-Application to start and stop time tracking, enter additional breaks, view your daily and monthly data, and generate a report out of it.
 
-![mainwindow](./doc/mainwindow.PNG 'mainwindow')
-![report](./doc/report.PNG 'report')
+![mainwindow](https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/doc/mainwindow.PNG 'mainwindow')
+![report](https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/doc/report.PNG 'report')
 
 ## Installation
 
@@ -97,7 +97,7 @@ Over the spin box you can select the pause time and submit them with the `Pause`
 It is also possible to enter negative Pause to correct previous mistakes.
 You can also start and stop over the tray icon in the taskbar.
 
-![settings](./doc/options.PNG 'settings')
+![settings](https://raw.githubusercontent.com/AndreWohnsland/TimeTracker/master/doc/options.PNG 'settings')
 
 ## Reports
 
