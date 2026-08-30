@@ -215,7 +215,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             label_text = "No Events Recorded"
         else:
             timestamp = last_event.date.strftime("%Y/%m/%d %H:%M")
-            label_text = f"{last_event.project} | {timestamp} | {last_event.action.capitalize()}"
+            project = last_event.project or "Default"
+            label_text = f"{project} | {timestamp} | {last_event.action.capitalize()}"
 
         self.label_last_event.setText(label_text)
 

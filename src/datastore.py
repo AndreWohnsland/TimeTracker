@@ -1,4 +1,5 @@
 import datetime
+import itertools
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -90,6 +91,33 @@ class Store:
         year_data_df.index = year_data_df.index.to_period("M")
         return year_data_df
 
+    def get_project_data(self, selected_date: datetime.date, whole_year: bool = False) -> pd.DataFrame:
+        """Booked hours per Project: day x project for the month, month x project for the year.
+
+        Computed on demand from the raw events (see ADR 0002); pause, target and
+        overtime do not exist at this grain. Projects without time show as 0.0.
+        """
+        if whole_year:
+            start = datetime.date(selected_date.year, 1, 1)
+            end = datetime.date(selected_date.year + 1, 1, 1)
+            full_index = pd.date_range(start, periods=12, freq="MS")
+        else:
+            start = selected_date.replace(day=1)
+            end = start + relativedelta(months=+1)
+            full_index = pd.date_range(start, end - datetime.timedelta(days=1), freq="D")
+        work_data = DB_CONTROLLER.get_period_work(start, end)
+        events = [(datetime.datetime.fromisoformat(time), action, project) for time, action, project in work_data]
+        rows = []
+        for day, day_events in itertools.groupby(events, key=lambda event: event[0].date()):
+            key = day.replace(day=1) if whole_year else day
+            for interval_start, interval_end, project in _resolve_intervals(list(day_events)):
+                rows.append((pd.Timestamp(key), project, (interval_end - interval_start).total_seconds() / 3600))
+        frame = pd.DataFrame(rows, columns=["day", "project", "hours"])
+        if frame.empty:
+            return pd.DataFrame(index=full_index)
+        pivot = frame.pivot_table(index="day", columns="project", values="hours", aggfunc="sum")
+        return pivot.reindex(full_index).fillna(0.0).round(2)
+
     def get_month_targets(self, month: datetime.date) -> list[float]:
         """Daily target hours for the month; all zeros if the month predates all tracked data.
 
@@ -106,9 +134,10 @@ class Store:
 
     def generate_daily_data(self, selected_date: datetime.date) -> None:
         day_work, day_pause = DB_CONTROLLER.get_day_data(selected_date)
+        daily = [(time, f"{action} ({project})") for time, action, project in day_work]
         if day_pause:
-            day_work.append(("Pause", str(day_pause[0][1])))
-        self.daily_data = day_work
+            daily.append(("Pause", str(day_pause[0][1])))
+        self.daily_data = daily
 
     def generate_month_data(self, selected_date: datetime.date) -> MonthData:
         work_data, pause_data = DB_CONTROLLER.get_month_data(selected_date)
@@ -136,7 +165,7 @@ class Store:
 
     def _generate_month_report(  # noqa: PLR0913, PLR0917
         self,
-        work_data: list[tuple[str, str]],
+        work_data: list[tuple[str, str, str]],
         selected_date: datetime.date,
         free_days: list[datetime.date],
         pause_data: list[tuple[str, int]],
@@ -144,7 +173,7 @@ class Store:
         schedules: list[WorkSchedule],
     ) -> pd.DataFrame:
         """Generate the complete monthly report DataFrame with all columns."""
-        work_df = pd.DataFrame(work_data, columns=["datetime", "event"])
+        work_df = pd.DataFrame(work_data, columns=["datetime", "event", "project"])
         # not using .apply here, it would leave an empty frame (adjustment-only month) as non-datetime dtype
         work_df["datetime"] = pd.to_datetime(work_df["datetime"])
         work_df["time"] = work_df["datetime"].dt.time
@@ -206,56 +235,13 @@ class Store:
     def _calculate_day_time_with_times(
         self, df: pd.DataFrame
     ) -> tuple[float, datetime.time | None, datetime.time | None]:
-        """Calculate the total work time for a day, along with the start and end times.
-
-        Args:
-            df (pd.DataFrame): DataFrame containing work log entries for a specific day.
-
-        Returns:
-            tuple[float, datetime.time | None, datetime.time | None]: A tuple containing the total work time in minutes,
-            the earliest start time, and the latest end time.
-
-        """
-        if df.empty:
+        """Calculate the total work time in minutes for a day, along with the start and end times."""
+        events = list(df[["datetime", "event", "project"]].itertuples(index=False, name=None))
+        intervals = _resolve_intervals(events)
+        if not intervals:
             return 0.0, None, None
-
-        total_time = datetime.timedelta()
-        start_found = False
-        earliest_start = None
-        latest_end = None
-
-        for _, row in df.iterrows():
-            if not start_found and row["event"] == "start":
-                start_found = True
-                start_time: datetime.datetime = row["datetime"]
-                if earliest_start is None:
-                    earliest_start = start_time.time()
-            elif start_found and row["event"] == "stop":
-                start_found = False
-                end_time: datetime.datetime = row["datetime"]
-                latest_end = end_time.time()
-                total_time += row["datetime"] - start_time
-
-        # check if a start was found, but no stop, in this case, either the user forgot to stop the clock or the
-        # day is currently ongoing (date = today)
-        if not start_found:
-            return round(total_time.seconds / 60, 2), earliest_start, latest_end
-
-        # check for today.
-        today = datetime.date.today()
-        # check if start clock is the same day as today
-        if df.iloc[0]["date"] == today:
-            current_time = datetime.datetime.now()
-            total_time += current_time - start_time
-            latest_end = current_time.time()
-        # else, use the midnight of this day as end
-        else:
-            next_day = start_time + datetime.timedelta(days=1)
-            end_of_day = datetime.datetime.combine(next_day, datetime.time.min)
-            total_time += end_of_day - start_time
-            latest_end = end_of_day.time()
-
-        return round(total_time.seconds / 60, 2), earliest_start, latest_end
+        total_time = sum((end - start).total_seconds() for start, end, _ in intervals)
+        return round(total_time / 60, 2), intervals[0][0].time(), intervals[-1][1].time()
 
     def is_current_month(self, date: datetime.date) -> bool:
         now = datetime.date.today()
@@ -282,6 +268,39 @@ class Store:
     def force_overtime_recalculation(self) -> None:
         """Make the next update_data bypass the recalculation throttle (e.g. after an adjustment change)."""
         self.last_overtime_calculation = datetime.datetime.min
+
+
+def _resolve_intervals(
+    events: list[tuple[datetime.datetime, str, str]],
+) -> list[tuple[datetime.datetime, datetime.datetime, str]]:
+    """Resolve one day's events into (start, end, project) work intervals.
+
+    A start ends an open interval of another project (Project Switch, see ADR 0002);
+    a repeated start on the same project and a stop without an open interval are
+    ignored. An interval still open at the end runs until now (today) or midnight
+    (the user forgot to stop on a past day).
+    """
+    intervals = []
+    open_start: datetime.datetime | None = None
+    open_project = ""
+    for event_time, action, project in events:
+        if action == "start":
+            if open_start is None:
+                open_start, open_project = event_time, project
+            # a repeated start on the same project does not end the interval
+            elif project != open_project:
+                intervals.append((open_start, event_time, open_project))
+                open_start, open_project = event_time, project
+        elif action == "stop" and open_start is not None:
+            intervals.append((open_start, event_time, open_project))
+            open_start = None
+    if open_start is not None:
+        end_of_day = datetime.datetime.combine(open_start.date() + datetime.timedelta(days=1), datetime.time.min)
+        cap = datetime.datetime.now() if open_start.date() == datetime.date.today() else end_of_day
+        # a start booked ahead of now has no elapsed time yet
+        if cap > open_start:
+            intervals.append((open_start, cap, open_project))
+    return intervals
 
 
 def _calculate_break_time(row: pd.Series) -> float:

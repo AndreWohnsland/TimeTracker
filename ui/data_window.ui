@@ -322,6 +322,27 @@
         </spacer>
        </item>
        <item>
+        <widget class="QComboBox" name="project_selector">
+         <property name="minimumSize">
+          <size>
+           <width>150</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>300</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="save_button">
          <property name="maximumSize">
           <size>
