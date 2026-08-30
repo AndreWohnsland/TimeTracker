@@ -1,6 +1,6 @@
 [project]
 name = "stempeluhr"
-version = "1.5.1"
+version = "1.6.0"
 description = "Stempeluhr: track your working time with a Qt tray app"
 authors = [{ name = "Andre Wohnsland", email = "50302161+AndreWohnsland@users.noreply.github.com" }]
 readme = "README.md"
