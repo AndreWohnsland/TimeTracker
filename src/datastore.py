@@ -284,11 +284,13 @@ def _resolve_intervals(
     open_start: datetime.datetime | None = None
     open_project = ""
     for event_time, action, project in events:
-        if action == "start" and open_start is None:
-            open_start, open_project = event_time, project
-        elif action == "start" and project != open_project:
-            intervals.append((open_start, event_time, open_project))
-            open_start, open_project = event_time, project
+        if action == "start":
+            if open_start is None:
+                open_start, open_project = event_time, project
+            # a repeated start on the same project does not end the interval
+            elif project != open_project:
+                intervals.append((open_start, event_time, open_project))
+                open_start, open_project = event_time, project
         elif action == "stop" and open_start is not None:
             intervals.append((open_start, event_time, open_project))
             open_start = None
