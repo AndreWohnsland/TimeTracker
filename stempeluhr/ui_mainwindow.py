@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon
 
 from stempeluhr.config_handler import CONFIG_HANDLER
 from stempeluhr.database_controller import DB_CONTROLLER
-from stempeluhr.icons import get_preset_icons
+from stempeluhr.icons import get_preset_icons, get_tray_icon
 from stempeluhr.ui import Ui_MainWindow
 from stempeluhr.ui_config_window import ConfigWindow
 from stempeluhr.ui_controller import UI_CONTROLLER as UIC
@@ -211,16 +211,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_other_windows()
 
     def update_last_event_label(self) -> None:
-        """Refresh the last-event label with the latest stored event."""
+        """Refresh the last-event label and tray status with the latest stored event."""
         last_event = DB_CONTROLLER.get_last_event()
         if last_event is None:
             label_text = "No Events Recorded"
+            tooltip = "Stempeluhr"
         else:
             timestamp = last_event.date.strftime("%Y/%m/%d %H:%M")
             project = last_event.project or "Default"
             label_text = f"{project} | {timestamp} | {last_event.action.capitalize()}"
+            tooltip = f"Stempeluhr - {last_event.action.capitalize()} {timestamp}"
 
         self.label_last_event.setText(label_text)
+        # set_tray may skip creation when another instance already owns the tray
+        if hasattr(self, "tray_icon"):
+            self.tray_icon.setIcon(get_tray_icon(last_event.action if last_event else None))
+            self.tray_icon.setToolTip(tooltip)
 
     def get_updates(self) -> None:
         """Ask the user if they want to update and then update."""
