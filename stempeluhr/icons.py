@@ -44,10 +44,18 @@ def generate_icon(icon_name: str, color: str = "white") -> QIcon:
     return qta.icon(icon_name, color=color)
 
 
-def generate_app_icon(color: str) -> QIcon:
-    """Render the Stempeluhr SVG in the given color at the common icon sizes."""
+# solid glyphs (not the menu's pause-circle) so the badge stays legible at tray size
+_BADGE_ICONS = {"start": ("fa5s.play", "green"), "stop": ("fa5s.pause", "orange")}
+
+
+def generate_app_icon(color: str, badge: str | None = None) -> QIcon:
+    """Render the Stempeluhr SVG in the given color at the common icon sizes.
+
+    With badge ("start"/"stop"), overlay the matching glyph in the bottom-left corner.
+    """
     svg = APP_ICON_SVG.read_text().replace(_SVG_SOURCE_COLOR, color)
     renderer = QSvgRenderer(QByteArray(svg.encode()))
+    badge_icon = generate_icon(*_BADGE_ICONS[badge]) if badge in _BADGE_ICONS else None
     icon = QIcon()
     for size in (16, 24, 32, 48, 64, 128, 256):
         image = QImage(size, size, QImage.Format.Format_ARGB32)
@@ -55,9 +63,17 @@ def generate_app_icon(color: str) -> QIcon:
         painter = QPainter(image)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         renderer.render(painter)
+        if badge_icon is not None:
+            badge_size = size // 2
+            painter.drawPixmap(0, size - badge_size, badge_icon.pixmap(badge_size, badge_size))
         painter.end()
         icon.addPixmap(QPixmap.fromImage(image))
     return icon
+
+
+def get_tray_icon(last_action: str | None) -> QIcon:
+    """App icon mirroring the last event as a corner badge."""
+    return generate_app_icon(get_font_color(), badge=last_action)
 
 
 def get_preset_icons() -> PresetIcon:
